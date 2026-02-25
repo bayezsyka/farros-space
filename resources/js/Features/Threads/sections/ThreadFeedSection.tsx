@@ -15,6 +15,8 @@ interface Thread {
     shares_count: number;
     tags: string | null;
     created_at: string;
+    allow_comments: boolean;
+    comments_count: number;
 }
 
 interface ThreadFeedSectionProps {
@@ -32,19 +34,6 @@ export const ThreadFeedSection = ({ threads, profile }: ThreadFeedSectionProps) 
     return (
         <Section id="threads-feed" spacing="lg">
             <Container className="max-w-2xl px-0 border-x border-border/50 bg-background min-h-screen">
-                <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/50 px-4 py-3">
-                    <Typography variant="h3" className="text-xl font-bold border-none pb-0">Beranda</Typography>
-                </div>
-
-                <div className="px-2 py-4 border-b border-border/50">
-                    <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0" />
-                        <div className="flex-grow pt-2">
-                            <Typography variant="muted" className="text-[15px]">Apa yang Anda pikirkan?</Typography>
-                        </div>
-                    </div>
-                </div>
-
                 {threads.length > 0 ? (
                     <div className="space-y-0">
                         <div className="divide-y divide-border/50">

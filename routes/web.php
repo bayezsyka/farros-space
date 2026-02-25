@@ -13,13 +13,10 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/threads/{thread}/like', [App\Http\Controllers\Api\ThreadInteractionController::class, 'like'])->name('threads.like');
 Route::post('/threads/{thread}/share', [App\Http\Controllers\Api\ThreadInteractionController::class, 'share'])->name('threads.share');
 
-Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback']);
-
 Route::get('/threads/{thread}/comments', [App\Http\Controllers\Api\ThreadCommentController::class, 'index'])->name('threads.comments.index');
 Route::post('/threads/{thread}/comments', [App\Http\Controllers\Api\ThreadCommentController::class, 'store'])->name('threads.comments.store');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard', [
             'threadCount' => \App\Models\ThreadPost::count(),
@@ -32,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/threads', [App\Http\Controllers\Dashboard\ThreadController::class, 'store'])->name('dashboard.threads.store');
         Route::put('/threads/{thread}', [App\Http\Controllers\Dashboard\ThreadController::class, 'update'])->name('dashboard.threads.update');
         Route::delete('/threads/{thread}', [App\Http\Controllers\Dashboard\ThreadController::class, 'destroy'])->name('dashboard.threads.destroy');
+
+        Route::delete('/comments/{comment}', [App\Http\Controllers\Api\ThreadCommentController::class, 'destroy'])->name('dashboard.comments.destroy');
 
         Route::get('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'index'])->name('dashboard.biodata');
         Route::put('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'update'])->name('dashboard.biodata.update');

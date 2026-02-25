@@ -32,4 +32,16 @@ class ThreadCommentController extends Controller
 
         return $comment->load('user');
     }
+
+    public function destroy(ThreadComment $comment)
+    {
+        // Route is protected by dashboard middleware, but let's be safe
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted']);
+    }
 }

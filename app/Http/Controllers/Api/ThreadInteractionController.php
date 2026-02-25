@@ -25,13 +25,17 @@ class ThreadInteractionController extends Controller
     {
         $ip = $request->ip();
         $sessionId = $request->session()->getId();
+        $userId = auth()->id();
 
         // Check if already interacted
         $existing = ThreadInteraction::where('thread_post_id', $thread->id)
             ->where('interaction_type', $type)
-            ->where(function ($query) use ($ip, $sessionId) {
+            ->where(function ($query) use ($ip, $sessionId, $userId) {
                 $query->where('ip_address', $ip)
                     ->orWhere('session_id', $sessionId);
+                if ($userId) {
+                    $query->orWhere('user_id', $userId);
+                }
             })
             ->first();
 
@@ -41,17 +45,18 @@ class ThreadInteractionController extends Controller
             $thread->decrement($type . 's_count');
             return response()->json([
                 'status' => 'unliked',
-                'count' => $thread->fresh()->likes_count
+                'count' => (int) $thread->fresh()->likes_count
             ]);
         }
 
         if (!$existing) {
-            DB::transaction(function () use ($thread, $type, $ip, $sessionId) {
+            DB::transaction(function () use ($thread, $type, $ip, $sessionId, $userId) {
                 ThreadInteraction::create([
                     'thread_post_id' => $thread->id,
                     'interaction_type' => $type,
                     'ip_address' => $ip,
                     'session_id' => $sessionId,
+                    'user_id' => $userId,
                 ]);
 
                 $thread->increment($type . 's_count');
@@ -60,7 +65,7 @@ class ThreadInteractionController extends Controller
 
         return response()->json([
             'status' => $type . 'd',
-            'count' => $thread->fresh()->getAttribute($type . 's_count')
+            'count' => (int) $thread->fresh()->getAttribute($type . 's_count')
         ]);
     }
 }

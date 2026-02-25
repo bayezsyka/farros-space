@@ -14,10 +14,12 @@ class ProfileSeeder extends Seeder
     public function run(): void
     {
         // Add Admin User
-        \App\Models\User::create([
-            'name' => 'Admin',
-            'email' => 'a@a.com',
+        \App\Models\User::updateOrCreate([
+            'email' => 'farrosy6@gmail.com',
+        ], [
+            'name' => 'Farros',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'is_admin' => true,
         ]);
 
         SiteProfile::create([

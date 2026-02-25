@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { PageProps } from '@/types';
 import { Card, CardContent } from '@/Components/ui/Card';
 import { Typography } from '@/Components/ui/Typography';
 import { Badge } from '@/Components/ui/Badge';
-import { Heart, MessageCircle, Repeat2, Send, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import axios from 'axios';
@@ -17,6 +19,8 @@ interface Thread {
     shares_count: number;
     tags: string | null;
     created_at: string;
+    allow_comments: boolean;
+    comments_count: number;
 }
 
 interface ThreadCardProps {
@@ -25,6 +29,8 @@ interface ThreadCardProps {
 }
 
 export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
+    const { auth } = usePage<PageProps>().props;
+    const user = auth.user;
     const [likes, setLikes] = useState(thread.likes_count);
     const [isLiked, setIsLiked] = useState(false);
     const [showComments, setShowComments] = useState(false);
@@ -56,6 +62,8 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
     };
 
     const toggleComments = async () => {
+        if (!thread.allow_comments) return;
+
         if (!showComments && comments.length === 0) {
             try {
                 const response = await axios.get(route('threads.comments.index', thread.id));
@@ -128,9 +136,6 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                                 {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: id }) : 'baru saja'}
                             </span>
                         </div>
-                        <button className="text-muted-foreground hover:bg-muted p-1.5 rounded-full transition-colors">
-                            <MoreHorizontal className="w-5 h-5" />
-                        </button>
                     </div>
 
                     {/* Content */}
@@ -158,12 +163,18 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                             </div>
                             {likes > 0 && <span className="text-xs font-medium">{likes}</span>}
                         </button>
-                        <button className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-500 group transition-colors" onClick={toggleComments}>
-                            <div className={cn("p-2 rounded-full group-hover:bg-blue-500/10 transition-colors", showComments && "text-blue-500")}>
-                                <MessageCircle className="w-[18px] h-[18px]" />
-                            </div>
-                            {comments.length > 0 && <span className="text-xs font-medium">{comments.length}</span>}
-                        </button>
+                        {thread.allow_comments && (
+                            <button className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-500 group transition-colors" onClick={toggleComments}>
+                                <div className={cn("p-2 rounded-full group-hover:bg-blue-500/10 transition-colors", showComments && "text-blue-500")}>
+                                    <MessageCircle className="w-[18px] h-[18px]" />
+                                </div>
+                                {(comments.length > 0 ? comments.length : thread.comments_count) > 0 && (
+                                    <span className="text-xs font-medium">
+                                        {comments.length > 0 ? comments.length : thread.comments_count}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         <button className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-400 group transition-colors" onClick={handleShare}>
                             <div className="p-2 rounded-full group-hover:bg-blue-400/10 transition-colors">
                                 <Send className="w-[18px] h-[18px]" />
@@ -172,40 +183,63 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                     </div>
 
                     {/* Comments Section */}
-                    {showComments && (
+                    {showComments && thread.allow_comments && (
                         <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <form onSubmit={submitComment} className="flex gap-3">
+                            {/* Comment Input */}
+                            <div className="flex gap-3">
                                 <div className="w-8 h-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                                    {(window as any).Inertia?.page?.props?.auth?.user?.avatar ? (
-                                        <img src={(window as any).Inertia.page.props.auth.user.avatar} className="w-full h-full object-cover" />
+                                    {user?.avatar ? (
+                                        <img src={user.avatar} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-[10px] font-bold">U</div>
+                                        <div className="w-full h-full flex items-center justify-center text-[10px] font-bold bg-zinc-100 text-zinc-400">
+                                            {user ? user.name.charAt(0) : 'U'}
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex-grow flex flex-col gap-2">
-                                    <textarea
-                                        value={newComment}
-                                        onChange={(e) => setNewComment(e.target.value)}
-                                        placeholder="Tulis komentar..."
-                                        className="w-full bg-transparent border-none focus:ring-0 text-[14px] p-0 min-h-[20px] resize-none"
-                                        rows={1}
-                                        onInput={(e) => {
-                                            const target = e.target as HTMLTextAreaElement;
-                                            target.style.height = 'auto';
-                                            target.style.height = target.scrollHeight + 'px';
-                                        }}
-                                    />
-                                    <div className="flex justify-end">
-                                        <button 
-                                            type="submit"
-                                            disabled={!newComment.trim() || isSubmittingComment}
-                                            className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full disabled:opacity-50"
-                                        >
-                                            Reply
-                                        </button>
-                                    </div>
+                                    {user ? (
+                                        <form onSubmit={submitComment}>
+                                            <textarea
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value)}
+                                                placeholder="Tulis komentar..."
+                                                className="w-full bg-transparent border-none focus:ring-0 text-[14px] p-0 min-h-[20px] resize-none"
+                                                rows={1}
+                                                onInput={(e) => {
+                                                    const target = e.target as HTMLTextAreaElement;
+                                                    target.style.height = 'auto';
+                                                    target.style.height = target.scrollHeight + 'px';
+                                                }}
+                                            />
+                                            <div className="flex justify-end mt-2">
+                                                <button 
+                                                    type="submit"
+                                                    disabled={!newComment.trim() || isSubmittingComment}
+                                                    className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full disabled:opacity-50"
+                                                >
+                                                    Balas
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-6 px-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 gap-3">
+                                            <p className="text-[14px] text-zinc-500 font-medium">Masuk untuk memberikan komentar</p>
+                                            <a 
+                                                href={route('auth.google', { redirect: window.location.href })}
+                                                className="flex items-center gap-3 bg-white border border-zinc-200 px-6 py-2.5 rounded-full text-[13px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
+                                            >
+                                                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                                    <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05"/>
+                                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                                </svg>
+                                                Lanjutkan dengan Google
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
-                            </form>
+                            </div>
 
                             <div className="space-y-4 pt-2 divide-y divide-border/50">
                                 {comments.map((comment) => (

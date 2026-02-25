@@ -16,12 +16,14 @@ class ThreadController extends Controller
 {
     public function index(): Response
     {
-        $threads = ThreadPost::orderBy('created_at', 'desc')
+        $threads = ThreadPost::withCount('comments')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($thread) => ThreadPostData::fromModel($thread)->toArray());
 
         return Inertia::render('Dashboard/Threads/Index', [
             'threads' => $threads,
+            'profile' => \App\Models\SiteProfile::first(),
         ]);
     }
 
@@ -31,6 +33,7 @@ class ThreadController extends Controller
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
             'visibility' => 'required|in:public,private',
+            'allow_comments' => 'nullable|boolean',
             'tags' => 'nullable|string',
             'image' => 'nullable|image|max:2048', // 2MB max
         ]);
@@ -51,6 +54,7 @@ class ThreadController extends Controller
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
             'visibility' => 'required|in:public,private',
+            'allow_comments' => 'nullable|boolean',
             'tags' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
         ]);

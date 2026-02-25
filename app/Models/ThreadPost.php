@@ -18,6 +18,7 @@ class ThreadPost extends Model
         'likes_count',
         'shares_count',
         'visibility',
+        'allow_comments',
         'tags',
         'published_at',
     ];
@@ -26,6 +27,7 @@ class ThreadPost extends Model
         'published_at' => 'datetime',
         'likes_count' => 'integer',
         'shares_count' => 'integer',
+        'allow_comments' => 'boolean',
     ];
 
     public function interactions()

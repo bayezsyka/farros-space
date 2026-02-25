@@ -24,7 +24,7 @@ export const Typography = ({
         muted: 'text-sm text-muted-foreground',
     };
 
-    const Tag = Component || (['h1', 'h2', 'h3', 'h4', 'p'].includes(variant) ? variant : 'p');
+    const Tag = (Component || (['h1', 'h2', 'h3', 'h4', 'p'].includes(variant) ? variant : 'p')) as React.ElementType;
 
     return (
         <Tag
