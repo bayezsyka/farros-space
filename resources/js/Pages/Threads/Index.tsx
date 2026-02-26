@@ -49,33 +49,33 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
 
     return (
         <AppLayout title="Threads">
-            <Section id="all-threads" spacing="lg">
-                <Container className="max-w-3xl px-4">
+            <Section id="all-threads" spacing="none" className="py-6 sm:py-10 md:py-16 lg:py-20">
+                <Container className="max-w-3xl px-4 sm:px-6">
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-8">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
                         <Link 
                             href={route('landing')} 
-                            className="p-2 rounded-full hover:bg-zinc-100 transition-colors"
+                            className="p-1.5 sm:p-2 rounded-full hover:bg-zinc-100 transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </Link>
                         <div>
-                            <Typography variant="h2" className="text-2xl font-bold flex items-center gap-2">
-                                <MessageSquare className="w-6 h-6 text-primary" />
+                            <Typography variant="h2" className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                                 Semua Threads
                             </Typography>
-                            <Typography variant="small" className="text-muted-foreground mt-1">
+                            <Typography variant="small" className="text-muted-foreground mt-0.5 sm:mt-1 text-xs sm:text-sm">
                                 Thread dari semua orang
                             </Typography>
                         </div>
                     </div>
 
                     {/* Public Thread Input Form */}
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden mb-6">
-                        <div className="p-4 border-b border-border/50 bg-zinc-50/50">
-                            <Typography variant="h3" className="text-[16px] font-bold">Berbagi cerita kamu</Typography>
+                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden mb-4 sm:mb-6">
+                        <div className="p-3 sm:p-4 border-b border-border/50 bg-zinc-50/50">
+                            <Typography variant="h3" className="text-[14px] sm:text-[16px] font-bold">Berbagi cerita kamu</Typography>
                         </div>
-                        <div className="p-4">
+                        <div className="p-3 sm:p-4">
                             <PublicThreadForm onSuccess={handlePublicThreadSuccess} />
                         </div>
                     </div>
@@ -93,33 +93,33 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                     />
                                 ))
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <MessageSquare className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                                <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center">
+                                    <MessageSquare className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30 mb-3 sm:mb-4" />
                                     <Typography variant="small" className="text-muted-foreground">Belum ada thread.</Typography>
                                 </div>
                             )}
                         </div>
 
                         {totalPages > 1 && (
-                            <div className="p-4 border-t border-border/50 flex items-center justify-between">
+                            <div className="p-3 sm:p-4 border-t border-border/50 flex items-center justify-between">
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
-                                    className="gap-1 px-2"
+                                    className="gap-1 px-2 text-xs sm:text-sm"
                                 >
-                                    <ChevronLeft className="w-4 h-4" /> Prev
+                                    <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Prev
                                 </Button>
-                                <span className="text-xs font-medium text-muted-foreground"> {page} of {totalPages} </span>
+                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground"> {page} of {totalPages} </span>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                     disabled={page === totalPages}
-                                    className="gap-1 px-2"
+                                    className="gap-1 px-2 text-xs sm:text-sm"
                                 >
-                                    Next <ChevronRight className="w-4 h-4" />
+                                    Next <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </Button>
                             </div>
                         )}
@@ -159,13 +159,13 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
     if (!auth.user) {
         return (
-            <div className="flex flex-col items-center justify-center py-4 px-4 bg-zinc-50 rounded-xl border border-dashed border-zinc-200 gap-3">
-                <Typography variant="small" className="text-[13px] text-zinc-500 font-medium">Masuk untuk berbagi cerita kamu</Typography>
+            <div className="flex flex-col items-center justify-center py-3 sm:py-4 px-3 sm:px-4 bg-zinc-50 rounded-xl border border-dashed border-zinc-200 gap-2 sm:gap-3">
+                <Typography variant="small" className="text-[12px] sm:text-[13px] text-zinc-500 font-medium text-center">Masuk untuk berbagi cerita kamu</Typography>
                 <a 
                     href={route('auth.google', { redirect: window.location.href })}
-                    className="flex items-center gap-2 bg-white border border-zinc-200 px-4 py-2 rounded-full text-[12px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
+                    className="flex items-center gap-2 bg-white border border-zinc-200 px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-[12px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
                 >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                         <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05"/>
@@ -179,22 +179,22 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+            <div className="flex gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
                     {auth.user.avatar ? (
                         <img src={auth.user.avatar} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-sm bg-primary/10 text-primary">
+                        <div className="w-full h-full flex items-center justify-center font-bold text-xs sm:text-sm bg-primary/10 text-primary">
                             {auth.user.name.charAt(0)}
                         </div>
                     )}
                 </div>
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="Apa yang ada di pikiran kamu?"
-                        className="w-full bg-transparent border-none focus:ring-0 text-[15px] p-0 min-h-[40px] resize-none"
+                        className="w-full bg-transparent border-none focus:ring-0 text-[14px] sm:text-[15px] p-0 min-h-[36px] sm:min-h-[40px] resize-none"
                         rows={2}
                         onInput={(e) => {
                             const target = e.target as HTMLTextAreaElement;
@@ -209,7 +209,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     type="submit"
                     size="sm"
                     disabled={!content.trim() || isSubmitting}
-                    className="rounded-full px-6 font-bold"
+                    className="rounded-full px-5 sm:px-6 font-bold text-xs sm:text-sm"
                 >
                     {isSubmitting ? 'Mengirim...' : 'Kirim'}
                 </Button>
