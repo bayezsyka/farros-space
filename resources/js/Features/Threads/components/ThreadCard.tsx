@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Card, CardContent } from '@/Components/ui/Card';
 import { Typography } from '@/Components/ui/Typography';
@@ -134,7 +134,19 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-bold text-[15px] hover:underline cursor-pointer">
-                                {isPublic ? (thread.user?.name || 'Guest') : (profile?.full_name || 'Farros')}
+                                {isPublic ? (
+                                    thread.user?.id ? (
+                                        <Link href={route('threads.user', thread.user.id)} className="hover:text-primary transition-colors">
+                                            {thread.user.name || 'Guest'}
+                                        </Link>
+                                    ) : (
+                                        'Guest'
+                                    )
+                                ) : (
+                                    <Link href={route('threads.owner')} className="hover:text-primary transition-colors">
+                                        {profile?.full_name || 'Farros'}
+                                    </Link>
+                                )}
                             </span>
                             {thread.tags && (
                                 <>

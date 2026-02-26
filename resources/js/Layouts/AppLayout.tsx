@@ -28,6 +28,9 @@ export default function AppLayout({ children, title }: Props) {
                         <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
                             Home
                         </Link>
+                        <Link href={route('threads.index')} className="text-sm font-medium transition-colors hover:text-primary">
+                            Threads
+                        </Link>
                         
                         {user ? (
                             <div className="flex items-center gap-4">

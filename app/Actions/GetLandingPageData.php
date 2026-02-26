@@ -31,8 +31,8 @@ class GetLandingPageData
         return [
             'profile' => $profile,
             'education' => $education,
-            'latestThreads' => array_slice($threads, 0, 10),
-            'publicThreads' => array_slice($publicThreads, 0, 10),
+            'latestThreads' => array_slice($threads, 0, 3),
+            'publicThreads' => array_slice($publicThreads, 0, 3),
         ];
     }
 }

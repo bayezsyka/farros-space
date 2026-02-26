@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import React from 'react';
+import { usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Container } from '@/Components/ui/Container';
 import { Section } from '@/Components/ui/Section';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
 import { ThreadCard } from '../components/ThreadCard';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import axios from 'axios';
+import { useState } from 'react';
 
 interface Thread {
     id: number;
@@ -37,37 +38,38 @@ interface ThreadFeedSectionProps {
 export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads, profile }: ThreadFeedSectionProps) => {
     const { auth } = usePage<PageProps>().props;
     const [publicThreads, setPublicThreads] = useState(initialPublicThreads);
-    const [activeTab, setActiveTab] = useState<'owner' | 'public'>('owner');
-
-    const [pageOwner, setPageOwner] = useState(1);
-    const [pagePublic, setPagePublic] = useState(1);
-    const perPage = 10;
-    
-    const totalPagesOwner = Math.ceil(threads.length / perPage);
-    const totalPagesPublic = Math.ceil(publicThreads.length / perPage);
-    
-    const paginatedOwnerThreads = threads.slice((pageOwner - 1) * perPage, pageOwner * perPage);
-    const paginatedPublicThreads = publicThreads.slice((pagePublic - 1) * perPage, pagePublic * perPage);
 
     const handlePublicThreadSuccess = (newThread: Thread) => {
         setPublicThreads([newThread, ...publicThreads]);
     };
 
+    // Mobile: merge & sort by created_at, take 5
+    const mixedThreads = [...threads.map(t => ({...t, _isOwner: true})), ...publicThreads.map(t => ({...t, _isOwner: false}))]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+
     return (
         <Section id="threads-feed" spacing="lg">
             <Container className="max-w-6xl px-4 lg:px-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                {/* =========== DESKTOP: Two Columns =========== */}
+                <div className="hidden lg:grid grid-cols-2 gap-8 items-start">
                     
                     {/* Owner Threads Column */}
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col min-h-[600px]">
-                        <div className="p-4 border-b border-border/50 bg-zinc-50/50">
+                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
+                        <div className="p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
                             <Typography variant="h3" className="text-[18px] font-bold">Threads</Typography>
+                            <Link 
+                                href={route('threads.owner')}
+                                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 transition-colors"
+                            >
+                                Lihat Semua <ArrowRight className="w-3 h-3" />
+                            </Link>
                         </div>
                         
                         <div className="flex-grow">
                             {threads.length > 0 ? (
                                 <div className="divide-y divide-border/50">
-                                    {paginatedOwnerThreads.map((thread) => (
+                                    {threads.slice(0, 3).map((thread) => (
                                         <ThreadCard key={thread.id} thread={thread} profile={profile} />
                                     ))}
                                 </div>
@@ -77,39 +79,17 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
                                 </div>
                             )}
                         </div>
-
-                        {totalPagesOwner > 1 && (
-                            <div className="p-4 border-t border-border/50 flex items-center justify-between">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPageOwner(p => Math.max(1, p - 1))}
-                                    disabled={pageOwner === 1}
-                                    className="gap-1 px-2"
-                                >
-                                    <ChevronLeft className="w-4 h-4" /> Prev
-                                </Button>
-                                <span className="text-xs font-medium text-muted-foreground"> {pageOwner} of {totalPagesOwner} </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPageOwner(p => Math.min(totalPagesOwner, p + 1))}
-                                    disabled={pageOwner === totalPagesOwner}
-                                    className="gap-1 px-2"
-                                >
-                                    Next <ChevronRight className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        )}
                     </div>
 
                     {/* Public Threads Column (Kata Mereka...) */}
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col min-h-[600px]">
+                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
                         <div className="p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
                             <Typography variant="h3" className="text-[18px] font-bold">Kata Mereka...</Typography>
-                            {!auth.user && (
-                                <Typography variant="small" className="text-xs text-muted-foreground italic">Login untuk berbagi</Typography>
-                            )}
+                            <div className="flex items-center gap-3">
+                                {!auth.user && (
+                                    <Typography variant="small" className="text-xs text-muted-foreground italic">Login untuk berbagi</Typography>
+                                )}
+                            </div>
                         </div>
 
                         {/* Public Thread Input Form */}
@@ -120,7 +100,7 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
                         <div className="flex-grow">
                             {publicThreads.length > 0 ? (
                                 <div className="divide-y divide-border/50">
-                                    {paginatedPublicThreads.map((thread) => (
+                                    {publicThreads.slice(0, 3).map((thread) => (
                                         <ThreadCard key={thread.id} thread={thread} isPublic />
                                     ))}
                                 </div>
@@ -130,31 +110,56 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
                                 </div>
                             )}
                         </div>
-
-                        {totalPagesPublic > 1 && (
-                            <div className="p-4 border-t border-border/50 flex items-center justify-between">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPagePublic(p => Math.max(1, p - 1))}
-                                    disabled={pagePublic === 1}
-                                    className="gap-1 px-2"
-                                >
-                                    <ChevronLeft className="w-4 h-4" /> Prev
-                                </Button>
-                                <span className="text-xs font-medium text-muted-foreground"> {pagePublic} of {totalPagesPublic} </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPagePublic(p => Math.min(totalPagesPublic, p + 1))}
-                                    disabled={pagePublic === totalPagesPublic}
-                                    className="gap-1 px-2"
-                                >
-                                    Next <ChevronRight className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        )}
                     </div>
+                </div>
+
+                {/* =========== MOBILE: Single Mixed Column =========== */}
+                <div className="lg:hidden">
+                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
+                        <div className="p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
+                            <Typography variant="h3" className="text-[18px] font-bold">Threads</Typography>
+                            <Link 
+                                href={route('threads.index')}
+                                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 transition-colors"
+                            >
+                                Lihat Semua <ArrowRight className="w-3 h-3" />
+                            </Link>
+                        </div>
+
+                        {/* Public Thread Input Form */}
+                        <div className="p-4 border-b border-border/50">
+                            <PublicThreadForm onSuccess={handlePublicThreadSuccess} />
+                        </div>
+
+                        <div className="flex-grow">
+                            {mixedThreads.length > 0 ? (
+                                <div className="divide-y divide-border/50">
+                                    {mixedThreads.map((thread) => (
+                                        <ThreadCard 
+                                            key={`${thread._isOwner ? 'o' : 'p'}-${thread.id}`} 
+                                            thread={thread} 
+                                            profile={thread._isOwner ? profile : undefined} 
+                                            isPublic={!thread._isOwner} 
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <Typography variant="small" className="text-muted-foreground">Belum ada thread.</Typography>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* "Lihat Semua Threads" link at bottom */}
+                <div className="mt-6 text-center">
+                    <Link 
+                        href={route('threads.index')}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline transition-colors"
+                    >
+                        Lihat semua threads <ArrowRight className="w-4 h-4" />
+                    </Link>
                 </div>
             </Container>
         </Section>

@@ -10,6 +10,10 @@ use Inertia\Inertia;
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 
+Route::get('/threads', [App\Http\Controllers\ThreadPageController::class, 'index'])->name('threads.index');
+Route::get('/threads/owner', [App\Http\Controllers\ThreadPageController::class, 'ownerThreads'])->name('threads.owner');
+Route::get('/threads/user/{user}', [App\Http\Controllers\ThreadPageController::class, 'userThreads'])->name('threads.user');
+
 Route::post('/threads/{thread}/like', [App\Http\Controllers\Api\ThreadInteractionController::class, 'like'])->name('threads.like');
 Route::post('/threads/{thread}/share', [App\Http\Controllers\Api\ThreadInteractionController::class, 'share'])->name('threads.share');
 
