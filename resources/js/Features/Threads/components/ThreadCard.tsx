@@ -17,6 +17,12 @@ interface Thread {
     image_url: string | null;
     likes_count: number;
     shares_count: number;
+    user_id?: number | null;
+    user?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
     tags: string | null;
     created_at: string;
     allow_comments: boolean;
@@ -26,9 +32,10 @@ interface Thread {
 interface ThreadCardProps {
     thread: Thread;
     profile?: any;
+    isPublic?: boolean;
 }
 
-export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
+export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProps) => {
     const { auth } = usePage<PageProps>().props;
     const user = auth.user;
     const [likes, setLikes] = useState(thread.likes_count);
@@ -103,7 +110,15 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                 {/* Left side: Avatar */}
                 <div className="flex flex-col items-center">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border border-border">
-                        {profile?.avatar_url ? (
+                        {isPublic ? (
+                            thread.user?.avatar ? (
+                                <img src={thread.user.avatar} alt={thread.user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm">
+                                    {thread.user?.name?.charAt(0) || 'G'}
+                                </div>
+                            )
+                        ) : profile?.avatar_url ? (
                             <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm">
@@ -111,8 +126,6 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                             </div>
                         )}
                     </div>
-                    {/* Only show line if there's more below (optional) */}
-                    {/* <div className="flex-grow w-px bg-border/50 my-2" /> */}
                 </div>
 
                 {/* Right side: Content */}
@@ -121,7 +134,7 @@ export const ThreadCard = ({ thread, profile }: ThreadCardProps) => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-bold text-[15px] hover:underline cursor-pointer">
-                                {profile?.full_name || 'Farros'}
+                                {isPublic ? (thread.user?.name || 'Guest') : (profile?.full_name || 'Farros')}
                             </span>
                             {thread.tags && (
                                 <>

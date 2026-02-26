@@ -19,7 +19,11 @@ class GetLandingPageData
 
         // Use DTO for threads, filter by public visibility
         $threads = collect($this->repository->getThreadPosts())
-            ->filter(fn($post) => $post->visibility === 'public')
+            ->map(fn($post) => ThreadPostData::fromModel($post)->toArray())
+            ->values()
+            ->toArray();
+
+        $publicThreads = collect($this->repository->getPublicThreads())
             ->map(fn($post) => ThreadPostData::fromModel($post)->toArray())
             ->values()
             ->toArray();
@@ -28,6 +32,7 @@ class GetLandingPageData
             'profile' => $profile,
             'education' => $education,
             'latestThreads' => array_slice($threads, 0, 10),
+            'publicThreads' => array_slice($publicThreads, 0, 10),
         ];
     }
 }

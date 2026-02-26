@@ -7,13 +7,18 @@ interface Props {
     profile: any;
     education: any[];
     latestThreads: any[];
+    publicThreads: any[];
 }
 
-export default function Index({ profile, latestThreads }: Props) {
+export default function Index({ profile, latestThreads, publicThreads }: Props) {
     return (
-        <AppLayout title="Farros Space">
+        <AppLayout title="Home">
             <HeroSection profile={profile} />
-            <ThreadFeedSection threads={latestThreads} profile={profile} />
+            <ThreadFeedSection 
+                threads={latestThreads} 
+                publicThreads={publicThreads}
+                profile={profile} 
+            />
         </AppLayout>
     );
 }

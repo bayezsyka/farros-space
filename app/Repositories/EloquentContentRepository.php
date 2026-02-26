@@ -22,6 +22,18 @@ class EloquentContentRepository implements ContentRepositoryInterface
     public function getThreadPosts(): array
     {
         return ThreadPost::withCount('comments')
+            ->whereNull('user_id')
+            ->where('visibility', 'public')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->all();
+    }
+
+    public function getPublicThreads(): array
+    {
+        return ThreadPost::with(['user', 'comments.user'])
+            ->withCount('comments')
+            ->whereNotNull('user_id')
             ->where('visibility', 'public')
             ->orderBy('created_at', 'desc')
             ->get()

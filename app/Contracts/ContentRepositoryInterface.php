@@ -7,4 +7,5 @@ interface ContentRepositoryInterface
     public function getSiteProfile(): array;
     public function getEducation(): array;
     public function getThreadPosts(): array;
+    public function getPublicThreads(): array;
 }

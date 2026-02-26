@@ -6,8 +6,9 @@ class ThreadPostData
 {
     public function __construct(
         public readonly ?int $id,
+        public readonly ?int $user_id,
         public readonly ?string $title,
-        public readonly string $slug,
+        public readonly ?string $slug,
         public readonly string $content,
         public readonly ?string $image_url = null,
         public readonly int $likes_count = 0,
@@ -18,12 +19,14 @@ class ThreadPostData
         public readonly ?string $tags = null,
         public readonly ?string $published_at = null,
         public readonly ?string $created_at = null,
+        public readonly ?array $user = null,
     ) {}
 
     public static function fromModel(\App\Models\ThreadPost $model): self
     {
         return new self(
             id: $model->id,
+            user_id: $model->user_id,
             title: $model->title,
             slug: $model->slug,
             content: $model->content,
@@ -36,6 +39,11 @@ class ThreadPostData
             tags: $model->tags,
             published_at: $model->published_at?->toIso8601String(),
             created_at: $model->created_at?->toIso8601String(),
+            user: $model->user ? [
+                'id' => $model->user->id,
+                'name' => $model->user->name,
+                'avatar' => $model->user->avatar,
+            ] : null,
         );
     }
 
@@ -43,6 +51,7 @@ class ThreadPostData
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
             'title' => $this->title,
             'slug' => $this->slug,
             'content' => $this->content,
@@ -55,6 +64,7 @@ class ThreadPostData
             'tags' => $this->tags,
             'published_at' => $this->published_at,
             'created_at' => $this->created_at,
+            'user' => $this->user,
         ];
     }
 }

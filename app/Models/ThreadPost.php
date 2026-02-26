@@ -11,6 +11,7 @@ class ThreadPost extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'title',
         'slug',
         'content',
@@ -29,6 +30,11 @@ class ThreadPost extends Model
         'shares_count' => 'integer',
         'allow_comments' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function interactions()
     {

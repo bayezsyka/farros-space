@@ -9,7 +9,7 @@ interface Props {
 
 export default function Index({ profile, education }: Props) {
     return (
-        <AppLayout title="Contact — Farros Space">
+        <AppLayout title="Contact">
             <ContactSection profile={profile} education={education} />
         </AppLayout>
     );
