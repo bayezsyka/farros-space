@@ -54,6 +54,34 @@ trait ImageCompressor
             return $file->store($directory, $disk);
         }
 
+        // --- FIX ORIENTASI HP (EXIF) ---
+        // Jika file asli adalah JPEG, cek apakah ada data orientasi EXIF
+        if (in_array($extension, ['jpg', 'jpeg']) && function_exists('exif_read_data')) {
+            $exif = @exif_read_data($imagePath);
+            if ($exif && !empty($exif['Orientation'])) {
+                $orientation = $exif['Orientation'];
+                $rotatedImage = false;
+
+                switch ($orientation) {
+                    case 3: // Rotate 180 degrees
+                        $rotatedImage = imagerotate($image, 180, 0);
+                        break;
+                    case 6: // Rotate 90 degrees clockwise
+                        $rotatedImage = imagerotate($image, -90, 0);
+                        break;
+                    case 8: // Rotate 90 degrees counter-clockwise
+                        $rotatedImage = imagerotate($image, 90, 0);
+                        break;
+                }
+
+                if ($rotatedImage) {
+                    imagedestroy($image); // Hapus source yang miring dari memory
+                    $image = $rotatedImage; // Gunakan source yang sudah tegak
+                }
+            }
+        }
+        // ------------------------------
+
         // Tangani Transparansi (Untuk PNG dan GIF yang dikonversi ke WebP)
         if (in_array($extension, ['png', 'gif', 'webp'])) {
             $width = imagesx($image);

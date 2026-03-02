@@ -357,75 +357,74 @@ async function render1Item(
     // 3. Info layout (already declared above)
 
 
-    // QR Code on right side
+    // --- 3. QR & Info (Right Side) ---
     const qrSize = Math.min(Math.round(W * 0.18), 180);
-    const qrX = W - pad - qrSize;
-    const qrY = H - pad - qrSize;
+    const textSz = Math.max(10, Math.round(qrSize * 0.1));
+    const lineH = textSz + 6;
 
-    // Fetch specific item QR
-    const itemUrl = `https://farros.space/marketplace/${item.slug}`;
-    const qrImg = await fetchQRCode(itemUrl, qrSize);
+    // Virtual panel box for location
+    const panelW = qrSize + 24;
+    const panelX = W - pad - panelW;
+    const centerX = panelX + panelW / 2;
 
-    // White background for QR
+    let contentH = qrSize + 8;
+    if (address) contentH += lineH;
+    if (waNumber) contentH += lineH;
+
+    const panelY = H - pad - contentH;
+
+    // QR Background square (white) - essential for scanning on photos
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    if (typeof ctx.roundRect === 'function') {
-        ctx.roundRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 8);
+    if (typeof (ctx as any).roundRect === 'function') {
+        (ctx as any).roundRect(centerX - qrSize / 2 - 4, panelY - 4, qrSize + 8, qrSize + 8, 8);
+        ctx.fill();
     } else {
-        ctx.fillRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8);
+        ctx.fillRect(centerX - qrSize / 2 - 4, panelY - 4, qrSize + 8, qrSize + 8);
     }
-    ctx.fill();
 
+    // Draw QR Code
+    const itemUrl = `https://farros.space/marketplace/${item.slug}`;
+    const qrImg = await fetchQRCode(itemUrl, qrSize);
     if (qrImg) {
-        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-    } else {
-        ctx.fillStyle = '#F44336';
-        ctx.fillRect(qrX, qrY, qrSize, qrSize);
+        ctx.drawImage(qrImg, centerX - qrSize / 2, panelY, qrSize, qrSize);
     }
 
-    // Right side text (left of QR)
-    const rightTextX = qrX - Math.round(W * 0.025);
-    const rightTextSz = Math.max(12, Math.round(Math.min(W, H) * 0.022));
-    const maxTextW = W - pad * 3 - qrSize;
-
-    ctx.textAlign = 'right';
-    let rightY = qrY + Math.round(qrSize * 0.15);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = `500 ${Math.round(rightTextSz * 0.9)}px ${FONT_FAMILY}`;
+    // Draw Text beneath QR (White text)
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('Scan untuk detailnya 👉', rightTextX, rightY);
-    rightY += rightTextSz * 1.8;
+    let nextY = panelY + qrSize + 10;
 
     if (address) {
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = `600 ${rightTextSz}px ${FONT_FAMILY}`;
-        ctx.fillText(truncate(ctx, `Lokasi: ${address}`, maxTextW), rightTextX, rightY);
-        rightY += rightTextSz * 1.5;
+        ctx.font = `700 ${textSz}px ${FONT_FAMILY}`;
+        ctx.fillText(truncate(ctx, `Lokasi: ${address}`, panelW + 30), centerX, nextY);
+        nextY += lineH;
     }
-
     if (waNumber) {
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = `700 ${rightTextSz}px ${FONT_FAMILY}`;
-        ctx.fillText(truncate(ctx, `WA: ${waNumber}`, maxTextW), rightTextX, rightY);
+        ctx.font = `800 ${textSz}px ${FONT_FAMILY}`;
+        ctx.fillText(`WA: ${waNumber}`, centerX, nextY);
     }
 
-    // Left side context: Name & Price
+    // --- 4. Item Info (Left Side) ---
     const nameSz = Math.max(24, Math.round(Math.min(W, H) * 0.055));
     const priceSz = Math.max(20, Math.round(nameSz * 0.8));
+    const infoMaxW = panelX - pad * 2; // Space left of QR panel
+
     const priceY = H - pad - priceSz;
-    const nameY = priceY - nameSz - Math.round(H * 0.015);
+    const nameY = priceY - nameSz - Math.round(H * 0.01);
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `800 ${nameSz}px ${FONT_FAMILY}`;
-    ctx.fillText(truncate(ctx, item.name, maxTextW), pad, nameY);
+    ctx.fillText(truncate(ctx, item.name, infoMaxW), pad, nameY);
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = `700 ${priceSz}px ${FONT_FAMILY}`;
-    ctx.fillText(truncate(ctx, formatPrice(item.price), maxTextW), pad, priceY);
+    ctx.fillText(truncate(ctx, formatPrice(item.price), infoMaxW), pad, priceY);
 }
 
 /** 2 item layout — split 50/50 dynamically based on orientation */
