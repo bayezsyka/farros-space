@@ -5,45 +5,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
-
-Route::get('/debug-storage', function () {
-    $results = [];
-    try {
-        if (File::exists(public_path('storage'))) {
-            if (!is_link(public_path('storage'))) {
-                File::deleteDirectory(public_path('storage'));
-                $results[] = "Folder storage biasa dihapus.";
-            }
-        }
-        Artisan::call('storage:link');
-        $results[] = "storage:link dijalankan.";
-    } catch (\Exception $e) { $results[] = "Gagal link: " . $e->getMessage(); }
-
-    try {
-        $paths = [
-            storage_path('app/public'),
-            storage_path('app/public/marketplace'),
-            storage_path('app/public/marketplace_cropped'),
-        ];
-        foreach ($paths as $path) {
-            if (File::exists($path)) {
-                chmod($path, 0755);
-                $results[] = "Permission folder $path diatur ke 755.";
-                
-                // Perbaiki juga file di dalamnya - Sangat penting untuk Hosting!
-                $files = File::files($path);
-                foreach ($files as $file) {
-                    chmod($file->getRealPath(), 0644);
-                }
-                $results[] = "Seluruh file di dalam $path diatur ke 644.";
-            }
-        }
-    } catch (\Exception $e) { $results[] = "Gagal atur permission: " . $e->getMessage(); }
-    return response()->json($results);
-});
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
