@@ -680,7 +680,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
 
         // Body scroll lock
         const originalStyle = window.getComputedStyle(document.body).overflow;
-        document.body.style.overflow = 'hidden';
+        document.body.style.setProperty('overflow', 'hidden', 'important');
 
         return () => {
             mountedRef.current = false;
@@ -815,7 +815,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
     const qrInfo = showQR ? ' · QR aktif' : '';
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-label="Generator Kolase">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none" role="dialog" aria-modal="true" aria-label="Generator Kolase">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-zinc-100">
 
                 {/* Header */}

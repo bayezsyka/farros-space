@@ -8,8 +8,7 @@ interface ImageCropModalProps {
     onCancel: () => void;
 }
 
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
+const MAX_ZOOM = 5; // Zoom 5x dari ukuran "fit"
 
 export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropModalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -18,7 +17,8 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
 
     // pan offset (px, relative to canvas center)
     const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
+    const [zoom, setZoom] = useState(1); // 1 = fit to cover
+    const [baseZoom, setBaseZoom] = useState(1); // Nilai zoom dasar agar foto "fit"
     const [ready, setReady] = useState(false);
 
     // drag state stored in ref to avoid stale closures
@@ -26,19 +26,27 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
         active: false, startX: 0, startY: 0, startOffX: 0, startOffY: 0,
     });
 
+    // ── Body Scroll Lock ─────────────────────────────────────────────────────
+    useEffect(() => {
+        const originalStyle = window.getComputedStyle(document.body).overflow;
+        document.body.style.setProperty('overflow', 'hidden', 'important');
+        return () => {
+            document.body.style.overflow = originalStyle;
+        };
+    }, []);
+
     // ── Load image ──────────────────────────────────────────────────────────
     useEffect(() => {
         const img = new Image();
         img.onload = () => {
             imgRef.current = img;
-            setReady(true);
-            // Auto-fit zoom so image fills the square preview
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const size = canvas.width;   // canvas is always square
-            const fitZoom = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-            setZoom(Math.max(MIN_ZOOM, fitZoom));
+
+            // Hitung zoom dasar (fit-to-cover)
+            const fit = Math.max(CANVAS_ACTUAL / img.naturalWidth, CANVAS_ACTUAL / img.naturalHeight);
+            setBaseZoom(fit);
+            setZoom(1); // Set ke 1 (yaitu ukuran fit)
             setOffset({ x: 0, y: 0 });
+            setReady(true);
         };
         img.src = src;
     }, [src]);
@@ -54,13 +62,14 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
         const size = canvas.width;
         ctx.clearRect(0, 0, size, size);
 
-        const drawW = img.naturalWidth * zoom;
-        const drawH = img.naturalHeight * zoom;
+        const currentZoom = baseZoom * zoom;
+        const drawW = img.naturalWidth * currentZoom;
+        const drawH = img.naturalHeight * currentZoom;
         const dx = size / 2 - drawW / 2 + offset.x;
         const dy = size / 2 - drawH / 2 + offset.y;
 
         ctx.drawImage(img, dx, dy, drawW, drawH);
-    }, [zoom, offset]);
+    }, [zoom, baseZoom, offset]);
 
     useEffect(() => {
         if (ready) draw();
@@ -72,8 +81,11 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
         const img = imgRef.current;
         if (!canvas || !img) return { x: ox, y: oy };
         const size = canvas.width;
-        const drawW = img.naturalWidth * z;
-        const drawH = img.naturalHeight * z;
+
+        // Gunakan zoom absolut untuk hitung batas geser
+        const currentZoom = baseZoom * z;
+        const drawW = img.naturalWidth * currentZoom;
+        const drawH = img.naturalHeight * currentZoom;
 
         // Max pan: edges of the image must still touch the canvas edges
         const maxX = Math.max(0, (drawW - size) / 2);
@@ -82,7 +94,7 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
             x: Math.max(-maxX, Math.min(maxX, ox)),
             y: Math.max(-maxY, Math.min(maxY, oy)),
         };
-    }, []);
+    }, [baseZoom]);
 
     // ── Pointer events ────────────────────────────────────────────────────────
     const onPointerDown = (e: React.PointerEvent) => {
@@ -107,7 +119,7 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
             e.preventDefault();
             const delta = -e.deltaY * 0.002;
             setZoom((prev) => {
-                const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta * prev));
+                const next = Math.max(1, Math.min(MAX_ZOOM, prev + delta * prev));
                 setOffset((off) => clampOffset(off.x, off.y, next));
                 return next;
             });
@@ -119,19 +131,14 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
 
     const changeZoom = (factor: number) => {
         setZoom((prev) => {
-            const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev * factor));
+            const next = Math.max(1, Math.min(MAX_ZOOM, prev * factor));
             setOffset((off) => clampOffset(off.x, off.y, next));
             return next;
         });
     };
 
     const resetView = () => {
-        const canvas = canvasRef.current;
-        const img = imgRef.current;
-        if (!canvas || !img) return;
-        const size = canvas.width;
-        const fitZoom = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-        setZoom(Math.max(MIN_ZOOM, fitZoom));
+        setZoom(1);
         setOffset({ x: 0, y: 0 });
     };
 
@@ -179,7 +186,7 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
     }, []);
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 touch-none">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col border border-zinc-100 overflow-hidden">
 
                 {/* Header */}
@@ -206,8 +213,8 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
                     {/* Canvas wrapper */}
                     <div
                         ref={containerRef}
-                        className="relative select-none overflow-hidden rounded-2xl border-2 border-violet-200 shadow-lg"
-                        style={{ width: displaySize, height: displaySize, cursor: 'grab' }}
+                        className="relative select-none overflow-hidden rounded-2xl border-2 border-violet-200 shadow-lg touch-none"
+                        style={{ width: displaySize, height: displaySize, cursor: 'grab', touchAction: 'none' }}
                         onPointerDown={onPointerDown}
                         onPointerMove={onPointerMove}
                         onPointerUp={onPointerUp}
@@ -261,7 +268,7 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
                                     setZoom(z);
                                     setOffset((off) => clampOffset(off.x, off.y, z));
                                 }}
-                                className="w-full accent-violet-600"
+                                className="w-full h-1.5 bg-zinc-100 rounded-lg appearance-none cursor-pointer accent-violet-600"
                             />
                         </div>
 
