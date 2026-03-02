@@ -74,14 +74,22 @@ trait ImageCompressor
 
         // Mulai buffering dan kompres ke format WebP
         ob_start();
-        imagewebp($image, null, $quality);
+        if (!imagewebp($image, null, $quality)) {
+            ob_end_clean();
+            imagedestroy($image);
+            return $file->store($directory, $disk);
+        }
         $imageContent = ob_get_clean();
         
         // Hapus image resource dari memory
         imagedestroy($image);
 
-        // Simpan file hasil kompresi via Laravel Storage (disk)
-        if (Storage::disk($disk)->put($path, $imageContent)) {
+        if (empty($imageContent)) {
+            return $file->store($directory, $disk);
+        }
+
+        // Simpan file hasil kompresi via Laravel Storage (disk) dengan visibilitas public
+        if (Storage::disk($disk)->put($path, $imageContent, 'public')) {
             return $path;
         }
 
