@@ -46,13 +46,13 @@ class AdminMarketplaceController extends Controller
         // Store original image (full resolution)
         if ($request->hasFile('image')) {
             $path = $this->compressAndStoreWebp($request->file('image'), 'marketplace');
-            $validated['image_path'] = '/storage/' . $path;
+            $validated['image_path'] = Storage::disk('public')->url($path);
         }
 
         // Store cropped 1:1 image (for collage)
         if ($request->hasFile('image_cropped')) {
             $croppedPath = $this->compressAndStoreWebp($request->file('image_cropped'), 'marketplace_cropped');
-            $validated['image_cropped_path'] = '/storage/' . $croppedPath;
+            $validated['image_cropped_path'] = Storage::disk('public')->url($croppedPath);
         }
 
         // Generate unique slug from name
@@ -94,20 +94,20 @@ class AdminMarketplaceController extends Controller
         if ($request->hasFile('image')) {
             // Delete old original image
             if ($marketplaceItem->image_path) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $marketplaceItem->image_path));
+                Storage::disk('public')->delete(str_replace(Storage::disk('public')->url(''), '', $marketplaceItem->image_path));
             }
             $path = $this->compressAndStoreWebp($request->file('image'), 'marketplace');
-            $validated['image_path'] = '/storage/' . $path;
+            $validated['image_path'] = Storage::disk('public')->url($path);
         }
 
         // Store cropped 1:1 image (for collage)
         if ($request->hasFile('image_cropped')) {
             // Delete old cropped image
             if ($marketplaceItem->image_cropped_path) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $marketplaceItem->image_cropped_path));
+                Storage::disk('public')->delete(str_replace(Storage::disk('public')->url(''), '', $marketplaceItem->image_cropped_path));
             }
             $croppedPath = $this->compressAndStoreWebp($request->file('image_cropped'), 'marketplace_cropped');
-            $validated['image_cropped_path'] = '/storage/' . $croppedPath;
+            $validated['image_cropped_path'] = Storage::disk('public')->url($croppedPath);
         }
 
         // Regenerate slug if name changed
@@ -131,11 +131,12 @@ class AdminMarketplaceController extends Controller
 
     public function destroy(MarketplaceItem $marketplaceItem)
     {
+        $publicDisk = Storage::disk('public');
         if ($marketplaceItem->image_path) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $marketplaceItem->image_path));
+            $publicDisk->delete(str_replace($publicDisk->url(''), '', $marketplaceItem->image_path));
         }
         if ($marketplaceItem->image_cropped_path) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $marketplaceItem->image_cropped_path));
+            $publicDisk->delete(str_replace($publicDisk->url(''), '', $marketplaceItem->image_cropped_path));
         }
 
         $marketplaceItem->delete();
