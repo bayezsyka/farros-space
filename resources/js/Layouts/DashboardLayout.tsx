@@ -1,13 +1,13 @@
 import React, { useState, PropsWithChildren, ReactNode } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { 
-    LayoutDashboard, 
-    MessageSquare, 
-    User, 
-    LogOut, 
-    Menu, 
-    X, 
-    ChevronLeft, 
+import {
+    LayoutDashboard,
+    MessageSquare,
+    User,
+    LogOut,
+    Menu,
+    X,
+    ChevronLeft,
     ChevronRight,
     Home,
     Settings,
@@ -18,7 +18,7 @@ import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
 
 interface Props {
-    header?: ReactNode;
+    header?: ReactNode | string;
 }
 
 export default function DashboardLayout({ children, header }: PropsWithChildren<Props>) {
@@ -32,13 +32,14 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
         { label: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Biodata', icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
         { label: 'Threads', icon: MessageSquare, href: route('dashboard.threads'), active: route().current('dashboard.threads') },
+        { label: 'Marketplace', icon: Briefcase, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
         { label: 'Account', icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },
     ];
 
     return (
         <div className="min-h-screen bg-zinc-50/50 flex overflow-hidden font-sans">
             {/* Sidebar Desktop - Autohide / Hover effect */}
-            <aside 
+            <aside
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
@@ -57,13 +58,13 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
 
                 <div className="flex-1 overflow-y-auto pt-6 px-3 space-y-1 no-scrollbar">
                     {navItems.map((item) => (
-                        <Link 
-                            key={item.href} 
+                        <Link
+                            key={item.href}
                             href={item.href}
                             className={cn(
                                 "flex items-center px-3 py-3 rounded-xl transition-all duration-200 group relative",
-                                item.active 
-                                    ? "bg-zinc-100 text-zinc-900" 
+                                item.active
+                                    ? "bg-zinc-100 text-zinc-900"
                                     : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
                             )}
                         >
@@ -76,16 +77,16 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                 </div>
 
                 <div className="p-3 border-t border-zinc-100 space-y-1">
-                    <Link 
-                        href="/" 
+                    <Link
+                        href="/"
                         className="flex items-center px-3 py-3 rounded-xl text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all font-semibold text-sm"
                     >
                         <Home className="w-5 h-5 shrink-0" />
                         <span className={cn("ml-3 transition-opacity whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>Home</span>
                     </Link>
-                    <Link 
-                        href={route('logout')} 
-                        method="post" 
+                    <Link
+                        href={route('logout')}
+                        method="post"
                         as="button"
                         className="w-full flex items-center px-3 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-semibold text-sm"
                     >
@@ -97,14 +98,14 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
 
             {/* Mobile Sidebar Overlay */}
             {isMobileOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-white/60 backdrop-blur-md z-50 md:hidden"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             {/* Mobile Sidebar */}
-            <aside 
+            <aside
                 className={cn(
                     "fixed inset-y-0 left-0 w-72 bg-white border-r border-zinc-100 z-[60] md:hidden transition-transform duration-300 ease-in-out p-6 flex flex-col shadow-2xl",
                     isMobileOpen ? "translate-x-0" : "-translate-x-full"
@@ -119,8 +120,8 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
 
                 <div className="flex-1 space-y-2">
                     {navItems.map((item) => (
-                        <Link 
-                            key={item.href} 
+                        <Link
+                            key={item.href}
                             href={item.href}
                             onClick={() => setIsMobileOpen(false)}
                             className={cn(
@@ -135,9 +136,9 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                 </div>
 
                 <div className="pt-6 border-t border-zinc-100">
-                    <Link 
-                        href={route('logout')} 
-                        method="post" 
+                    <Link
+                        href={route('logout')}
+                        method="post"
                         as="button"
                         className="w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-semibold"
                     >
@@ -152,9 +153,9 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                 {/* Navbar */}
                 <header className="h-16 bg-white flex items-center justify-between px-6 md:px-10 border-b border-zinc-100 shrink-0">
                     <div className="flex items-center">
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             className="md:hidden mr-4 rounded-full"
                             onClick={toggleMobile}
                         >
@@ -162,7 +163,11 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                         </Button>
                         {header && (
                             <div className="flex items-center">
-                                {header}
+                                {typeof header === 'string' ? (
+                                    <span className="font-bold text-zinc-900 text-sm">{header}</span>
+                                ) : (
+                                    header
+                                )}
                             </div>
                         )}
                     </div>

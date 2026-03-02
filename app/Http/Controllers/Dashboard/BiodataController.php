@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\SiteProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Traits\ImageCompressor;
 
 class BiodataController extends Controller
 {
+    use ImageCompressor;
     public function index()
     {
         $profile = SiteProfile::first();
@@ -28,7 +30,7 @@ class BiodataController extends Controller
             'phone' => 'nullable|string|max:15',
             'headline' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
-            'avatar' => 'nullable|image|max:1024',
+            'avatar' => 'nullable|image|max:10240',
         ]);
 
         $profile = SiteProfile::first();
@@ -40,7 +42,7 @@ class BiodataController extends Controller
         $data = $request->except('avatar');
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = $this->compressAndStoreWebp($request->file('avatar'), 'avatars');
             $data['avatar_url'] = '/storage/' . $path;
 
             if ($profile->avatar_url && str_contains($profile->avatar_url, '/storage/avatars/')) {

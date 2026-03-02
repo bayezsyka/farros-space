@@ -9,6 +9,9 @@ use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::get('/marketplace', [\App\Http\Controllers\MarketplaceController::class, 'index'])->name('marketplace.index');
+Route::get('/marketplace/{marketplaceItem}', [\App\Http\Controllers\MarketplaceController::class, 'show'])->name('marketplace.show');
+
 
 Route::get('/threads', [App\Http\Controllers\ThreadPageController::class, 'index'])->name('threads.index');
 Route::get('/threads/owner', [App\Http\Controllers\ThreadPageController::class, 'ownerThreads'])->name('threads.owner');
@@ -38,6 +41,14 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
         Route::get('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'index'])->name('dashboard.biodata');
         Route::put('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'update'])->name('dashboard.biodata.update');
+
+        // Marketplace management
+        Route::get('/marketplace', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'index'])->name('dashboard.marketplace.index');
+        Route::get('/marketplace/create', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'create'])->name('dashboard.marketplace.create');
+        Route::post('/marketplace', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'store'])->name('dashboard.marketplace.store');
+        Route::get('/marketplace/{marketplaceItem}/edit', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'edit'])->name('dashboard.marketplace.edit');
+        Route::put('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'update'])->name('dashboard.marketplace.update');
+        Route::delete('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'destroy'])->name('dashboard.marketplace.destroy');
     });
 });
 

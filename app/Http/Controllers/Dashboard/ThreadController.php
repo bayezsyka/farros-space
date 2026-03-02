@@ -11,9 +11,11 @@ use App\Models\ThreadPost;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Traits\ImageCompressor;
 
 class ThreadController extends Controller
 {
+    use ImageCompressor;
     public function index(): Response
     {
         $threads = ThreadPost::withCount('comments')
@@ -35,11 +37,11 @@ class ThreadController extends Controller
             'visibility' => 'required|in:public,private',
             'allow_comments' => 'nullable|boolean',
             'tags' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // 2MB max
+            'image' => 'nullable|image|max:10240', // 10MB max
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('threads', 'public');
+            $path = $this->compressAndStoreWebp($request->file('image'), 'threads');
             $validated['image_url'] = '/storage/' . $path;
         }
 
@@ -56,11 +58,11 @@ class ThreadController extends Controller
             'visibility' => 'required|in:public,private',
             'allow_comments' => 'nullable|boolean',
             'tags' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('threads', 'public');
+            $path = $this->compressAndStoreWebp($request->file('image'), 'threads');
             $validated['image_url'] = '/storage/' . $path;
 
             // Optional: delete old image if exists

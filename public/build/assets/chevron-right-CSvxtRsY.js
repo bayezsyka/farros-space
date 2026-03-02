@@ -1,1 +1,0 @@
-import{c as o}from"./Button-BM0Y2Yia.js";const t=[["path",{d:"m12 19-7-7 7-7",key:"1l729n"}],["path",{d:"M19 12H5",key:"x3x0zl"}]],r=o("arrow-left",t);const e=[["path",{d:"m15 18-6-6 6-6",key:"1wnfg3"}]],h=o("chevron-left",e);const n=[["path",{d:"m9 18 6-6-6-6",key:"mthhwq"}]],a=o("chevron-right",n);export{r as A,h as C,a};
