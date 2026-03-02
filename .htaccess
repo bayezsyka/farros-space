@@ -3,36 +3,47 @@
 </FilesMatch>
 
 <IfModule mod_rewrite.c>
-    Options +SymLinksIfOwnerMatch -Indexes
+    Options +FollowSymLinks -Indexes
     RewriteEngine On
+
+    # Tambahkan MIME type untuk WebP
+    AddType image/webp .webp
+
+    # ----------------------------------------------------
+    # PERMISSIONS: IZINKAN AKSES FILE GAMBAR (Fix 403)
+    # ----------------------------------------------------
+    <FilesMatch "\.(webp|jpg|jpeg|png|gif|ico)$">
+        <IfModule mod_authz_core.c>
+            Require all granted
+        </IfModule>
+        <IfModule !mod_authz_core.c>
+            Order allow,deny
+            Allow from all
+        </IfModule>
+    </FilesMatch>
 
     # ----------------------------------------------------
     # SECURITY: BLOKIR AKSES KE FILE SENSITIF
     # ----------------------------------------------------
-    
-    # Blokir akses langsung ke file .env, .git, composer.json, dll
     <FilesMatch "^\.|^\.\.|env|composer\.(json|lock)|package(-lock)?\.json|webpack\.mix\.js|yarn\.lock">
         Order allow,deny
         Deny from all
     </FilesMatch>
 
-    # Tambahkan MIME type untuk WebP (penting jika server belum mengenali)
-    AddType image/webp .webp
-
     # ----------------------------------------------------
     # STORAGE ACCESS & SECURITY
     # ----------------------------------------------------
     
-    # 1. Map /storage/... ke /public/storage/... agar symlink berjalan (lebih aman di hosting)
+    # Map /storage/... ke folder symlink public/storage/ (Cara paling aman)
     RewriteRule ^storage/(.*)$ public/storage/$1 [L]
 
-    # 2. Map /build/... ke /public/build/... agar asset Vite bisa diakses
+    # Map /build/... ke /public/build/... agar asset Vite bisa diakses
     RewriteRule ^build/(.*)$ public/build/$1 [L]
 
-    # 3. Map file statis lainnya ke folder public
+    # Map file statis lainnya ke folder public
     RewriteRule ^(favicon\.ico|robots\.txt)$ public/$1 [L]
 
-    # 4. Blokir akses ke folder sistem Laravel
+    # Blokir akses ke folder sistem Laravel
     RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor) - [F,L]
     
     # Blokir akses ke file log
