@@ -32,6 +32,13 @@ Route::get('/debug-storage', function () {
             if (File::exists($path)) {
                 chmod($path, 0755);
                 $results[] = "Permission folder $path diatur ke 755.";
+                
+                // Perbaiki juga file di dalamnya - Sangat penting untuk Hosting!
+                $files = File::files($path);
+                foreach ($files as $file) {
+                    chmod($file->getRealPath(), 0644);
+                }
+                $results[] = "Seluruh file di dalam $path diatur ke 644.";
             }
         }
     } catch (\Exception $e) { $results[] = "Gagal atur permission: " . $e->getMessage(); }
