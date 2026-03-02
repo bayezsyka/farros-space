@@ -3,7 +3,7 @@
 </FilesMatch>
 
 <IfModule mod_rewrite.c>
-    Options +FollowSymLinks -Indexes
+    Options +SymLinksIfOwnerMatch -Indexes
     RewriteEngine On
 
     # ----------------------------------------------------
@@ -16,13 +16,15 @@
         Deny from all
     </FilesMatch>
 
+    # Tambahkan MIME type untuk WebP (penting jika server belum mengenali)
+    AddType image/webp .webp
+
     # ----------------------------------------------------
     # STORAGE ACCESS & SECURITY
     # ----------------------------------------------------
     
-    # 1. Map /storage/... ke /storage/app/public/... agar file public bisa diakses
-    # Rule ini diletakkan paling atas agar diproses sebelum rule pemblokiran folder
-    RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
+    # 1. Map /storage/... ke /public/storage/... agar symlink berjalan (lebih aman di hosting)
+    RewriteRule ^storage/(.*)$ public/storage/$1 [L]
 
     # 2. Map /build/... ke /public/build/... agar asset Vite bisa diakses
     RewriteRule ^build/(.*)$ public/build/$1 [L]
@@ -31,13 +33,7 @@
     RewriteRule ^(favicon\.ico|robots\.txt)$ public/$1 [L]
 
     # 4. Blokir akses ke folder sistem Laravel
-    # Kita keluarkan 'storage' dari rule ini agar bisa diproses lebih spesifik di rule nomor 5
     RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor) - [F,L]
-    
-    # 5. Blokir akses ke folder storage KECUALI yang sudah di-rewrite ke storage/app/public/
-    # Ini melindungi data sensitif seperti logs, cache, dan framework di dalam folder storage
-    RewriteCond %{REQUEST_URI} !^/storage/app/public/
-    RewriteRule ^storage/ - [F,L]
     
     # Blokir akses ke file log
     RewriteRule \.log$ - [F,L]
