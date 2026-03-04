@@ -40,4 +40,9 @@ class MarketplaceItem extends Model
         }
         return $profile ? $profile->phone : null;
     }
+
+    public function fotoDetailItems()
+    {
+        return $this->hasMany(FotoDetailItem::class);
+    }
 }

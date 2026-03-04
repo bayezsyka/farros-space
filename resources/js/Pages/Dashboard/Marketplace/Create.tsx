@@ -11,6 +11,8 @@ export default function Create() {
     const [preview, setPreview] = useState<string | null>(null);
     // Cropped 1:1 preview (for collage)
     const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
+    // Detail previews
+    const [detailPreviews, setDetailPreviews] = useState<string[]>([]);
     // Whether crop modal is open
     const [showCrop, setShowCrop] = useState(false);
     // Temp src for crop modal (object URL of picked file)
@@ -20,6 +22,7 @@ export default function Create() {
         name: '',
         image: null as File | null,
         image_cropped: null as File | null,
+        foto_details: [] as File[],
         status: 'baru' as 'baru' | 'bekas',
         description: '',
         price: '',
@@ -157,6 +160,62 @@ export default function Create() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+
+                {/* Foto Detail */}
+                <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+                    <p className={labelClass}>Foto Detail <span className="font-normal text-zinc-400">(opsional, bisa lebih dari satu)</span></p>
+
+                    <div className="space-y-4">
+                        <label htmlFor="foto_details" className="relative flex flex-col items-center justify-center w-full h-32 rounded-2xl bg-zinc-50 border-2 border-dashed border-zinc-200 hover:border-zinc-400 cursor-pointer transition-colors">
+                            <Upload className="w-8 h-8 text-zinc-300 mb-2" />
+                            <span className="text-sm font-semibold text-zinc-700">Pilih Foto Detail</span>
+                            <span className="text-xs text-zinc-400 mt-1">Format JPG, PNG, WEBP. Maks 10MB.</span>
+                            <input
+                                type="file"
+                                id="foto_details"
+                                className="hidden"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const files = Array.from(e.target.files || []);
+                                    if (files.length === 0) return;
+
+                                    const newFiles = [...data.foto_details, ...files];
+                                    setData('foto_details', newFiles);
+
+                                    const newPreviews = files.map(file => URL.createObjectURL(file));
+                                    setDetailPreviews(prev => [...prev, ...newPreviews]);
+
+                                    e.target.value = '';
+                                }}
+                            />
+                        </label>
+
+                        {detailPreviews.length > 0 && (
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                                {detailPreviews.map((preview, index) => (
+                                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-zinc-200 group">
+                                        <img src={preview} alt={`Detail ${index + 1}`} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newFiles = data.foto_details.filter((_, i) => i !== index);
+                                                setData('foto_details', newFiles);
+
+                                                const newPreviews = detailPreviews.filter((_, i) => i !== index);
+                                                setDetailPreviews(newPreviews);
+                                            }}
+                                            className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+                                        >
+                                            <span className="sr-only">Hapus</span>
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 

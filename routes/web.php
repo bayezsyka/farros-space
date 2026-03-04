@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::get('/marketplace/{marketplaceItem}/edit', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'edit'])->name('dashboard.marketplace.edit');
         Route::put('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'update'])->name('dashboard.marketplace.update');
         Route::delete('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'destroy'])->name('dashboard.marketplace.destroy');
+        Route::delete('/marketplace/foto-detail/{fotoDetailItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'destroyFotoDetail'])->name('dashboard.marketplace.foto-detail.destroy');
     });
 });
 

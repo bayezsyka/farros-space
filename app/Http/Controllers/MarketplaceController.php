@@ -19,6 +19,7 @@ class MarketplaceController extends Controller
 
     public function show(MarketplaceItem $marketplaceItem): Response
     {
+        $marketplaceItem->load('fotoDetailItems');
         return Inertia::render('Marketplace/Show', [
             'item' => $marketplaceItem,
         ]);

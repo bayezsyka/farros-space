@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use App\Traits\ImageCompressor;
 use App\Models\SiteProfile;
+use App\Models\FotoDetailItem;
 
 class AdminMarketplaceController extends Controller
 {
@@ -41,6 +42,8 @@ class AdminMarketplaceController extends Controller
             'status'        => 'required|in:baru,bekas',
             'description'   => 'nullable|string',
             'price'         => 'required|numeric|min:0',
+            'foto_details'   => 'nullable|array',
+            'foto_details.*' => 'image|max:10240',
         ]);
 
         // Store original image (full resolution)
@@ -66,14 +69,25 @@ class AdminMarketplaceController extends Controller
 
         // Remove helper key not in fillable
         unset($validated['image_cropped']);
+        unset($validated['foto_details']);
 
-        MarketplaceItem::create($validated);
+        $item = MarketplaceItem::create($validated);
+
+        if ($request->hasFile('foto_details')) {
+            foreach ($request->file('foto_details') as $foto) {
+                $path = $this->compressAndStoreWebp($foto, 'marketplace_details');
+                $item->fotoDetailItems()->create([
+                    'foto_path' => Storage::disk('public')->url($path),
+                ]);
+            }
+        }
 
         return redirect()->route('dashboard.marketplace.index')->with('message', 'Item created successfully.');
     }
 
     public function edit(MarketplaceItem $marketplaceItem): Response
     {
+        $marketplaceItem->load('fotoDetailItems');
         return Inertia::render('Dashboard/Marketplace/Edit', [
             'item' => $marketplaceItem,
         ]);
@@ -88,6 +102,8 @@ class AdminMarketplaceController extends Controller
             'status'        => 'required|in:baru,bekas',
             'description'   => 'nullable|string',
             'price'         => 'required|numeric|min:0',
+            'foto_details'   => 'nullable|array',
+            'foto_details.*' => 'image|max:10240',
         ]);
 
         // Store original image (full resolution)
@@ -123,8 +139,18 @@ class AdminMarketplaceController extends Controller
 
         // Remove helper key not in fillable
         unset($validated['image_cropped']);
+        unset($validated['foto_details']);
 
         $marketplaceItem->update($validated);
+
+        if ($request->hasFile('foto_details')) {
+            foreach ($request->file('foto_details') as $foto) {
+                $path = $this->compressAndStoreWebp($foto, 'marketplace_details');
+                $marketplaceItem->fotoDetailItems()->create([
+                    'foto_path' => Storage::disk('public')->url($path),
+                ]);
+            }
+        }
 
         return redirect()->route('dashboard.marketplace.index')->with('message', 'Item updated successfully.');
     }
@@ -139,8 +165,24 @@ class AdminMarketplaceController extends Controller
             $publicDisk->delete(str_replace($publicDisk->url(''), '', $marketplaceItem->image_cropped_path));
         }
 
+        foreach ($marketplaceItem->fotoDetailItems as $detail) {
+            if ($detail->foto_path) {
+                $publicDisk->delete(str_replace($publicDisk->url(''), '', $detail->foto_path));
+            }
+        }
+
         $marketplaceItem->delete();
 
         return redirect()->route('dashboard.marketplace.index')->with('message', 'Item deleted successfully.');
+    }
+
+    public function destroyFotoDetail(FotoDetailItem $fotoDetailItem)
+    {
+        if ($fotoDetailItem->foto_path) {
+            Storage::disk('public')->delete(str_replace(Storage::disk('public')->url(''), '', $fotoDetailItem->foto_path));
+        }
+        $fotoDetailItem->delete();
+
+        return back()->with('message', 'Detail photo deleted successfully.');
     }
 }
