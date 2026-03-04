@@ -14,10 +14,10 @@ export default function Index({ profile, latestThreads, publicThreads }: Props) 
     return (
         <AppLayout title="Home">
             <HeroSection profile={profile} />
-            <ThreadFeedSection 
-                threads={latestThreads} 
+            <ThreadFeedSection
+                threads={latestThreads}
                 publicThreads={publicThreads}
-                profile={profile} 
+                profile={profile}
             />
         </AppLayout>
     );

@@ -6,7 +6,7 @@ import { Section } from '@/Components/ui/Section';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
 import { ThreadCard } from '../components/ThreadCard';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, MessageSquare, Sparkles, Users } from 'lucide-react';
 import axios from 'axios';
 import { useState } from 'react';
 
@@ -44,107 +44,150 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
     };
 
     // Mobile: merge & sort by created_at, take 5
-    const mixedThreads = [...threads.map(t => ({...t, _isOwner: true})), ...publicThreads.map(t => ({...t, _isOwner: false}))]
+    const mixedThreads = [...threads.map(t => ({ ...t, _isOwner: true })), ...publicThreads.map(t => ({ ...t, _isOwner: false }))]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
 
     return (
-        <Section id="threads-feed" spacing="none" className="py-10 sm:py-16 md:py-20 lg:py-24">
+        <Section id="threads-feed" spacing="none" className="py-10 sm:py-16 md:py-20 border-t bg-muted/10">
             <Container className="max-w-6xl px-4 sm:px-6 lg:px-8">
-                {/* =========== DESKTOP: Two Columns =========== */}
-                <div className="hidden lg:grid grid-cols-2 gap-6 xl:gap-8 items-start">
-                    
+
+                {/* Section header */}
+                <div className="flex items-end justify-between mb-8">
+                    <div>
+                        <div className="inline-flex items-center gap-2 border border-border bg-background rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            Threads
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                            Pembaruan Terkini
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Apa yang sedang terjadi di sini.
+                        </p>
+                    </div>
+                    <Link
+                        href={route('threads.index')}
+                        className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
+                    >
+                        Lihat Semua
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                </div>
+
+                {/* ── DESKTOP: Two Columns ── */}
+                <div className="hidden lg:grid grid-cols-2 gap-5 xl:gap-6 items-start">
+
                     {/* Owner Threads Column */}
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
-                            <Typography variant="h3" className="text-[16px] lg:text-[18px] font-bold">Threads</Typography>
-                            <Link 
+                    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-border bg-muted/20 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                                </div>
+                                <Typography variant="h3" className="text-[15px] font-bold">My Threads</Typography>
+                            </div>
+                            <Link
                                 href={route('threads.owner')}
-                                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 transition-colors"
+                                className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 transition-colors"
                             >
                                 Lihat Semua <ArrowRight className="w-3 h-3" />
                             </Link>
                         </div>
-                        
-                        <div className="flex-grow">
+
+                        <div>
                             {threads.length > 0 ? (
-                                <div className="divide-y divide-border/50">
-                                    {threads.slice(0, 3).map((thread) => (
+                                <div className="divide-y divide-border/60">
+                                    {threads.slice(0, 4).map((thread) => (
                                         <ThreadCard key={thread.id} thread={thread} profile={profile} />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <Typography variant="small" className="text-muted-foreground">Belum ada thread.</Typography>
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <MessageSquare className="w-9 h-9 text-muted-foreground/25 mb-3" />
+                                    <Typography variant="small" className="text-muted-foreground text-sm">
+                                        Belum ada thread.
+                                    </Typography>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Public Threads Column (Kata Mereka...) */}
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
-                        <div className="p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
-                            <Typography variant="h3" className="text-[16px] lg:text-[18px] font-bold">Kata Mereka...</Typography>
-                            <div className="flex items-center gap-3">
-                                {!auth.user && (
-                                    <Typography variant="small" className="text-xs text-muted-foreground italic">Login untuk berbagi</Typography>
-                                )}
+                    {/* Public Threads Column */}
+                    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-border bg-muted/20 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
+                                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                                </div>
+                                <Typography variant="h3" className="text-[15px] font-bold">Kata Mereka...</Typography>
                             </div>
+                            {!auth.user && (
+                                <Typography variant="small" className="text-xs text-muted-foreground italic">
+                                    Login untuk berbagi
+                                </Typography>
+                            )}
                         </div>
 
-                        {/* Public Thread Input Form */}
-                        <div className="p-4 border-b border-border/50">
+                        {/* Post form */}
+                        <div className="px-5 py-4 border-b border-border">
                             <PublicThreadForm onSuccess={handlePublicThreadSuccess} />
                         </div>
-                        
-                        <div className="flex-grow">
+
+                        <div>
                             {publicThreads.length > 0 ? (
-                                <div className="divide-y divide-border/50">
+                                <div className="divide-y divide-border/60">
                                     {publicThreads.slice(0, 3).map((thread) => (
                                         <ThreadCard key={thread.id} thread={thread} isPublic />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <Typography variant="small" className="text-muted-foreground">Jadilah yang pertama berbagi!</Typography>
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <Typography variant="small" className="text-muted-foreground text-sm">
+                                        Jadilah yang pertama berbagi!
+                                    </Typography>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* =========== MOBILE & TABLET: Single Mixed Column =========== */}
+                {/* ── MOBILE & TABLET ── */}
                 <div className="lg:hidden">
-                    <div className="border border-border/50 rounded-2xl bg-background overflow-hidden flex flex-col">
-                        <div className="p-3 sm:p-4 border-b border-border/50 bg-zinc-50/50 flex items-center justify-between">
-                            <Typography variant="h3" className="text-[16px] sm:text-[18px] font-bold">Threads</Typography>
-                            <Link 
+                    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3.5 border-b border-border bg-muted/20 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                                <Typography variant="h3" className="text-[16px] font-bold">Threads</Typography>
+                            </div>
+                            <Link
                                 href={route('threads.index')}
-                                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 transition-colors"
+                                className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 transition-colors"
                             >
                                 Lihat Semua <ArrowRight className="w-3 h-3" />
                             </Link>
                         </div>
 
-                        {/* Public Thread Input Form */}
-                        <div className="p-3 sm:p-4 border-b border-border/50">
+                        {/* Post form */}
+                        <div className="px-4 py-4 border-b border-border">
                             <PublicThreadForm onSuccess={handlePublicThreadSuccess} />
                         </div>
 
-                        <div className="flex-grow">
+                        <div>
                             {mixedThreads.length > 0 ? (
-                                <div className="divide-y divide-border/50">
+                                <div className="divide-y divide-border/60">
                                     {mixedThreads.map((thread) => (
-                                        <ThreadCard 
-                                            key={`${thread._isOwner ? 'o' : 'p'}-${thread.id}`} 
-                                            thread={thread} 
-                                            profile={thread._isOwner ? profile : undefined} 
-                                            isPublic={!thread._isOwner} 
+                                        <ThreadCard
+                                            key={`${thread._isOwner ? 'o' : 'p'}-${thread.id}`}
+                                            thread={thread}
+                                            profile={thread._isOwner ? profile : undefined}
+                                            isPublic={!thread._isOwner}
                                         />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center">
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <MessageSquare className="w-10 h-10 text-muted-foreground/25 mb-3" />
                                     <Typography variant="small" className="text-muted-foreground">Belum ada thread.</Typography>
                                 </div>
                             )}
@@ -152,13 +195,14 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
                     </div>
                 </div>
 
-                {/* "Lihat Semua Threads" link at bottom */}
-                <div className="mt-4 sm:mt-6 text-center">
-                    <Link 
+                {/* Bottom CTA */}
+                <div className="mt-6 flex items-center justify-center gap-4">
+                    <Link
                         href={route('threads.index')}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline transition-colors"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-all group"
                     >
-                        Lihat semua threads <ArrowRight className="w-4 h-4" />
+                        Lihat semua threads
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                 </div>
             </Container>
@@ -166,6 +210,7 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
     );
 };
 
+// ── Public Thread Form ──
 const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }) => {
     const { auth } = usePage<PageProps>().props;
     const [content, setContent] = useState('');
@@ -195,19 +240,21 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
     if (!auth.user) {
         return (
-            <div className="flex flex-col items-center justify-center py-3 sm:py-4 px-3 sm:px-4 bg-zinc-50 rounded-xl border border-dashed border-zinc-200 gap-2 sm:gap-3">
-                <Typography variant="small" className="text-[12px] sm:text-[13px] text-zinc-500 font-medium text-center">Masuk untuk berbagi cerita kamu</Typography>
-                <a 
-                    href={route('auth.google', { redirect: window.location.href })}
-                    className="flex items-center gap-2 bg-white border border-zinc-200 px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-[12px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">
+                    Masuk untuk berbagi cerita kamu.
+                </p>
+                <a
+                    href={route('auth.google', { redirect: typeof window !== 'undefined' ? window.location.href : '' })}
+                    className="flex-shrink-0 flex items-center gap-2 bg-background border border-border px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all active:scale-95"
                 >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     </svg>
-                    Lanjutkan dengan Google
+                    Google
                 </a>
             </div>
         );
@@ -215,12 +262,12 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+            <div className="flex gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border">
                     {auth.user.avatar ? (
                         <img src={auth.user.avatar} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-xs sm:text-sm bg-primary/10 text-primary">
+                        <div className="w-full h-full flex items-center justify-center font-bold text-xs bg-primary/10 text-primary">
                             {auth.user.name.charAt(0)}
                         </div>
                     )}
@@ -230,7 +277,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="Apa yang ada di pikiran kamu?"
-                        className="w-full bg-transparent border-none focus:ring-0 text-[14px] sm:text-[15px] p-0 min-h-[36px] sm:min-h-[40px] resize-none"
+                        className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[36px] resize-none placeholder:text-muted-foreground"
                         rows={2}
                         onInput={(e) => {
                             const target = e.target as HTMLTextAreaElement;
@@ -240,12 +287,12 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     />
                 </div>
             </div>
-            <div className="flex justify-end pt-1">
-                <Button 
+            <div className="flex justify-end pt-1 border-t border-border/40">
+                <Button
                     type="submit"
                     size="sm"
                     disabled={!content.trim() || isSubmitting}
-                    className="rounded-full px-5 sm:px-6 font-bold text-xs sm:text-sm"
+                    className="rounded-xl px-5 font-bold text-xs"
                 >
                     {isSubmitting ? 'Mengirim...' : 'Kirim'}
                 </Button>
