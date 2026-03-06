@@ -1,10 +1,16 @@
-import React from 'react';
-import { Container } from '@/Components/ui/Container';
-import { Section } from '@/Components/ui/Section';
-import { Typography } from '@/Components/ui/Typography';
-import { Button } from '@/Components/ui/Button';
+import React, { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Mail, Phone, ArrowRight, ChevronDown, ShoppingBag, MessageSquare } from 'lucide-react';
+import {
+    ArrowRight,
+    Github,
+    Instagram,
+    Linkedin,
+    Twitter,
+    Facebook,
+    Youtube,
+    Link as LinkIcon,
+} from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 
 interface HeroSectionProps {
     profile: {
@@ -16,191 +22,211 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({ profile }: HeroSectionProps) => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const { social_links } = usePage<any>().props;
+    const name = profile?.full_name || 'Farros';
+
+    const getIcon = (platformId: string) => {
+        switch (platformId) {
+            case 'github': return Github;
+            case 'instagram': return Instagram;
+            case 'linkedin': return Linkedin;
+            case 'twitter': return Twitter;
+            case 'facebook': return Facebook;
+            case 'youtube': return Youtube;
+            default: return LinkIcon;
+        }
+    };
+
     return (
-        <Section spacing="none" className="relative overflow-hidden border-b bg-background">
-            {/* Subtle grid background */}
+        <section className="relative min-h-screen overflow-hidden bg-background flex flex-col">
+
+            {/* ─── Subtle noise / grid overlay ─── */}
             <div
-                className="absolute inset-0 opacity-[0.03]"
+                className="pointer-events-none absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
                 style={{
-                    backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-                    backgroundSize: '40px 40px',
+                    backgroundImage: `
+                        linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
+                        linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '50px 50px',
                 }}
             />
-            {/* Radial highlight top-left */}
-            <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            {/* Radial highlight bottom-right */}
-            <div className="absolute -bottom-40 -right-20 w-[400px] h-[400px] bg-primary/4 rounded-full blur-3xl pointer-events-none" />
 
-            <Container className="relative px-4 sm:px-6 lg:px-8">
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24 items-center min-h-[85vh] py-20 lg:py-0">
+            {/* ─── Ambient blobs ─── */}
+            <div className="pointer-events-none absolute -top-60 -left-40 w-[700px] h-[700px] rounded-full bg-primary/5 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
 
-                    {/* Left: Text content */}
-                    <div className="space-y-7 lg:space-y-8">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2 border border-border bg-muted/50 rounded-full px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Available & Open
-                        </div>
+            {/* ════ DESKTOP PHOTO — centered absolute, hidden on mobile ════ */}
+            <div
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 z-0 pointer-events-none select-none hidden lg:block"
+                style={{
+                    top: '35%',
+                    opacity: mounted ? 1 : 0,
+                    transition: 'opacity 0.9s ease 0.25s',
+                }}
+            >
+                <img
+                    src="/images/hero-foto-saya.png"
+                    alt={name}
+                    className="h-full w-auto object-contain object-bottom"
+                    draggable={false}
+                />
+            </div>
 
-                        {/* Name */}
-                        <div className="space-y-3">
-                            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-foreground leading-[1.0] tracking-tight">
-                                {profile.full_name || 'Farros Space'}
-                            </h1>
-                            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-md">
-                                {profile.headline || 'Welcome to my digital space.'}
-                            </p>
-                        </div>
+            {/* ═══════════════════════════════════════════════════════════
+                 MOBILE LAYOUT — stacked: name → bio → button → socials → photo
+                 ═══════════════════════════════════════════════════════════ */}
+            <div
+                className="relative z-10 flex flex-col items-center px-6 pt-24 pb-0 lg:hidden"
+                style={{
+                    opacity: mounted ? 1 : 0,
+                    transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+                    transition: 'opacity 0.7s ease, transform 0.7s ease',
+                }}
+            >
+                {/* 1. Name */}
+                <div className="w-full text-center space-y-1">
+                    <p className="text-3xl font-bold text-foreground">
+                        Hy! I Am
+                    </p>
+                    <p
+                        className="text-4xl font-extrabold"
+                        style={{ color: 'hsl(var(--primary))' }}
+                    >
+                        {name}.
+                    </p>
+                </div>
 
-                        {/* Contact chips */}
-                        <div className="flex flex-col sm:flex-row flex-wrap gap-2">
-                            {profile.email && (
+                {/* 2. Bio / Headline */}
+                <p className="mt-5 text-base text-muted-foreground leading-relaxed font-medium text-center max-w-sm">
+                    {profile?.headline
+                        ? profile.headline
+                        : <>I build beautifully simple things, and I love what I do.</>
+                    }
+                </p>
+
+                {/* 3. Get in Touch */}
+                <div className="mt-6 w-full max-w-xs">
+                    <Link href="/contact" className="block">
+                        <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                            Get in Touch <ArrowRight className="w-4 h-4" />
+                        </button>
+                    </Link>
+                </div>
+
+                {/* 4. Social links */}
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    {social_links?.map((link: any) => {
+                        const Icon = getIcon(link.platform);
+                        return (
+                            <a
+                                key={link.id}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={link.username || link.platform}
+                                className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all"
+                            >
+                                <Icon className="w-4 h-4" />
+                            </a>
+                        );
+                    })}
+                </div>
+
+                {/* 5. Photo — big, centered */}
+                <div
+                    className="mt-8 w-full flex justify-center"
+                    style={{
+                        opacity: mounted ? 1 : 0,
+                        transition: 'opacity 0.9s ease 0.3s',
+                    }}
+                >
+                    <img
+                        src="/images/hero-foto-saya.png"
+                        alt={name}
+                        className="w-[85%] max-w-[380px] h-auto object-contain"
+                        draggable={false}
+                    />
+                </div>
+            </div>
+
+            {/* ═══════════════════════════════════════════════════════════
+                 DESKTOP LAYOUT — 2-column grid, overlay above photo
+                 ═══════════════════════════════════════════════════════════ */}
+            <div className="relative z-10 flex-1 hidden lg:grid lg:grid-cols-2 max-w-7xl mx-auto w-full px-16 min-h-screen">
+
+                {/* ════════ LEFT ════════ */}
+                <div
+                    className="flex flex-col justify-center space-y-8 pr-12"
+                    style={{
+                        opacity: mounted ? 1 : 0,
+                        transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+                        transition: 'opacity 0.7s ease, transform 0.7s ease',
+                    }}
+                >
+                    <div className="space-y-1">
+                        <p className="text-4xl font-bold text-foreground">
+                            Hy! I Am
+                        </p>
+                        <p
+                            className="text-5xl font-extrabold"
+                            style={{ color: 'hsl(var(--primary))' }}
+                        >
+                            {name}.
+                        </p>
+                    </div>
+                </div>
+
+                {/* ════════ RIGHT ════════ */}
+                <div
+                    className="flex flex-col justify-center space-y-3 pl-12 text-right"
+                    style={{
+                        opacity: mounted ? 1 : 0,
+                        transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+                        transition: 'opacity 0.7s ease 0.1s, transform 0.7s ease 0.1s',
+                    }}
+                >
+                    <p className="text-xl text-muted-foreground leading-snug font-medium">
+                        {profile?.headline
+                            ? profile.headline
+                            : <>I build beautifully simple things,<br />and I love what I do.</>
+                        }
+                    </p>
+
+                    <div className="flex items-center gap-3 justify-end">
+                        <Link href="/contact">
+                            <button className="flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                                Get in Touch <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </Link>
+                    </div>
+
+                    {/* Social links */}
+                    <div className="flex flex-wrap gap-2 justify-end">
+                        {social_links?.map((link: any) => {
+                            const Icon = getIcon(link.platform);
+                            return (
                                 <a
-                                    href={`mailto:${profile.email}`}
-                                    className="inline-flex items-center gap-2 border border-border rounded-xl px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted hover:border-foreground/20 transition-all group"
-                                >
-                                    <Mail className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                    <span className="truncate max-w-[200px]">{profile.email}</span>
-                                </a>
-                            )}
-                            {profile.phone && (
-                                <a
-                                    href={`https://wa.me/${profile.phone.replace(/^0/, '62')}`}
+                                    key={link.id}
+                                    href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 border border-border rounded-xl px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted hover:border-foreground/20 transition-all group"
+                                    title={link.username || link.platform}
+                                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all"
                                 >
-                                    <Phone className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                    <span>{profile.phone}</span>
+                                    <Icon className="w-4 h-4" />
                                 </a>
-                            )}
-                        </div>
-
-                        {/* CTAs */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <Link href="/contact">
-                                <Button size="lg" className="rounded-xl font-bold px-7 gap-2">
-                                    Get in Touch <ArrowRight className="w-4 h-4" />
-                                </Button>
-                            </Link>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="rounded-xl px-7 font-semibold"
-                                onClick={() => document.getElementById('threads-feed')?.scrollIntoView({ behavior: 'smooth' })}
-                            >
-                                Read Threads
-                            </Button>
-                        </div>
-
-                        {/* Feature links */}
-                        <div className="flex items-center gap-6 pt-2 border-t border-border/50">
-                            <Link
-                                href={route('marketplace.index')}
-                                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
-                            >
-                                <ShoppingBag className="w-4 h-4 group-hover:text-foreground transition-colors" />
-                                Marketplace
-                            </Link>
-                            <div className="w-px h-4 bg-border" />
-                            <Link
-                                href={route('threads.index')}
-                                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
-                            >
-                                <MessageSquare className="w-4 h-4 group-hover:text-foreground transition-colors" />
-                                Threads
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Right: Decorative card panel */}
-                    <div className="hidden lg:flex items-center justify-center">
-                        <div className="relative w-full max-w-sm">
-                            {/* Main card */}
-                            <div className="relative bg-card border border-border rounded-3xl p-8 shadow-2xl shadow-foreground/5">
-                                {/* Card inner accent */}
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-3xl overflow-hidden">
-                                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/10 rounded-full" />
-                                </div>
-
-                                <div className="relative space-y-6">
-                                    {/* Avatar placeholder */}
-                                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl font-black text-primary">
-                                        {(profile.full_name || 'F').charAt(0)}
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-                                            Personal Space
-                                        </p>
-                                        <h3 className="text-2xl font-black text-foreground leading-tight">
-                                            {profile.full_name || 'Farros Space'}
-                                        </h3>
-                                    </div>
-
-                                    {/* Stats */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-muted/50 rounded-2xl p-4">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Market</span>
-                                            </div>
-                                            <p className="text-sm font-semibold text-foreground/80">Jual & Beli</p>
-                                        </div>
-                                        <div className="bg-muted/50 rounded-2xl p-4">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Thread</span>
-                                            </div>
-                                            <p className="text-sm font-semibold text-foreground/80">Berbagi Cerita</p>
-                                        </div>
-                                    </div>
-
-                                    {/* CTA mini */}
-                                    <Link href="/contact" className="block">
-                                        <div className="flex items-center justify-between bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 font-bold text-sm group hover:opacity-90 transition-opacity">
-                                            <span>Hubungi Saya</span>
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </div>
-                                    </Link>
-                                </div>
-                            </div>
-
-                            {/* Floating decorative card - top right */}
-                            <div className="absolute -top-5 -right-5 bg-card border border-border rounded-2xl p-3.5 shadow-lg">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-semibold text-muted-foreground">Status</p>
-                                        <p className="text-xs font-bold text-foreground">Open to connect</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Floating decorative card - bottom left */}
-                            <div className="absolute -bottom-5 -left-5 bg-card border border-border rounded-2xl p-3.5 shadow-lg">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center">
-                                        <Mail className="w-3.5 h-3.5 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-semibold text-muted-foreground">Kontak</p>
-                                        <p className="text-xs font-bold text-foreground truncate max-w-[100px]">{profile.email || 'farros.space'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
-
-                {/* Scroll hint */}
-                <div className="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 text-muted-foreground animate-bounce">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest">Scroll</span>
-                    <ChevronDown className="w-4 h-4" />
-                </div>
-            </Container>
-        </Section>
+            </div>
+        </section>
     );
 };

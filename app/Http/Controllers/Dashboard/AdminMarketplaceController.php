@@ -19,7 +19,7 @@ class AdminMarketplaceController extends Controller
 
     public function index(): Response
     {
-        $items = MarketplaceItem::latest()->get();
+        $items = MarketplaceItem::with('fotoDetailItems')->latest()->get();
         $profile = SiteProfile::first();
 
         return Inertia::render('Dashboard/Marketplace/Index', [

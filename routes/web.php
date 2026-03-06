@@ -43,6 +43,11 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::get('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'index'])->name('dashboard.biodata');
         Route::put('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'update'])->name('dashboard.biodata.update');
 
+        Route::get('/social-links', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'index'])->name('dashboard.social-links.index');
+        Route::post('/social-links', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'store'])->name('dashboard.social-links.store');
+        Route::put('/social-links/{socialLink}', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'update'])->name('dashboard.social-links.update');
+        Route::delete('/social-links/{socialLink}', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'destroy'])->name('dashboard.social-links.destroy');
+
         // Marketplace management
         Route::get('/marketplace', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'index'])->name('dashboard.marketplace.index');
         Route::get('/marketplace/create', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'create'])->name('dashboard.marketplace.create');

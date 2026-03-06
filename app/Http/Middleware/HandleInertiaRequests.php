@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => session('success'),
                 'error' => session('error'),
             ],
+            'social_links' => \App\Models\SocialLink::where('is_active', true)->get(),
         ];
     }
 

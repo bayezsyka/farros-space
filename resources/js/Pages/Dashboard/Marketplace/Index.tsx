@@ -11,10 +11,18 @@ import {
     CheckSquare,
     Square,
     ImageIcon,
+    Newspaper,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { AdminPageHeader, AdminActionButton } from '@/Components/ui/AdminPageHeader';
 import CollageGenerator from '@/Components/ui/CollageGenerator';
+import ProductPosterGenerator from '@/Components/ui/ProductPosterGenerator';
+
+interface FotoDetailItem {
+    id: number;
+    marketplace_item_id: number;
+    foto_path: string;
+}
 
 interface MarketplaceItem {
     id: number;
@@ -25,6 +33,8 @@ interface MarketplaceItem {
     status: 'baru' | 'bekas';
     description: string;
     price: string | null;
+    whatsapp: string | null;
+    foto_detail_items?: FotoDetailItem[];
 }
 
 interface Props {
@@ -40,6 +50,9 @@ export default function Index({ items, waNumber }: Props) {
     const [selectMode, setSelectMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showCollage, setShowCollage] = useState(false);
+
+    // Product Poster
+    const [posterItem, setPosterItem] = useState<MarketplaceItem | null>(null);
 
     const filtered = items.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
@@ -280,6 +293,16 @@ export default function Index({ items, waNumber }: Props) {
                                                             <ArrowUpRight className="w-4 h-4" />
                                                         </a>
                                                         <button
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                                                            title="Buat Poster Produk"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setPosterItem(item);
+                                                            }}
+                                                        >
+                                                            <Newspaper className="w-4 h-4" />
+                                                        </button>
+                                                        <button
                                                             className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-violet-600 hover:bg-violet-50 transition-all"
                                                             title="Buat Kolase"
                                                             onClick={(e) => {
@@ -363,6 +386,14 @@ export default function Index({ items, waNumber }: Props) {
                     items={selectedItems}
                     waNumber={waNumber}
                     onClose={() => setShowCollage(false)}
+                />
+            )}
+
+            {/* Product Poster Modal */}
+            {posterItem && (
+                <ProductPosterGenerator
+                    item={posterItem}
+                    onClose={() => setPosterItem(null)}
                 />
             )}
         </DashboardLayout>

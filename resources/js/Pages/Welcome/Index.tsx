@@ -12,7 +12,7 @@ interface Props {
 
 export default function Index({ profile, latestThreads, publicThreads }: Props) {
     return (
-        <AppLayout title="Home">
+        <AppLayout title="Home" overlayHeader={true}>
             <HeroSection profile={profile} />
             <ThreadFeedSection
                 threads={latestThreads}

@@ -11,7 +11,8 @@ import {
     ChevronRight,
     Home,
     Settings,
-    Briefcase
+    Briefcase,
+    Link as LinkIcon
 } from 'lucide-react';
 import { cn } from '@/utils';
 import { Typography } from '@/Components/ui/Typography';
@@ -33,6 +34,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
         { label: 'Biodata', icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
         { label: 'Threads', icon: MessageSquare, href: route('dashboard.threads'), active: route().current('dashboard.threads') },
         { label: 'Marketplace', icon: Briefcase, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
+        { label: 'Social Links', icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
         { label: 'Account', icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },
     ];
 

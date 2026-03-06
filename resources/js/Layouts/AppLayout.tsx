@@ -8,17 +8,18 @@ import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard } from 'luci
 interface Props {
     children: React.ReactNode;
     title?: string;
+    overlayHeader?: boolean;
 }
 
-export default function AppLayout({ children, title }: Props) {
+export default function AppLayout({ children, title, overlayHeader }: Props) {
     const { auth } = usePage<PageProps>().props;
     const user = auth.user;
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
-    // Track scroll for subtle header shadow
+    // Track scroll for subtle header shadow and background transition
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 8);
+        const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -46,8 +47,17 @@ export default function AppLayout({ children, title }: Props) {
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary selection:text-primary-foreground">
             <Head title={title} />
 
-            {/* ── Header ── */}
-            <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-shadow duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
+            <header
+                className={`
+                    fixed top-0 left-0 right-0 z-[100] w-full transition-all duration-300 ease-in-out
+                    ${overlayHeader
+                        ? scrolled
+                            ? 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm py-0'
+                            : 'bg-transparent border-transparent py-2'
+                        : 'relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm'
+                    }
+                `}
+            >
                 <Container className="flex h-14 md:h-[60px] items-center justify-between gap-4">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 z-50 group flex-shrink-0">
@@ -198,7 +208,7 @@ export default function AppLayout({ children, title }: Props) {
             </div>
 
             {/* Main Content */}
-            <main className="flex-1">
+            <main className={`flex-1 ${!overlayHeader ? 'mt-[57px] md:mt-[60px]' : ''}`}>
                 {children}
             </main>
 
