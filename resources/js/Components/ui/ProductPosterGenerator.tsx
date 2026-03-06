@@ -4,9 +4,38 @@ import {
     MapPin, Phone, CheckSquare2, Upload, Star, Clock,
 } from 'lucide-react';
 
-// ─── Canvas: 3:4 portrait ─────────────────────────────────────────────────────
-const CANVAS_W = 900;
-const CANVAS_H = 1200;
+// ─── Resolution presets ───────────────────────────────────────────────────────
+
+type Resolution = '3:4' | '1:1';
+
+// '3:4' → portrait stacked (3 detail photos, all 1:1 squares)
+// '1:1' → 2-column grid: left=main, right=2 detail stacked, bottom=info bar
+type Layout = 'portrait' | 'grid2col';
+
+interface RenderConfig {
+    W: number; H: number; PAD: number; GAP: number; INFO_H: number;
+    layout: Layout;
+    R: number;
+    nameFs: number; priceFs: number; chipFs: number; chipH: number;
+    metaFs: number; QR_SIZE: number;
+    detailCount: number; // how many detail photos this layout needs
+}
+
+const CONFIGS: Record<Resolution, RenderConfig> = {
+    // Portrait: 3 detail photos, all 1:1 cells
+    '3:4': {
+        W: 900, H: 1380, PAD: 20, GAP: 8, INFO_H: 185,
+        layout: 'portrait', R: 14, detailCount: 3,
+        nameFs: 42, priceFs: 36, chipFs: 14, chipH: 28, metaFs: 19, QR_SIZE: 160,
+    },
+    // Square: 2-col grid — left: main, right: 2 details stacked, bottom: info
+    '1:1': {
+        W: 1080, H: 1080, PAD: 16, GAP: 10, INFO_H: 270,
+        layout: 'grid2col', R: 14, detailCount: 2,
+        nameFs: 38, priceFs: 32, chipFs: 13, chipH: 26, metaFs: 18, QR_SIZE: 220,
+    },
+};
+
 const FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -95,7 +124,7 @@ function clipRR(
     }
 }
 
-function truncate(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
+function trunc(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
     if (!text || maxW <= 0) return '';
     if (ctx.measureText(text).width <= maxW) return text;
     const ellW = ctx.measureText('…').width;
@@ -113,101 +142,24 @@ async function fetchQR(text: string, size: number): Promise<HTMLImageElement | n
     return loadImage(url);
 }
 
-// ─── Poster renderer ──────────────────────────────────────────────────────────
+// ─── Shared: draw info bar ─────────────────────────────────────────────────────
 
-async function renderPoster(
+async function drawInfoBar(
     ctx: CanvasRenderingContext2D,
     item: MarketplaceItem,
-    mainImg: HTMLImageElement | null,
-    detailImgs: (HTMLImageElement | null)[],
     location: string,
+    cfg: RenderConfig,
+    INFO_X: number, INFO_Y: number, INFO_W: number, INFO_H: number,
 ) {
-    const W = CANVAS_W, H = CANVAS_H;
-    const PAD = 20;
-    const GAP = 10;
-    const INNER_W = W - PAD * 2;
-    const R = 14;
-
-    // White background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, W, H);
-
-    // ── Layout ────────────────────────────────────────────────────────────────
-    // Info strip: compact fixed height, photos get everything else
-    const INFO_H = 210;
-    const PHOTO_AREA_H = H - INFO_H - PAD * 2 - GAP - 1; // 1 = divider
-    const MAIN_H = Math.round(PHOTO_AREA_H * 0.745);
-    const DETAIL_H = PHOTO_AREA_H - MAIN_H - GAP;
-
-    const MAIN_Y = PAD;
-    const DETAIL_Y = MAIN_Y + MAIN_H + GAP;
-    const DIV_Y = DETAIL_Y + DETAIL_H + PAD;
-    const INFO_Y = DIV_Y + 1;
-
-    // ── 1. Main photo ─────────────────────────────────────────────────────────
-    ctx.save();
-    clipRR(ctx, PAD, MAIN_Y, INNER_W, MAIN_H, R);
-    ctx.clip();
-    if (mainImg) {
-        drawCover(ctx, mainImg, PAD, MAIN_Y, INNER_W, MAIN_H);
-    } else {
-        ctx.fillStyle = '#F4F4F5';
-        ctx.fillRect(PAD, MAIN_Y, INNER_W, MAIN_H);
-        ctx.fillStyle = '#B0B0B8';
-        ctx.font = `500 ${Math.round(MAIN_H * 0.065)}px ${FONT}`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('[ Foto Utama ]', PAD + INNER_W / 2, MAIN_Y + MAIN_H / 2);
-    }
-    ctx.restore();
-
-    // Status badge (top-left overlay)
+    const { nameFs, priceFs, chipFs, chipH, metaFs, QR_SIZE } = cfg;
     const isBaru = item.status === 'baru';
-    const bW = 78, bH = 30;
-    ctx.fillStyle = 'rgba(0,0,0,0.58)';
-    clipRR(ctx, PAD + 14, MAIN_Y + 14, bW, bH, 8); ctx.fill();
-    ctx.fillStyle = '#FFF';
-    ctx.font = `700 13px ${FONT}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(isBaru ? 'BARU' : 'BEKAS', PAD + 14 + bW / 2, MAIN_Y + 14 + bH / 2);
 
-    // ── 2. Three detail photos ────────────────────────────────────────────────
-    const CW = Math.floor((INNER_W - GAP * 2) / 3);
-    const detailWidths = [CW, CW, INNER_W - CW * 2 - GAP * 2];
-
-    for (let i = 0; i < 3; i++) {
-        const dx = PAD + i * (CW + GAP);
-        const dw = detailWidths[i];
-        ctx.save();
-        clipRR(ctx, dx, DETAIL_Y, dw, DETAIL_H, R * 0.6);
-        ctx.clip();
-        if (detailImgs[i]) {
-            drawCover(ctx, detailImgs[i]!, dx, DETAIL_Y, dw, DETAIL_H);
-        } else {
-            ctx.fillStyle = '#F4F4F5';
-            ctx.fillRect(dx, DETAIL_Y, dw, DETAIL_H);
-            ctx.fillStyle = '#B0B0B8';
-            ctx.font = `500 ${Math.round(DETAIL_H * 0.18)}px ${FONT}`;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(`Foto ${i + 1}`, dx + dw / 2, DETAIL_Y + DETAIL_H / 2);
-        }
-        ctx.restore();
-        ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
-        clipRR(ctx, dx, DETAIL_Y, dw, DETAIL_H, R * 0.6); ctx.stroke();
-    }
-
-    // ── 3. Divider ────────────────────────────────────────────────────────────
-    ctx.fillStyle = '#E4E4E7';
-    ctx.fillRect(PAD, DIV_Y, INNER_W, 1);
-
-    // ── 4. Info strip ─────────────────────────────────────────────────────────
-    // QR code – fetch first
-    const QR_SIZE = 185;
+    // QR on the right
     const qrImg = await fetchQR(`https://farros.space/marketplace/${item.slug}`, QR_SIZE);
-    const QR_X = PAD + INNER_W - QR_SIZE;
+    const QR_X = INFO_X + INFO_W - QR_SIZE;
     const QR_Y = INFO_Y + Math.round((INFO_H - QR_SIZE - 20) / 2);
 
     if (qrImg) {
-        // white bordered bg
         ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
         clipRR(ctx, QR_X - 6, QR_Y - 6, QR_SIZE + 12, QR_SIZE + 12, 10);
         ctx.fill(); ctx.stroke();
@@ -218,20 +170,15 @@ async function renderPoster(
         ctx.fillText('Scan untuk detail', QR_X + QR_SIZE / 2, QR_Y + QR_SIZE + 8);
     }
 
-    // Text area: vertical centering on the left
-    const TX = PAD;
-    const TW = INNER_W - QR_SIZE - 32;
+    // Text column left of QR
+    const TX = INFO_X;
+    const TW = INFO_W - QR_SIZE - 32;
 
-    // First, measure total height to center vertically
-    const nameFs = 48;
-    const priceFs = 42;
-    const chipH = 30;
-    const metaFs = 22;
-
+    // Pre-measure name lines for vertical centering
+    ctx.font = `800 ${nameFs}px ${FONT}`;
     const nameWords = (item.name || '—').split(' ');
     let nameLine = '';
     const nameLines: string[] = [];
-    ctx.font = `800 ${nameFs}px ${FONT}`;
     for (const w of nameWords) {
         const test = nameLine ? `${nameLine} ${w}` : w;
         if (ctx.measureText(test).width > TW && nameLine) {
@@ -240,24 +187,22 @@ async function renderPoster(
         } else { nameLine = test; }
     }
     if (nameLines.length < 2 && nameLine) nameLines.push(nameLine);
+    const actualLines = nameLines.slice(0, 2);
 
-    const actualNameLines = nameLines.slice(0, 2);
-    const totalTextH = (actualNameLines.length * (nameFs - 2)) + 10 + chipH + 18 + metaFs;
+    const totalTextH = (actualLines.length * (nameFs - 2)) + 10 + chipH + 18 + metaFs;
     let iy = INFO_Y + Math.round((INFO_H - totalTextH - 12) / 2);
 
-    // ── Name ────────────────────────────────────────────────────
+    // Name
     ctx.fillStyle = '#18181B';
     ctx.font = `800 ${nameFs}px ${FONT}`;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-
-    actualNameLines.forEach((l) => {
-        ctx.fillText(truncate(ctx, l, TW), TX, iy);
+    actualLines.forEach((l) => {
+        ctx.fillText(trunc(ctx, l, TW), TX, iy);
         iy += nameFs - 2;
     });
     iy += 10;
 
-    // Status chip  +  Price  (same row)
-    const chipFs = 15;
+    // Status chip + Price
     ctx.font = `700 ${chipFs}px ${FONT}`;
     const chipTxt = isBaru ? 'Barang Baru' : 'Barang Bekas';
     const chipW = ctx.measureText(chipTxt).width + 24;
@@ -271,48 +216,204 @@ async function renderPoster(
     ctx.fillStyle = '#18181B';
     ctx.font = `900 ${priceFs}px ${FONT}`;
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(
-        truncate(ctx, formatPrice(item.price), TW - chipW - 24),
-        TX + chipW + 20,
-        iy + chipH / 2,
-    );
+    ctx.fillText(trunc(ctx, formatPrice(item.price), TW - chipW - 24), TX + chipW + 20, iy + chipH / 2);
     iy += chipH + 18;
 
-    // WA  +  Lokasi  (same row, separated by  |)
+    // WA + Lokasi
     const wa = item.whatsapp || 'Hubungi kami';
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
 
-    ctx.textBaseline = 'top';
-    ctx.textAlign = 'left';
-
-    // WA label
     ctx.fillStyle = '#71717A'; ctx.font = `600 ${metaFs}px ${FONT}`;
     ctx.fillText('WA', TX, iy);
     const waLW = ctx.measureText('WA').width + 12;
-    // WA value
     ctx.fillStyle = '#18181B'; ctx.font = `700 ${metaFs}px ${FONT}`;
     const waMaxW = location ? TW * 0.48 - waLW : TW - waLW;
-    ctx.fillText(truncate(ctx, wa, waMaxW), TX + waLW, iy);
+    ctx.fillText(trunc(ctx, wa, waMaxW), TX + waLW, iy);
 
     if (location) {
-        // separator
         const sepX = TX + TW * 0.52;
         ctx.fillStyle = '#D4D4D8'; ctx.font = `400 ${metaFs}px ${FONT}`;
         ctx.fillText('|', sepX, iy);
-
-        // Lok label
         const locX = sepX + ctx.measureText('| ').width;
         ctx.fillStyle = '#71717A'; ctx.font = `600 ${metaFs}px ${FONT}`;
         ctx.fillText('Lok', locX, iy);
         const locLW = ctx.measureText('Lok').width + 10;
-        // Lok value
         ctx.fillStyle = '#18181B'; ctx.font = `700 ${metaFs}px ${FONT}`;
-        ctx.fillText(truncate(ctx, location, TW - (locX - TX) - locLW), locX + locLW, iy);
+        ctx.fillText(trunc(ctx, location, TW - (locX - TX) - locLW), locX + locLW, iy);
     }
 
     // Branding
     ctx.fillStyle = '#C4C4C8'; ctx.font = `400 10px ${FONT}`;
     ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-    ctx.fillText('farros.space', W - PAD, H - 8);
+    ctx.fillText('farros.space', INFO_X + INFO_W, INFO_Y + INFO_H - 6);
+}
+
+// ─── Poster: portrait (3:4) ───────────────────────────────────────────────────
+
+async function renderPortrait(
+    ctx: CanvasRenderingContext2D,
+    item: MarketplaceItem,
+    mainImg: HTMLImageElement | null,
+    detailImgs: (HTMLImageElement | null)[],
+    location: string,
+    cfg: RenderConfig,
+) {
+    const { W, H, PAD, GAP, INFO_H, R } = cfg;
+    const INNER_W = W - PAD * 2;
+
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+
+    // All photo cells are 1:1 squares
+    const CW = Math.floor((INNER_W - GAP * 2) / 3);
+    const MAIN_H = INNER_W; // square main
+    const DETAIL_H = CW;    // square details
+
+    const MAIN_Y = PAD;
+    const DETAIL_Y = MAIN_Y + MAIN_H + GAP;
+    const DIV_Y = DETAIL_Y + DETAIL_H + PAD;
+    const INFO_Y = DIV_Y + 1;
+
+    // Main photo (full width square)
+    ctx.save();
+    clipRR(ctx, PAD, MAIN_Y, INNER_W, MAIN_H, R); ctx.clip();
+    if (mainImg) {
+        drawCover(ctx, mainImg, PAD, MAIN_Y, INNER_W, MAIN_H);
+    } else {
+        ctx.fillStyle = '#F4F4F5'; ctx.fillRect(PAD, MAIN_Y, INNER_W, MAIN_H);
+        ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(MAIN_H * 0.065)}px ${FONT}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('[ Foto Utama ]', PAD + INNER_W / 2, MAIN_Y + MAIN_H / 2);
+    }
+    ctx.restore();
+
+    // Status badge
+    const isBaru = item.status === 'baru';
+    ctx.fillStyle = 'rgba(0,0,0,0.58)';
+    clipRR(ctx, PAD + 14, MAIN_Y + 14, 78, 30, 8); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.font = `700 13px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(isBaru ? 'BARU' : 'BEKAS', PAD + 14 + 39, MAIN_Y + 14 + 15);
+
+    // 3 detail squares, evenly spaced
+    const xStep = (INNER_W - CW) / 2;
+    for (let i = 0; i < 3; i++) {
+        const dx = PAD + Math.round(i * xStep);
+        ctx.save();
+        clipRR(ctx, dx, DETAIL_Y, CW, DETAIL_H, R * 0.6); ctx.clip();
+        if (detailImgs[i]) {
+            drawCover(ctx, detailImgs[i]!, dx, DETAIL_Y, CW, DETAIL_H);
+        } else {
+            ctx.fillStyle = '#F4F4F5'; ctx.fillRect(dx, DETAIL_Y, CW, DETAIL_H);
+            ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(DETAIL_H * 0.18)}px ${FONT}`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(`Foto ${i + 1}`, dx + CW / 2, DETAIL_Y + DETAIL_H / 2);
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
+        clipRR(ctx, dx, DETAIL_Y, CW, DETAIL_H, R * 0.6); ctx.stroke();
+    }
+
+    // Divider
+    ctx.fillStyle = '#E4E4E7'; ctx.fillRect(PAD, DIV_Y, INNER_W, 1);
+
+    // Info bar
+    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, INFO_H);
+}
+
+// ─── Poster: 2-column grid (1:1) ─────────────────────────────────────────────
+
+async function renderGrid2Col(
+    ctx: CanvasRenderingContext2D,
+    item: MarketplaceItem,
+    mainImg: HTMLImageElement | null,
+    detailImgs: (HTMLImageElement | null)[],
+    location: string,
+    cfg: RenderConfig,
+) {
+    const { W, H, PAD, GAP, INFO_H, R } = cfg;
+    const INNER_W = W - PAD * 2;
+
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+
+    // ─── Square Math for 2-column Grid ─────────────────────────────────────
+    // To make all 1:1, the width is split into 3 units (2 units for left, 1 for right)
+    // plus gaps. INNER_W = (2*S + GAP) + GAP + S  =>  INNER_W = 3*S + 2*GAP
+    const S = Math.floor((INNER_W - 2 * GAP) / 3);
+    const LEFT_SIZE = 2 * S + GAP; // Large square size
+    const RIGHT_SIZE = S;          // Small square size
+
+    const LEFT_X = PAD;
+    const RIGHT_X = PAD + LEFT_SIZE + GAP;
+    const PHOTO_Y = PAD;
+
+    // Total height of the photo section is same as LEFT_SIZE to keep it square
+    const PHOTO_AREA_H = LEFT_SIZE;
+
+    const DIV_Y = PHOTO_Y + PHOTO_AREA_H + GAP + 6; // small extra space before divider
+    const INFO_Y = DIV_Y + 1;
+
+    // ─── 1. Main photo (Left Column - Large Square 1:1) ──────────────────────
+    ctx.save();
+    clipRR(ctx, LEFT_X, PHOTO_Y, LEFT_SIZE, LEFT_SIZE, R); ctx.clip();
+    if (mainImg) {
+        drawCover(ctx, mainImg, LEFT_X, PHOTO_Y, LEFT_SIZE, LEFT_SIZE);
+    } else {
+        ctx.fillStyle = '#F4F4F5'; ctx.fillRect(LEFT_X, PHOTO_Y, LEFT_SIZE, LEFT_SIZE);
+        ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(LEFT_SIZE * 0.1)}px ${FONT}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('[ Utama ]', LEFT_X + LEFT_SIZE / 2, PHOTO_Y + LEFT_SIZE / 2);
+    }
+    ctx.restore();
+
+    // Status badge
+    const isBaru = item.status === 'baru';
+    ctx.fillStyle = 'rgba(0,0,0,0.58)';
+    clipRR(ctx, LEFT_X + 14, PHOTO_Y + 14, 78, 30, 8); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.font = `700 13px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(isBaru ? 'BARU' : 'BEKAS', LEFT_X + 14 + 39, PHOTO_Y + 14 + 15);
+
+    // ─── 2 & 3. Two detail photos (Right Column - Small Squares 1:1) ─────────
+    for (let i = 0; i < 2; i++) {
+        const dy = PHOTO_Y + i * (RIGHT_SIZE + GAP);
+        ctx.save();
+        clipRR(ctx, RIGHT_X, dy, RIGHT_SIZE, RIGHT_SIZE, R * 0.7); ctx.clip();
+        if (detailImgs[i]) {
+            drawCover(ctx, detailImgs[i]!, RIGHT_X, dy, RIGHT_SIZE, RIGHT_SIZE);
+        } else {
+            ctx.fillStyle = '#F4F4F5'; ctx.fillRect(RIGHT_X, dy, RIGHT_SIZE, RIGHT_SIZE);
+            ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(RIGHT_SIZE * 0.2)}px ${FONT}`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(`${i + 2}`, RIGHT_X + RIGHT_SIZE / 2, dy + RIGHT_SIZE / 2);
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
+        clipRR(ctx, RIGHT_X, dy, RIGHT_SIZE, RIGHT_SIZE, R * 0.7); ctx.stroke();
+    }
+
+    // ─── Divider ─────────────────────────────────────────────────────────────
+    ctx.fillStyle = '#E4E4E7'; ctx.fillRect(PAD, DIV_Y, INNER_W, 1);
+
+    // ─── 4. Info bar (Centering text in the remaining space) ──────────────────
+    // The available height for info might be slightly larger now
+    const actualInfoH = H - INFO_Y - PAD;
+    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, actualInfoH);
+}
+
+// ─── Dispatcher ──────────────────────────────────────────────────────────────
+
+async function renderPoster(
+    ctx: CanvasRenderingContext2D,
+    item: MarketplaceItem,
+    mainImg: HTMLImageElement | null,
+    detailImgs: (HTMLImageElement | null)[],
+    location: string,
+    cfg: RenderConfig,
+) {
+    if (cfg.layout === 'grid2col') {
+        return renderGrid2Col(ctx, item, mainImg, detailImgs, location, cfg);
+    }
+    return renderPortrait(ctx, item, mainImg, detailImgs, location, cfg);
 }
 
 // ─── Photo Picker ─────────────────────────────────────────────────────────────
@@ -345,8 +446,7 @@ function PhotoPicker({ index, existingPhotos, selectedSrc, onSelect, onLocalFile
                     const active = selectedSrc === photo.foto_path;
                     return (
                         <button
-                            key={photo.id}
-                            type="button"
+                            key={photo.id} type="button"
                             onClick={() => onSelect(active ? '' : photo.foto_path)}
                             className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${active
                                 ? 'border-zinc-900 shadow-md'
@@ -384,12 +484,14 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
     const mountedRef = useRef(false);
 
     const existingPhotos = item.foto_detail_items ?? [];
+    const [resolution, setResolution] = useState<Resolution>('3:4');
+    const cfg = CONFIGS[resolution];
 
+    // detail srcs: always length 3, but only cfg.detailCount slots are used
     const [detailSrcs, setDetailSrcs] = useState<[string, string, string]>(() => {
         const srcs = existingPhotos.slice(0, 3).map(p => p.foto_path);
         return [srcs[0] ?? '', srcs[1] ?? '', srcs[2] ?? ''] as [string, string, string];
     });
-
     const [location, setLocation] = useState('');
     const [generating, setGenerating] = useState(false);
     const [generated, setGenerated] = useState(false);
@@ -424,8 +526,8 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
         await new Promise<void>(r => requestAnimationFrame(() => r()));
         if (!mountedRef.current || genIdRef.current !== myGen) return;
 
-        canvas.width = CANVAS_W;
-        canvas.height = CANVAS_H;
+        canvas.width = cfg.W;
+        canvas.height = cfg.H;
         const ctx = canvas.getContext('2d');
         if (!ctx) { setGenerating(false); return; }
         ctx.imageSmoothingEnabled = true;
@@ -442,7 +544,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                 detailSrcs[2] ? loadImage(detailSrcs[2]) : Promise.resolve(null),
             ]);
             if (!mountedRef.current || genIdRef.current !== myGen) return;
-            await renderPoster(ctx, item, mainImg, [d0, d1, d2], location);
+            await renderPoster(ctx, item, mainImg, [d0, d1, d2], location, cfg);
             if (mountedRef.current && genIdRef.current === myGen) {
                 setGenerating(false); setGenerated(true);
             }
@@ -450,7 +552,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
             console.error('[ProductPoster]', err);
             if (mountedRef.current && genIdRef.current === myGen) setGenerating(false);
         }
-    }, [item, detailSrcs, location]);
+    }, [item, detailSrcs, location, cfg]);
 
     useEffect(() => {
         const t = window.setTimeout(() => generate(), 200);
@@ -464,7 +566,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
         const now = new Date();
         const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
         const safeName = item.name.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 30);
-        const filename = `poster-${safeName}-${stamp}.png`;
+        const filename = `poster-${safeName}-${resolution.replace(':', 'x')}-${stamp}.png`;
         const click = (href: string) => {
             const a = document.createElement('a');
             a.download = filename; a.href = href;
@@ -476,17 +578,18 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
             const url = URL.createObjectURL(blob); click(url); URL.revokeObjectURL(url);
         } catch {
             try { click(canvas.toDataURL('image/png')); }
-            catch { setDownloadError('Download gagal. Pastikan gambar sudah ter-load.'); }
+            catch { setDownloadError('Download gagal.'); }
         }
-    }, [item.name]);
+    }, [item.name, resolution]);
 
-    // Preview: scale canvas to fit nicely in modal
-    // target preview width ~340px → scale = 340/900
-    const SCALE = 340 / CANVAS_W;
-    const previewW = Math.round(CANVAS_W * SCALE);
-    const previewH = Math.round(CANVAS_H * SCALE);
-
+    // Preview scale
+    const PREVIEW_W = 340;
+    const previewW = PREVIEW_W;
+    const previewH = Math.round(cfg.H * (PREVIEW_W / cfg.W));
     const isBaru = item.status === 'baru';
+
+    // How many photo pickers to show for current layout
+    const detailIndices = Array.from({ length: cfg.detailCount }, (_, i) => i) as (0 | 1 | 2)[];
 
     return (
         <div
@@ -503,7 +606,9 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                         </div>
                         <div>
                             <h2 className="text-sm font-bold text-zinc-900">Generate Poster</h2>
-                            <p className="text-[11px] text-zinc-400 truncate max-w-[200px]">{item.name} · 3:4 · 900×1200px</p>
+                            <p className="text-[11px] text-zinc-400 truncate max-w-[240px]">
+                                {item.name} · {cfg.W}×{cfg.H}px ({resolution})
+                            </p>
                         </div>
                     </div>
                     <button
@@ -539,10 +644,40 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                             </div>
                         </div>
 
-                        {/* Photo pickers */}
+                        {/* Resolution toggle */}
+                        <div>
+                            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Resolusi</p>
+                            <div className="flex gap-2">
+                                {(['3:4', '1:1'] as Resolution[]).map(res => (
+                                    <button
+                                        key={res} type="button"
+                                        onClick={() => setResolution(res)}
+                                        className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${resolution === res
+                                            ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm'
+                                            : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'
+                                            }`}
+                                    >
+                                        {res}
+                                        <span className="block text-[9px] font-medium opacity-70 mt-0.5">
+                                            {res === '3:4' ? '900×1380' : '1080×1080'}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                            {/* Layout hint */}
+                            <p className="text-[10px] text-zinc-400 mt-1.5 leading-snug">
+                                {cfg.layout === 'grid2col'
+                                    ? '2 kolom: foto utama kiri, 2 detail kanan'
+                                    : '3 foto detail berjejer di bawah'}
+                            </p>
+                        </div>
+
+                        {/* Photo pickers — only show detailCount slots */}
                         <div className="space-y-3">
-                            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">3 Foto Detail</p>
-                            {([0, 1, 2] as const).map(i => (
+                            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+                                {cfg.detailCount} Foto Detail
+                            </p>
+                            {detailIndices.map(i => (
                                 <PhotoPicker
                                     key={i}
                                     index={i}
@@ -560,8 +695,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                                 <MapPin className="w-3 h-3" /> Lokasi
                             </label>
                             <input
-                                type="text"
-                                value={location}
+                                type="text" value={location}
                                 onChange={e => setLocation(e.target.value)}
                                 placeholder="cth: Bandung, Jabar"
                                 className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-300 text-zinc-800 placeholder-zinc-400 transition-all"
@@ -593,7 +727,9 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                                 </div>
                             )}
                         </div>
-                        <p className="text-[11px] text-zinc-400 mt-2">Preview · {CANVAS_W}×{CANVAS_H}px</p>
+                        <p className="text-[11px] text-zinc-400 mt-2">
+                            Preview · {cfg.W}×{cfg.H}px ({resolution})
+                        </p>
                         {downloadError && (
                             <p className="mt-1 text-xs text-red-500 text-center max-w-xs">{downloadError}</p>
                         )}

@@ -164,6 +164,7 @@ function drawPhotoCell(
     const badgeY = y + h - overlayH - Math.round(badgeH * 0.4);
 
     ctx.fillStyle = item.status === 'baru' ? '#10B981' : '#F59E0B'; // emerald-500 : amber-500
+    ctx.beginPath();
     if (typeof (ctx as any).roundRect === 'function') {
         (ctx as any).roundRect(badgeX, badgeY, badgeW, badgeH, 4);
         ctx.fill();
@@ -334,6 +335,7 @@ async function render1Item(
     const badgeW = Math.max(60, Math.round(W * 0.1));
     const badgeH = Math.max(24, Math.round(badgeW * 0.4));
     ctx.fillStyle = item.status === 'baru' ? '#10B981' : '#F59E0B';
+    ctx.beginPath();
     if (typeof (ctx as any).roundRect === 'function') {
         (ctx as any).roundRect(pad, pad, badgeW, badgeH, 8);
         ctx.fill();
