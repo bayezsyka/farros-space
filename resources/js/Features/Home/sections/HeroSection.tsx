@@ -122,16 +122,17 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                 </div>
 
                 {/* ── Photo wrapper: flex-1 = takes all remaining height.
+                     min-h-0 = allows the flex child to shrink (critical!).
                      items-end = photo sticks to bottom of this container.
                      The container's bottom IS the section's bottom. ── */}
                 <div
-                    className="flex-1 flex items-end justify-center overflow-hidden"
+                    className="flex-1 min-h-0 flex items-end justify-center overflow-hidden"
                     style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.9s ease 0.3s' }}
                 >
                     <img
                         src="/images/hero-foto-saya.png"
                         alt={name}
-                        className="w-[72vw] max-w-[340px] md:w-[50vw] md:max-w-[420px] h-auto object-contain object-bottom block"
+                        className="w-[72vw] max-w-[340px] md:w-[50vw] md:max-w-[420px] max-h-full h-auto object-contain object-bottom block"
                         draggable={false}
                     />
                 </div>
