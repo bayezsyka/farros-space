@@ -1,8 +1,10 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, ShoppingBag, Star, Clock, MessageCircle, Tag, Share2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Star, Clock, MessageCircle, Tag, Share2, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShareItemModal } from '@/Components/ui/ShareItemModal';
 import { useState, useEffect, useCallback } from 'react';
+import { generateShareBlob, buildShareCaption, buildImageCaption } from '@/Components/ui/shareHelpers';
 
 interface FotoDetailItem {
     id: number;
@@ -28,9 +30,14 @@ interface Props {
 }
 
 export default function Show({ item }: Props) {
-    const waNumber = item.whatsapp?.replace(/\D/g, '');
+    const waNumber = item.whatsapp?.replace(/\D/g, '') ?? '';
     const waMessage = encodeURIComponent(`Halo, saya tertarik dengan barang "${item.name}" yang ada di marketplace kamu.`);
     const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : null;
+
+    // Share state
+    const [shareBlob, setShareBlob] = useState<Blob | null>(null);
+    const [shareGenerating, setShareGenerating] = useState(true);
+    const [showShareModal, setShowShareModal] = useState(false); // fallback for desktop
 
     // Build a unified gallery: main photo first, then detail photos
     const allPhotos: string[] = [
@@ -66,14 +73,51 @@ export default function Show({ item }: Props) {
         };
     }, [lightboxIndex, prev, next]);
 
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({ title: item.name, text: item.description ?? '', url: window.location.href });
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
+    // ── Pre-generate share poster silently on mount ───────────────────────────
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            setShareGenerating(true);
+            const blob = await generateShareBlob(item);
+            if (!cancelled) {
+                setShareBlob(blob);
+                setShareGenerating(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [item]);
+
+    // ── Share handler ─────────────────────────────────────────────────────────
+    const handleShare = useCallback(async () => {
+        const caption = buildShareCaption(item);
+        const itemUrl = `https://farros.space/marketplace/${item.slug}`;
+
+        // Share image + short caption → goes into WA's caption field (1 message, not 2)
+        if (shareBlob && navigator.share) {
+            const file = new File([shareBlob], `${item.slug}.png`, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        text: buildImageCaption(item), // short caption, no URL (QR has it)
+                        title: item.name,
+                    });
+                    return;
+                } catch { return; }
+            }
         }
-    };
+
+        // Fallback: share text + url (no file, e.g. older mobile or no file-share support)
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: item.name, text: caption, url: itemUrl });
+                return;
+            } catch { return; }
+        }
+
+        // Desktop / unsupported → open modal with preview + download
+        setShowShareModal(true);
+    }, [shareBlob, item]);
 
     const detailPhotos = item.foto_detail_items ?? [];
 
@@ -189,10 +233,13 @@ export default function Show({ item }: Props) {
                                     </h1>
                                     <button
                                         onClick={handleShare}
-                                        className="shrink-0 w-10 h-10 rounded-xl border border-zinc-200 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all"
-                                        title="Share"
+                                        disabled={shareGenerating}
+                                        className="shrink-0 w-10 h-10 rounded-xl border border-zinc-200 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all disabled:opacity-50"
+                                        title={shareGenerating ? 'Menyiapkan...' : 'Bagikan'}
                                     >
-                                        <Share2 className="w-4 h-4" />
+                                        {shareGenerating
+                                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                                            : <Share2 className="w-4 h-4" />}
                                     </button>
                                 </div>
 
@@ -357,6 +404,14 @@ export default function Show({ item }: Props) {
             )}
 
             <style>{`@keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
+
+            {/* Share Modal (desktop fallback) */}
+            {showShareModal && (
+                <ShareItemModal
+                    item={item}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
         </AppLayout>
     );
 }
