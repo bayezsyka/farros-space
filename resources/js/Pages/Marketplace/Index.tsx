@@ -1,6 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
 import { Head, Link } from '@inertiajs/react';
+import { PageHeader } from '@/Components/ui/PageHeader';
 import { ArrowRight, Tag, ShoppingBag, Star, Clock, Package, Sparkles, Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -43,55 +44,17 @@ export default function Index({ items }: Props) {
         <AppLayout title="Marketplace">
             <Head title="Marketplace - farros.space" />
 
-            {/* ── Hero Banner ── */}
-            <section className="relative border-b bg-background overflow-hidden">
-                {/* Grid bg */}
-                <div
-                    className="absolute inset-0 opacity-[0.025]"
-                    style={{
-                        backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-                        backgroundSize: '32px 32px',
-                    }}
-                />
-                <div className="absolute top-0 left-0 w-[500px] h-[300px] bg-primary/4 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/4 pointer-events-none" />
-
-                <Container className="relative py-16 md:py-20 lg:py-24">
-                    <div className="max-w-2xl">
-                        {/* Label badge */}
-                        <div className="inline-flex items-center gap-2 border border-border bg-muted/50 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                            Marketplace
-                        </div>
-
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-foreground leading-[1.05] tracking-tight mb-4">
-                            Temukan barang
-                            <span className="block text-muted-foreground/50"> berkualitas.</span>
-                        </h1>
-                        <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mb-10">
-                            Koleksi barang pilihan — baru dan bekas — yang sudah diperiksa kondisinya. Siap untuk pindah ke tangan baru.
-                        </p>
-
-                        {/* Stats row */}
-                        <div className="flex items-center gap-6 sm:gap-10">
-                            {[
-                                { label: 'Total item', value: items.length, icon: Package },
-                                { label: 'Barang baru', value: newItems.length, icon: Sparkles },
-                                { label: 'Barang bekas', value: usedItems.length, icon: Clock },
-                            ].map((stat) => (
-                                <div key={stat.label} className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-muted/60 border border-border flex items-center justify-center">
-                                        <stat.icon className="w-4 h-4 text-muted-foreground" />
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-black text-foreground leading-none mb-0.5">{stat.value}</p>
-                                        <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </Container>
-            </section>
+            <PageHeader
+                breadcrumbs={[{ label: 'Marketplace' }]}
+                badge={{ icon: ShoppingBag, label: 'Marketplace' }}
+                title={<>Temukan barang<span className="block text-muted-foreground/50">berkualitas.</span></>}
+                subtitle="Koleksi barang pilihan — baru dan bekas — yang sudah diperiksa kondisinya."
+                stats={[
+                    { icon: Package, value: items.length, label: 'Total item' },
+                    { icon: Sparkles, value: newItems.length, label: 'Barang baru' },
+                    { icon: Clock, value: usedItems.length, label: 'Barang bekas' },
+                ]}
+            />
 
             {/* ── Filter & Search Bar ── */}
             <section className="sticky top-[57px] md:top-[65px] z-30 border-b bg-background/90 backdrop-blur-md">
@@ -116,15 +79,15 @@ export default function Index({ items }: Props) {
                                     key={f.key}
                                     onClick={() => setActiveFilter(f.key)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeFilter === f.key
-                                            ? 'bg-background border border-border shadow-sm text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground'
+                                        ? 'bg-background border border-border shadow-sm text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground'
                                         }`}
                                 >
                                     {f.label}
                                     <span
                                         className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${activeFilter === f.key
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'bg-muted text-muted-foreground'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'bg-muted text-muted-foreground'
                                             }`}
                                     >
                                         {f.count}

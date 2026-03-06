@@ -5,8 +5,9 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
+import { PageHeader } from '@/Components/ui/PageHeader';
 import { ThreadCard } from '@/Features/Threads/components/ThreadCard';
-import { ChevronLeft, ChevronRight, MessageSquare, Users, Sparkles, TrendingUp, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare, Users, Sparkles, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 
 interface Thread {
@@ -53,63 +54,17 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
 
     return (
         <AppLayout title="Threads">
-            {/* ── Top Hero Banner ── */}
-            <section className="relative border-b bg-background overflow-hidden">
-                <div
-                    className="absolute inset-0 opacity-[0.025]"
-                    style={{
-                        backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-                        backgroundSize: '32px 32px',
-                    }}
-                />
-                <div className="absolute -top-20 -right-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
-                <Container className="relative py-10 md:py-14">
-                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                        <div>
-                            {/* Breadcrumb */}
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                                <Link href={route('landing')} className="hover:text-foreground transition-colors flex items-center gap-1">
-                                    <Home className="w-3.5 h-3.5" />
-                                    Home
-                                </Link>
-                                <span>/</span>
-                                <span className="text-foreground font-medium">Threads</span>
-                            </div>
-
-                            <div className="inline-flex items-center gap-2 border border-border bg-muted/50 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                                <MessageSquare className="w-3.5 h-3.5" />
-                                Threads
-                            </div>
-                            <h1 className="text-4xl sm:text-5xl font-black text-foreground leading-tight tracking-tight">
-                                Semua Threads
-                            </h1>
-                            <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-md">
-                                Tempat berbagi cerita, pikiran, dan percakapan dari semua orang.
-                            </p>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-4 sm:gap-6">
-                            {[
-                                { icon: MessageSquare, value: threads.length, label: 'Threads' },
-                                { icon: TrendingUp, value: totalLikes, label: 'Likes' },
-                                { icon: Users, value: totalComments, label: 'Komentar' },
-                            ].map((stat) => (
-                                <div key={stat.label} className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-xl bg-muted/60 border border-border flex items-center justify-center flex-shrink-0">
-                                        <stat.icon className="w-4 h-4 text-muted-foreground" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-xl font-black text-foreground leading-none">{stat.value}</p>
-                                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </Container>
-            </section>
+            <PageHeader
+                breadcrumbs={[{ label: 'Threads' }]}
+                badge={{ icon: MessageSquare, label: 'Threads' }}
+                title="Semua Threads"
+                subtitle="Tempat berbagi cerita, pikiran, dan percakapan dari semua orang."
+                stats={[
+                    { icon: MessageSquare, value: threads.length, label: 'Threads' },
+                    { icon: TrendingUp, value: totalLikes, label: 'Likes' },
+                    { icon: Users, value: totalComments, label: 'Komentar' },
+                ]}
+            />
 
             {/* ── Main Content ── */}
             <section className="py-8 md:py-12">
@@ -199,8 +154,8 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                                 key={pageNum}
                                                 onClick={() => { setPage(pageNum); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                                 className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${page === pageNum
-                                                        ? 'bg-primary text-primary-foreground shadow-sm'
-                                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                     }`}
                                             >
                                                 {pageNum}

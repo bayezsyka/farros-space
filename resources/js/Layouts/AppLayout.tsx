@@ -3,7 +3,7 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home } from 'lucide-react';
 
 interface Props {
     children: React.ReactNode;
@@ -38,7 +38,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
     }, []);
 
     const navLinks = [
-        { href: '/', label: 'Home' },
+        { href: '/', label: 'Home', icon: Home },
         { href: route('threads.index'), label: 'Threads', icon: MessageSquare },
         { href: route('marketplace.index'), label: 'Marketplace', icon: ShoppingBag },
     ];
@@ -123,7 +123,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
                     {/* Mobile Hamburger Button */}
                     <button
-                        className="md:hidden z-50 p-2 -mr-1 rounded-lg hover:bg-muted transition-colors"
+                        className="md:hidden z-50 p-2 -mr-1 transition-opacity hover:opacity-70 focus:outline-none"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-label="Toggle menu"
                     >
@@ -132,27 +132,30 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                 </Container>
             </header>
 
-            {/* Mobile Menu Overlay */}
+            {/* Backdrop */}
             <div
-                className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed left-0 right-0 bottom-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                style={{ top: '57px' }}
                 onClick={() => setMobileMenuOpen(false)}
             />
 
-            {/* Mobile Menu Panel */}
+            {/* Mobile Menu Panel — full-width dropdown below navbar */}
             <div
-                className={`fixed top-[57px] right-0 z-40 w-full max-w-[280px] h-[calc(100dvh-57px)] bg-background border-l border-border shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`fixed left-0 right-0 z-40 bg-background border-b border-border shadow-2xl transition-all duration-300 ease-in-out md:hidden rounded-b-3xl overflow-hidden ${mobileMenuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-3 pointer-events-none'
+                    }`}
+                style={{ top: '57px' }}
             >
-                <nav className="flex flex-col p-4 space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-2 pb-1">Menu</p>
+                <nav className="flex flex-col p-5 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-1 pb-2">Menu</p>
 
                     {navLinks.map((link) => (
                         <Link
                             key={link.label}
                             href={link.href}
-                            className="flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-xl hover:bg-muted transition-colors"
+                            className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            {link.icon && <link.icon className="w-4 h-4 text-muted-foreground" />}
+                            {link.icon && <link.icon className="w-5 h-5 text-muted-foreground flex-shrink-0" />}
                             {link.label}
                         </Link>
                     ))}
@@ -160,24 +163,24 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     {user && (
                         <>
                             <div className="border-t border-border/50 my-2" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-1 pb-1">Akun</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pb-2">Akun</p>
 
                             {user.is_admin && (
                                 <Link
                                     href={route('dashboard')}
-                                    className="flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-xl hover:bg-muted transition-colors"
+                                    className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
-                                    <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
+                                    <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
                                     Dashboard
                                 </Link>
                             )}
 
-                            <div className="flex items-center gap-3 px-3 py-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20">
+                            <div className="flex items-center gap-3 px-4 py-3">
+                                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 flex-shrink-0">
                                     {user.name.charAt(0)}
                                 </div>
-                                <div className="flex-grow min-w-0">
+                                <div className="min-w-0">
                                     <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
                                     <p className="text-xs text-muted-foreground">Masuk</p>
                                 </div>
@@ -187,7 +190,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 href={route('logout')}
                                 method="post"
                                 as="button"
-                                className="flex items-center px-3 py-3 text-[15px] font-medium text-destructive rounded-xl hover:bg-destructive/5 transition-colors w-full text-left"
+                                className="flex items-center px-4 py-3.5 text-base font-medium text-destructive rounded-2xl hover:bg-destructive/5 transition-colors w-full text-left"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Logout
@@ -196,19 +199,17 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     )}
 
                     <div className="border-t border-border/50 my-2" />
-                    <div className="px-2 pt-1">
-                        <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
-                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background transition-all hover:opacity-80">
-                                <Mail className="w-4 h-4" />
-                                Hubungi Saya
-                            </button>
-                        </Link>
-                    </div>
+                    <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
+                        <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-4 text-sm font-semibold text-background transition-all hover:opacity-80">
+                            <Mail className="w-4 h-4" />
+                            Hubungi Saya
+                        </button>
+                    </Link>
                 </nav>
             </div>
 
             {/* Main Content */}
-            <main className={`flex-1 ${!overlayHeader ? 'mt-[57px] md:mt-[60px]' : ''}`}>
+            <main className="flex-1">
                 {children}
             </main>
 
