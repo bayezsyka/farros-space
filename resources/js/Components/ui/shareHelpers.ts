@@ -57,6 +57,8 @@ export function buildImageCaption(item: ShareableItem): string {
         lines.push('');
         lines.push(item.description.trim());
     }
+    lines.push('');
+    lines.push(`🔗 https://farros.space/marketplace/${item.slug}`);
     return lines.join('\n');
 }
 
