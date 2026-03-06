@@ -44,8 +44,11 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
     };
 
     return (
-        <section className="relative min-h-screen overflow-hidden bg-background flex flex-col">
-
+        // h-screen + flex-col → children can use flex-grow to claim remaining space
+        <section
+            className="relative overflow-hidden bg-background flex flex-col"
+            style={{ height: '100svh', minHeight: '600px' }}
+        >
             {/* ─── Grid overlay ─── */}
             <div
                 className="pointer-events-none absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
@@ -57,130 +60,91 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     backgroundSize: '50px 50px',
                 }}
             />
-
             {/* ─── Ambient blobs ─── */}
             <div className="pointer-events-none absolute -top-60 -left-40 w-[700px] h-[700px] rounded-full bg-primary/5 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
 
             {/* ══════════════════════════════════════════════════════════
-                 MOBILE LAYOUT (< 768px)
-                 Stacked: name → bio → button → socials → photo
+                 MOBILE + TABLET (< 1024px)
+                 flex-col: content shrinks, photo-wrapper grows to fill rest
                  ══════════════════════════════════════════════════════════ */}
-            <div
-                className="relative z-10 flex flex-col items-center px-6 pt-24 pb-0 md:hidden"
-                style={{
-                    opacity: mounted ? 1 : 0,
-                    transform: mounted ? 'translateY(0)' : 'translateY(24px)',
-                    transition: 'opacity 0.7s ease, transform 0.7s ease',
-                }}
-            >
-                <div className="w-full text-center space-y-1">
-                    <p className="text-3xl font-bold text-foreground">Hy! I Am</p>
-                    <p className="text-4xl font-extrabold" style={{ color: 'hsl(var(--primary))' }}>
-                        {name}.
-                    </p>
-                </div>
+            <div className="relative z-10 flex flex-col h-full lg:hidden">
 
-                <p className="mt-5 text-base text-muted-foreground leading-relaxed font-medium text-center max-w-sm">
-                    {profile?.headline ?? 'I build beautifully simple things, and I love what I do.'}
-                </p>
-
-                <div className="mt-6 w-full max-w-xs">
-                    <Link href="/contact" className="block">
-                        <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-                            Get in Touch <ArrowRight className="w-4 h-4" />
-                        </button>
-                    </Link>
-                </div>
-
-                <div className="mt-5 flex flex-wrap justify-center gap-3">
-                    {social_links?.map((link: any) => {
-                        const Icon = getIcon(link.platform);
-                        return (
-                            <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
-                                title={link.username || link.platform}
-                                className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all">
-                                <Icon className="w-4 h-4" />
-                            </a>
-                        );
-                    })}
-                </div>
-
-                <div className="mt-8 w-full flex justify-center"
-                    style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.9s ease 0.3s' }}>
-                    <img src="/images/hero-foto-saya.png" alt={name}
-                        className="w-[85%] max-w-[380px] h-auto object-contain" draggable={false} />
-                </div>
-            </div>
-
-            {/* ══════════════════════════════════════════════════════════
-                 TABLET LAYOUT (768px – 1023px)  md: only
-                 2-column: [left: all content] [right: photo bottom-aligned]
-                 ══════════════════════════════════════════════════════════ */}
-            <div className="relative z-10 hidden md:grid lg:hidden flex-1 min-h-screen w-full max-w-5xl mx-auto px-10"
-                style={{ gridTemplateColumns: '1fr 1fr', alignItems: 'stretch' }}>
-
-                {/* LEFT — name + bio + button + socials, vertically centered */}
+                {/* ── Content block (fixed height, at the top) ── */}
                 <div
-                    className="flex flex-col justify-center py-24 pr-8 space-y-5"
+                    className="flex flex-col items-center px-6 pt-20 md:pt-24 flex-shrink-0"
                     style={{
                         opacity: mounted ? 1 : 0,
                         transform: mounted ? 'translateY(0)' : 'translateY(20px)',
                         transition: 'opacity 0.7s ease, transform 0.7s ease',
                     }}
                 >
-                    <div className="space-y-1">
-                        <p className="text-3xl font-bold text-foreground">Hy! I Am</p>
-                        <p className="text-4xl font-extrabold" style={{ color: 'hsl(var(--primary))' }}>
+                    {/* Name */}
+                    <div className="w-full text-center space-y-1">
+                        <p className="text-3xl md:text-4xl font-bold text-foreground">Hy! I Am</p>
+                        <p className="text-4xl md:text-5xl font-extrabold" style={{ color: 'hsl(var(--primary))' }}>
                             {name}.
                         </p>
                     </div>
 
-                    <p className="text-base text-muted-foreground leading-relaxed font-medium max-w-xs">
+                    {/* Bio */}
+                    <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed font-medium text-center max-w-sm md:max-w-md">
                         {profile?.headline ?? 'I build beautifully simple things, and I love what I do.'}
                     </p>
 
-                    <div>
-                        <Link href="/contact">
-                            <button className="flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-5 py-2.5 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                    {/* Button */}
+                    <div className="mt-5 w-full max-w-xs md:max-w-sm">
+                        <Link href="/contact" className="block">
+                            <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm md:text-base font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
                                 Get in Touch <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    {/* Social links */}
+                    <div className="mt-4 flex flex-wrap justify-center gap-3">
                         {social_links?.map((link: any) => {
                             const Icon = getIcon(link.platform);
                             return (
-                                <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
+                                <a
+                                    key={link.id}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     title={link.username || link.platform}
-                                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all">
-                                    <Icon className="w-4 h-4" />
+                                    className="w-11 h-11 md:w-12 md:h-12 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all"
+                                >
+                                    <Icon className="w-4 h-4 md:w-5 md:h-5" />
                                 </a>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* RIGHT — photo anchored to bottom of column */}
-                <div className="flex items-end justify-center overflow-hidden">
+                {/* ── Photo wrapper: flex-1 = takes all remaining height.
+                     items-end = photo sticks to bottom of this container.
+                     The container's bottom IS the section's bottom. ── */}
+                <div
+                    className="flex-1 flex items-end justify-center overflow-hidden"
+                    style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.9s ease 0.3s' }}
+                >
                     <img
                         src="/images/hero-foto-saya.png"
                         alt={name}
-                        className="w-full max-w-[320px] h-auto object-contain object-bottom"
+                        className="w-[72vw] max-w-[340px] md:w-[50vw] md:max-w-[420px] h-auto object-contain object-bottom block"
                         draggable={false}
-                        style={{ opacity: mounted ? 1 : 0, transition: 'opacity 1.2s ease 0.3s', maxHeight: '80vh' }}
                     />
                 </div>
             </div>
 
             {/* ══════════════════════════════════════════════════════════
-                 DESKTOP LAYOUT (≥ 1024px)  lg:
-                 3-column: [left: name] [center: photo bottom] [right: bio+btn+socials]
+                 DESKTOP (≥ 1024px) — 3-column grid
+                 Center column: flex items-end so photo is at the bottom
                  ══════════════════════════════════════════════════════════ */}
-            <div className="relative z-10 hidden lg:grid flex-1 min-h-screen w-full max-w-7xl mx-auto px-12"
-                style={{ gridTemplateColumns: '1fr 380px 1fr', alignItems: 'stretch' }}>
-
+            <div
+                className="relative z-10 hidden lg:grid h-full w-full max-w-7xl mx-auto px-12"
+                style={{ gridTemplateColumns: '1fr 380px 1fr' }}
+            >
                 {/* LEFT — name */}
                 <div
                     className="flex flex-col justify-center pr-10"
@@ -198,14 +162,17 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     </div>
                 </div>
 
-                {/* CENTER — photo anchored to bottom */}
-                <div className="flex items-end justify-center overflow-hidden">
+                {/* CENTER — photo at bottom of column */}
+                <div
+                    className="flex items-end justify-center overflow-hidden"
+                    style={{ opacity: mounted ? 1 : 0, transition: 'opacity 1.2s ease 0.3s' }}
+                >
                     <img
                         src="/images/hero-foto-saya.png"
                         alt={name}
-                        className="w-full h-auto object-contain object-bottom"
+                        className="w-full h-auto object-contain object-bottom block"
+                        style={{ maxHeight: '82vh' }}
                         draggable={false}
-                        style={{ opacity: mounted ? 1 : 0, transition: 'opacity 1.2s ease 0.3s', maxHeight: '80vh' }}
                     />
                 </div>
 
@@ -219,7 +186,10 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     }}
                 >
                     <p className="text-xl text-muted-foreground leading-snug font-medium">
-                        {profile?.headline ? profile.headline : <>I build beautifully simple things,<br />and I love what I do.</>}
+                        {profile?.headline
+                            ? profile.headline
+                            : <>I build beautifully simple things,<br />and I love what I do.</>
+                        }
                     </p>
 
                     <div className="flex items-center justify-end">
@@ -234,9 +204,14 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                         {social_links?.map((link: any) => {
                             const Icon = getIcon(link.platform);
                             return (
-                                <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
+                                <a
+                                    key={link.id}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     title={link.username || link.platform}
-                                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all">
+                                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 hover:bg-muted transition-all"
+                                >
                                     <Icon className="w-4 h-4" />
                                 </a>
                             );
