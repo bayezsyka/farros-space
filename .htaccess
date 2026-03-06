@@ -30,6 +30,9 @@
         Deny from all
     </FilesMatch>
 
+
+
+RewriteRule ^images/(.*)$ public/images/$1 [L]
     # ----------------------------------------------------
     # STORAGE ACCESS & SECURITY
     # ----------------------------------------------------
