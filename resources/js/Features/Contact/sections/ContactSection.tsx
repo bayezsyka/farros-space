@@ -191,11 +191,16 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                                             <div className="flex-grow min-w-0 pt-1">
                                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                                                     <div>
+                                                        {/* School Name (Primary) */}
                                                         <h3 className="font-bold text-foreground text-lg leading-tight">
-                                                            {edu.program_major}
-                                                        </h3>
-                                                        <p className="text-sm font-medium text-muted-foreground mt-1">
                                                             {edu.institution}
+                                                        </h3>
+
+                                                        {/* Major/Level (Secondary) */}
+                                                        <p className="text-sm font-medium text-muted-foreground mt-1">
+                                                            {edu.program_major
+                                                                ? `${edu.level} – ${edu.program_major}`
+                                                                : edu.level}
                                                         </p>
                                                     </div>
                                                     <div className="flex-shrink-0">

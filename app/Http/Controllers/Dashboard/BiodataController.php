@@ -28,6 +28,7 @@ class BiodataController extends Controller
             'birth_date' => 'nullable|date',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:15',
+            'address' => 'nullable|string|max:500',
             'headline' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
             'avatar' => 'nullable|image|max:10240',

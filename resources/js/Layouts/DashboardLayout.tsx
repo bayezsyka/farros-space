@@ -12,7 +12,8 @@ import {
     Home,
     Settings,
     Briefcase,
-    Link as LinkIcon
+    Link as LinkIcon,
+    GraduationCap,
 } from 'lucide-react';
 import { cn } from '@/utils';
 import { Typography } from '@/Components/ui/Typography';
@@ -35,6 +36,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
         { label: 'Threads', icon: MessageSquare, href: route('dashboard.threads'), active: route().current('dashboard.threads') },
         { label: 'Marketplace', icon: Briefcase, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
         { label: 'Social Links', icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
+        { label: 'Pendidikan', icon: GraduationCap, href: route('dashboard.education.index'), active: route().current('dashboard.education.*') },
         { label: 'Account', icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },
     ];
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import {
     ArrowRight,
+    Download,
     Github,
     Instagram,
     Linkedin,
@@ -92,11 +93,17 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                         {profile?.headline ?? 'I build beautifully simple things, and I love what I do.'}
                     </p>
 
-                    {/* Button */}
-                    <div className="mt-5 w-full max-w-xs md:max-w-sm">
+                    {/* Buttons */}
+                    <div className="mt-5 w-full max-w-xs md:max-w-sm flex flex-col gap-2.5">
                         <Link href="/contact" className="block">
                             <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm md:text-base font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
                                 Get in Touch <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </Link>
+                        <Link href="/cv" className="block">
+                            <button className="w-full flex items-center justify-center gap-2 border border-border bg-background/60 backdrop-blur-sm text-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-muted transition-all">
+                                <Download className="w-4 h-4" />
+                                Download CV
                             </button>
                         </Link>
                     </div>
@@ -193,10 +200,16 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                         }
                     </p>
 
-                    <div className="flex items-center justify-end">
+                    <div className="flex flex-col items-end gap-2.5">
                         <Link href="/contact">
                             <button className="flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
                                 Get in Touch <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </Link>
+                        <Link href="/cv">
+                            <button className="flex items-center justify-center gap-2 border border-border bg-background/60 backdrop-blur-sm text-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-muted transition-all">
+                                <Download className="w-4 h-4" />
+                                Download CV
                             </button>
                         </Link>
                     </div>

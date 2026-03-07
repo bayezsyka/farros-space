@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/cv', [App\Http\Controllers\CvController::class, 'index'])->name('cv.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 
 Route::get('/marketplace', [\App\Http\Controllers\MarketplaceController::class, 'index'])->name('marketplace.index');
@@ -47,6 +48,13 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::post('/social-links', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'store'])->name('dashboard.social-links.store');
         Route::put('/social-links/{socialLink}', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'update'])->name('dashboard.social-links.update');
         Route::delete('/social-links/{socialLink}', [App\Http\Controllers\Dashboard\AdminSocialLinkController::class, 'destroy'])->name('dashboard.social-links.destroy');
+
+        // Education management
+        Route::get('/education', [App\Http\Controllers\Dashboard\EducationController::class, 'index'])->name('dashboard.education.index');
+        Route::post('/education', [App\Http\Controllers\Dashboard\EducationController::class, 'store'])->name('dashboard.education.store');
+        Route::put('/education/{education}', [App\Http\Controllers\Dashboard\EducationController::class, 'update'])->name('dashboard.education.update');
+        Route::delete('/education/{education}', [App\Http\Controllers\Dashboard\EducationController::class, 'destroy'])->name('dashboard.education.destroy');
+        Route::post('/education/reorder', [App\Http\Controllers\Dashboard\EducationController::class, 'reorder'])->name('dashboard.education.reorder');
 
         // Marketplace management
         Route::get('/marketplace', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'index'])->name('dashboard.marketplace.index');

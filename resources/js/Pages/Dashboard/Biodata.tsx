@@ -2,7 +2,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 import { FormEventHandler } from 'react';
-import { Save, User, Mail, Phone, Calendar, MapPin, Briefcase, TextQuote } from 'lucide-react';
+import { Save, User, Mail, Phone, Calendar, MapPin, Briefcase, TextQuote, Home } from 'lucide-react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import { AdminPageHeader } from '@/Components/ui/AdminPageHeader';
@@ -14,6 +14,7 @@ interface Profile {
     birth_date: string | null;
     email: string;
     phone: string | null;
+    address: string | null;
     headline: string | null;
     bio: string | null;
 }
@@ -29,6 +30,7 @@ export default function Biodata({ profile }: Props) {
         birth_date: profile?.birth_date || '',
         email: profile?.email || '',
         phone: profile?.phone || '',
+        address: profile?.address || '',
         headline: profile?.headline || '',
         bio: profile?.bio || '',
         avatar: null as File | null,
@@ -153,6 +155,22 @@ export default function Biodata({ profile }: Props) {
                         </div>
                     </div>
 
+                    {/* Address */}
+                    <div>
+                        <label htmlFor="address" className={labelClass}>Alamat (untuk CV)</label>
+                        <div className="relative">
+                            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                            <TextInput
+                                id="address"
+                                className="w-full pl-9"
+                                value={data.address}
+                                onChange={(e) => setData('address', e.target.value)}
+                                placeholder="Contoh: Jakarta, Indonesia"
+                            />
+                        </div>
+                        <InputError message={errors.address} className="mt-1" />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="birth_place" className={labelClass}>Tempat Lahir</label>
@@ -219,6 +237,6 @@ export default function Biodata({ profile }: Props) {
                     </button>
                 </div>
             </form>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 }

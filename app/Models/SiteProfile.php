@@ -12,6 +12,7 @@ class SiteProfile extends Model
         'birth_date',
         'email',
         'phone',
+        'address',
         'headline',
         'bio',
     ];
