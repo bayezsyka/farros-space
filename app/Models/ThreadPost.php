@@ -10,6 +10,17 @@ class ThreadPost extends Model
     /** @use HasFactory<\Database\Factories\ThreadPostFactory> */
     use HasFactory;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($thread) {
+            if (empty($thread->slug)) {
+                $thread->slug = \Illuminate\Support\Str::slug($thread->title ?? \Illuminate\Support\Str::limit($thread->content, 20)) . '-' . rand(1000, 9999);
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'title',
@@ -44,5 +55,15 @@ class ThreadPost extends Model
     public function comments()
     {
         return $this->hasMany(ThreadComment::class);
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }

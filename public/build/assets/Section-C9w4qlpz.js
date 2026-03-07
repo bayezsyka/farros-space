@@ -1,0 +1,1 @@
+import{j as n}from"./app-CSb9wIx_.js";import{c as t}from"./x-BLp4iQvn.js";const r=({spacing:p="md",className:s,...m})=>{const o={none:"py-0",sm:"py-8 md:py-12",md:"py-12 md:py-24",lg:"py-24 md:py-32",xl:"py-32 md:py-48"};return n.jsx("section",{className:t(o[p],s),...m})};export{r as S};

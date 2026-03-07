@@ -20,6 +20,7 @@ class ThreadPostData
         public readonly ?string $published_at = null,
         public readonly ?string $created_at = null,
         public readonly ?array $user = null,
+        public readonly ?array $comments = null,
     ) {}
 
     public static function fromModel(\App\Models\ThreadPost $model): self
@@ -44,6 +45,18 @@ class ThreadPostData
                 'name' => $model->user->name,
                 'avatar' => $model->user->avatar,
             ] : null,
+            comments: $model->relationLoaded('comments') ? $model->comments->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'content' => $c->content,
+                    'created_at' => $c->created_at?->toIso8601String(),
+                    'user' => $c->user ? [
+                        'id' => $c->user->id,
+                        'name' => $c->user->name,
+                        'avatar' => $c->user->avatar,
+                    ] : null,
+                ];
+            })->toArray() : null,
         );
     }
 
@@ -65,6 +78,7 @@ class ThreadPostData
             'published_at' => $this->published_at,
             'created_at' => $this->created_at,
             'user' => $this->user,
+            'comments' => $this->comments,
         ];
     }
 }

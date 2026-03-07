@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, ArrowLeft, User, MessageSquare } from 'lucid
 
 interface Thread {
     id: number;
+    slug: string;
     title: string | null;
     content: string;
     image_url: string | null;
@@ -43,7 +44,7 @@ interface Props {
 export default function UserThreads({ threads, profile, threadUser }: Props) {
     const [page, setPage] = useState(1);
     const perPage = 15;
-    
+
     const totalPages = Math.ceil(threads.length / perPage);
     const paginatedThreads = threads.slice((page - 1) * perPage, page * perPage);
 
@@ -55,8 +56,8 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
                 <Container className="max-w-3xl px-4 sm:px-6">
                     {/* Header */}
                     <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                        <Link 
-                            href={route('threads.index')} 
+                        <Link
+                            href={route('threads.index')}
                             className="p-1.5 sm:p-2 rounded-full hover:bg-zinc-100 transition-colors flex-shrink-0"
                         >
                             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -64,7 +65,7 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
                         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-muted border-2 border-primary/20 flex-shrink-0">
                                 {threadUser.avatar ? (
-                                    <img src={threadUser.avatar} alt={threadUser.name} className="w-full h-full object-cover" />
+                                    <img src={threadUser.avatar} alt={threadUser.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-base sm:text-lg">
                                         {threadUser.name.charAt(0)}
@@ -87,9 +88,9 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
                         <div className="divide-y divide-border/50">
                             {paginatedThreads.length > 0 ? (
                                 paginatedThreads.map((thread) => (
-                                    <ThreadCard 
-                                        key={thread.id} 
-                                        thread={thread} 
+                                    <ThreadCard
+                                        key={thread.id}
+                                        thread={thread}
                                         profile={isOwner ? profile : undefined}
                                         isPublic={!isOwner}
                                     />
@@ -131,7 +132,7 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
 
                     {/* Back to all threads */}
                     <div className="mt-4 sm:mt-6 text-center">
-                        <Link 
+                        <Link
                             href={route('threads.index')}
                             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary hover:underline transition-colors"
                         >

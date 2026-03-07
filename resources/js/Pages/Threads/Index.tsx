@@ -12,6 +12,7 @@ import axios from 'axios';
 
 interface Thread {
     id: number;
+    slug: string;
     title: string | null;
     content: string;
     image_url: string | null;
@@ -183,30 +184,65 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
 }
 
 // ── Public Thread Form ──
+import { ImagePlus, X } from 'lucide-react';
+
 const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }) => {
     const { auth } = usePage<PageProps>().props;
     const [content, setContent] = useState('');
+    const [image, setImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validasi ukuran client-side (5MB = 5 * 1024 * 1024 bytes)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran gambar maksimal adalah 5MB.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setImage(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
+    };
+
+    const removeImage = () => {
+        setImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!content.trim() || isSubmitting) return;
+        if (!content.trim() && !image) return;
+        if (isSubmitting) return;
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(route('public-threads.store'), {
-                content: content
+            const formData = new FormData();
+            if (content.trim()) formData.append('content', content);
+            if (image) formData.append('image', image);
+
+            await axios.post(route('threads.store'), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            onSuccess(response.data);
-            setContent('');
+
+            // If we're using Inertia, the page might reload automatically if we used useForm, 
+            // but since we are using axios, we can just trigger an Inertia reload to get the fresh data
+            // Or we can rely on Inertia's router directly instead of axios. Let's redirect using Inertia router.
+
         } catch (error: any) {
-            if (error.response?.status === 401) {
-                window.location.href = route('auth.google');
-            } else {
-                alert("Gagal mengirim thread.");
-            }
+            console.error(error);
+            alert("Gagal mengirim thread.");
         } finally {
             setIsSubmitting(false);
+            // Instead of onSuccess, let's reload the page to get the fresh feed from server since we just stored it
+            window.location.reload();
         }
     };
 
@@ -237,14 +273,14 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
             <div className="flex gap-3">
                 <div className="w-9 h-9 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border">
                     {auth.user.avatar ? (
-                        <img src={auth.user.avatar} className="w-full h-full object-cover" />
+                        <img src={auth.user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center font-bold text-sm bg-primary/10 text-primary">
                             {auth.user.name.charAt(0)}
                         </div>
                     )}
                 </div>
-                <div className="flex-grow min-w-0">
+                <div className="flex-grow min-w-0 space-y-3">
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
@@ -257,16 +293,47 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                             target.style.height = target.scrollHeight + 'px';
                         }}
                     />
+
+                    {imagePreview && (
+                        <div className="relative inline-block">
+                            <img src={imagePreview} alt="Preview" className="max-h-60 rounded-xl border border-border object-cover" />
+                            <button
+                                type="button"
+                                onClick={removeImage}
+                                className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
-            <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                <span className={`text-xs ${content.length > 280 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                    {content.length} karakter
-                </span>
+
+            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                <div className="flex items-center gap-3">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={handleImageChange}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-colors"
+                        title="Upload Gambar (Max 5MB)"
+                    >
+                        <ImagePlus className="w-5 h-5" />
+                    </button>
+                    <span className={`text-xs ${content.length > 5000 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                        {content.length} / 5000
+                    </span>
+                </div>
                 <Button
                     type="submit"
                     size="sm"
-                    disabled={!content.trim() || isSubmitting}
+                    disabled={(!content.trim() && !image) || isSubmitting || content.length > 5000}
                     className="rounded-xl px-5 font-bold text-xs"
                 >
                     {isSubmitting ? 'Mengirim...' : 'Kirim Thread'}
@@ -279,6 +346,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 // re-export Thread type so ThreadCard can still use it
 interface Thread {
     id: number;
+    slug: string;
     title: string | null;
     content: string;
     image_url: string | null;

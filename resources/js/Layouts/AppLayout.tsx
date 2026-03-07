@@ -3,7 +3,7 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home } from 'lucide-react';
+import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays } from 'lucide-react';
 
 interface Props {
     children: React.ReactNode;
@@ -261,6 +261,13 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 >
                                     <Mail className="w-3.5 h-3.5" />
                                     Get in Touch
+                                </Link>
+                                <Link
+                                    href="/age"
+                                    className="text-sm text-muted-foreground hover:text-foreground transition-colors w-fit flex items-center gap-1.5"
+                                >
+                                    <CalendarDays className="w-3.5 h-3.5" />
+                                    Age
                                 </Link>
                             </div>
                         </div>

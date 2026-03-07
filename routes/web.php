@@ -9,21 +9,23 @@ use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/cv', [App\Http\Controllers\CvController::class, 'index'])->name('cv.index');
+Route::get('/age', function () {
+    return Inertia::render('Age/Index');
+})->name('age');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 
 Route::get('/marketplace', [\App\Http\Controllers\MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/{marketplaceItem}', [\App\Http\Controllers\MarketplaceController::class, 'show'])->name('marketplace.show');
 
 
-Route::get('/threads', [App\Http\Controllers\ThreadPageController::class, 'index'])->name('threads.index');
-Route::get('/threads/owner', [App\Http\Controllers\ThreadPageController::class, 'ownerThreads'])->name('threads.owner');
-Route::get('/threads/user/{user}', [App\Http\Controllers\ThreadPageController::class, 'userThreads'])->name('threads.user');
+Route::get('/threads', [App\Http\Controllers\ThreadController::class, 'index'])->name('threads.index');
+Route::get('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'show'])->name('threads.show');
+Route::get('/{username}/threads', [App\Http\Controllers\UserThreadController::class, 'index'])->name('threads.user');
 
 Route::post('/threads/{thread}/like', [App\Http\Controllers\Api\ThreadInteractionController::class, 'like'])->name('threads.like');
 Route::post('/threads/{thread}/share', [App\Http\Controllers\Api\ThreadInteractionController::class, 'share'])->name('threads.share');
 
-Route::get('/threads/{thread}/comments', [App\Http\Controllers\Api\ThreadCommentController::class, 'index'])->name('threads.comments.index');
-Route::post('/threads/{thread}/comments', [App\Http\Controllers\Api\ThreadCommentController::class, 'store'])->name('threads.comments.store');
+Route::get('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentController::class, 'index'])->name('threads.comments.index');
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', function () {
@@ -34,13 +36,6 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
     // Owner route group for manage threads
     Route::prefix('dashboard')->group(function () {
-        Route::get('/threads', [App\Http\Controllers\Dashboard\ThreadController::class, 'index'])->name('dashboard.threads');
-        Route::post('/threads', [App\Http\Controllers\Dashboard\ThreadController::class, 'store'])->name('dashboard.threads.store');
-        Route::put('/threads/{thread}', [App\Http\Controllers\Dashboard\ThreadController::class, 'update'])->name('dashboard.threads.update');
-        Route::delete('/threads/{thread}', [App\Http\Controllers\Dashboard\ThreadController::class, 'destroy'])->name('dashboard.threads.destroy');
-
-        Route::delete('/comments/{comment}', [App\Http\Controllers\Api\ThreadCommentController::class, 'destroy'])->name('dashboard.comments.destroy');
-
         Route::get('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'index'])->name('dashboard.biodata');
         Route::put('/biodata', [App\Http\Controllers\Dashboard\BiodataController::class, 'update'])->name('dashboard.biodata.update');
 
@@ -72,7 +67,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::post('/public-threads', [App\Http\Controllers\PublicThreadController::class, 'store'])->name('public-threads.store');
+    Route::post('/threads', [App\Http\Controllers\ThreadController::class, 'store'])->name('threads.store');
+    Route::put('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'update'])->name('threads.update');
+    Route::delete('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'destroy'])->name('threads.destroy');
+
+    Route::post('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentController::class, 'store'])->name('threads.comments.store');
+    Route::delete('/comments/{comment}', [App\Http\Controllers\ThreadCommentController::class, 'destroy'])->name('threads.comments.destroy');
 });
 
 require __DIR__ . '/auth.php';
