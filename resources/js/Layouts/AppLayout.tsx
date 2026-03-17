@@ -3,7 +3,7 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays } from 'lucide-react';
+import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays, Briefcase } from 'lucide-react';
 
 interface Props {
     children: React.ReactNode;
@@ -41,6 +41,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
         { href: '/', label: 'Home', icon: Home },
         { href: route('threads.index'), label: 'Threads', icon: MessageSquare },
         { href: route('marketplace.index'), label: 'Marketplace', icon: ShoppingBag },
+        { href: route('experiences.index'), label: 'Experience', icon: Briefcase },
     ];
 
     return (
@@ -85,17 +86,15 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
                     {/* Desktop Right side */}
                     <div className="hidden md:flex items-center gap-2">
-                        {user ? (
+                        {user?.is_admin && (
                             <>
-                                {user.is_admin && (
-                                    <Link
-                                        href={route('dashboard')}
-                                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                                    >
-                                        <LayoutDashboard className="w-3.5 h-3.5" />
-                                        Dashboard
-                                    </Link>
-                                )}
+                                <Link
+                                    href={route('dashboard')}
+                                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                                >
+                                    <LayoutDashboard className="w-3.5 h-3.5" />
+                                    Dashboard
+                                </Link>
                                 <div className="flex items-center gap-2 pl-2 border-l border-border ml-1">
                                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
                                         {user.name.charAt(0)}
@@ -111,7 +110,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                     </Link>
                                 </div>
                             </>
-                        ) : null}
+                        )}
 
                         <Link href="/contact">
                             <button className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
@@ -159,22 +158,19 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                             {link.label}
                         </Link>
                     ))}
-
-                    {user && (
+                    {user?.is_admin && (
                         <>
                             <div className="border-t border-border/50 my-2" />
                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pb-2">Akun</p>
 
-                            {user.is_admin && (
-                                <Link
-                                    href={route('dashboard')}
-                                    className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
-                                    Dashboard
-                                </Link>
-                            )}
+                            <Link
+                                href={route('dashboard')}
+                                className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
+                                Dashboard
+                            </Link>
 
                             <div className="flex items-center gap-3 px-4 py-3">
                                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 flex-shrink-0">
@@ -182,7 +178,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
-                                    <p className="text-xs text-muted-foreground">Masuk</p>
+                                    <p className="text-xs text-muted-foreground">Admin</p>
                                 </div>
                             </div>
 
@@ -238,6 +234,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                     { href: '/', label: 'Home' },
                                     { href: route('threads.index'), label: 'Threads' },
                                     { href: route('marketplace.index'), label: 'Marketplace' },
+                                    { href: route('experiences.index'), label: 'Experience' },
                                     { href: '/contact', label: 'Contact' },
                                 ].map((link) => (
                                     <Link

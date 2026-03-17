@@ -3,6 +3,8 @@
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ExperienceController;
+use App\Http\Controllers\ExperienceUpdateController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -62,6 +64,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     });
 });
 
+// Public Experience Routes
+Route::get('experiences', [ExperienceController::class, 'index'])->name('experiences.index');
+Route::get('experiences/{id}', [ExperienceController::class, 'show'])->name('experiences.show');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -73,6 +79,16 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentController::class, 'store'])->name('threads.comments.store');
     Route::delete('/comments/{comment}', [App\Http\Controllers\ThreadCommentController::class, 'destroy'])->name('threads.comments.destroy');
+
+    // Admin-only Experience management
+    Route::middleware('admin')->group(function () {
+        Route::post('experiences', [ExperienceController::class, 'store'])->name('experiences.store');
+        Route::put('experiences/{experience}', [ExperienceController::class, 'update'])->name('experiences.update');
+        Route::delete('experiences/{experience}', [ExperienceController::class, 'destroy'])->name('experiences.destroy');
+
+        Route::post('experiences/{experience}/updates', [ExperienceUpdateController::class, 'store'])->name('experience-updates.store');
+        Route::delete('experience-updates/{experienceUpdate}', [ExperienceUpdateController::class, 'destroy'])->name('experience-updates.destroy');
+    });
 });
 
 require __DIR__ . '/auth.php';

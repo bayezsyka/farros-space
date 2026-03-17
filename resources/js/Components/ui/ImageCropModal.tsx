@@ -186,7 +186,7 @@ export default function ImageCropModal({ src, onConfirm, onCancel }: ImageCropMo
     }, []);
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 touch-none">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 touch-none">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col border border-zinc-100 overflow-hidden">
 
                 {/* Header */}

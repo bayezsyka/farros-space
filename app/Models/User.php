@@ -49,4 +49,9 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
         ];
     }
+
+    public function experiences()
+    {
+        return $this->hasMany(Experience::class);
+    }
 }

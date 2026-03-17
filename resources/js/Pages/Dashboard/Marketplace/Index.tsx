@@ -355,7 +355,7 @@ export default function Index({ items, waNumber }: Props) {
 
             {/* Delete Confirmation Modal */}
             {deleteSlug !== null && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[200] p-4">
                     <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full border border-zinc-100">
                         <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-4">
                             <Trash2 className="w-5 h-5 text-red-500" />

@@ -11,6 +11,7 @@ import {
     Home,
     Settings,
     Briefcase,
+    ShoppingBag,
     Link as LinkIcon,
     GraduationCap,
 } from 'lucide-react';
@@ -32,7 +33,8 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
     const navItems = [
         { label: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Biodata', icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
-        { label: 'Marketplace', icon: Briefcase, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
+        { label: 'Experience', icon: Briefcase, href: route('experiences.index'), active: route().current('experiences.*') },
+        { label: 'Marketplace', icon: ShoppingBag, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
         { label: 'Social Links', icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
         { label: 'Pendidikan', icon: GraduationCap, href: route('dashboard.education.index'), active: route().current('dashboard.education.*') },
         { label: 'Account', icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },

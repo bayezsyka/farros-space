@@ -593,7 +593,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none"
             role="dialog" aria-modal="true" aria-label="Generator Poster Produk"
         >
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden border border-zinc-200">

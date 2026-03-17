@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import { Download, ArrowLeft } from 'lucide-react';
+import { formatExperienceDate } from '@/lib/utils';
 
 interface Profile {
     full_name?: string;
@@ -12,6 +13,23 @@ interface Profile {
     birth_place?: string;
     birth_date?: string;
     avatar_url?: string;
+}
+
+interface ExperienceUpdate {
+    id: number;
+    content: string;
+    created_at: string;
+}
+
+interface Experience {
+    id: number;
+    type: 'work' | 'organization' | 'committee';
+    company_or_event_name: string;
+    umbrella_organization: string | null;
+    role: string;
+    start_date: string;
+    end_date: string | null;
+    updates?: ExperienceUpdate[];
 }
 
 interface EducationItem {
@@ -27,7 +45,30 @@ interface EducationItem {
 interface Props {
     profile: Profile | null;
     education: EducationItem[];
+    experiences: Experience[];
+    lang: 'id' | 'en';
 }
+
+const translations = {
+    id: {
+        summary: "Ringkasan",
+        education: "Pendidikan",
+        experience: "Pengalaman",
+        home: "Beranda",
+        download: "Download",
+        present: "Sekarang",
+        contact: "Kontak",
+    },
+    en: {
+        summary: "Summary",
+        education: "Education",
+        experience: "Experience",
+        home: "Home",
+        download: "Download",
+        present: "Present",
+        contact: "Contact",
+    }
+};
 
 // ─── Reusable styled section header (bold, uppercase, underlined) ───────────
 function SectionHeader({ title }: { title: string }) {
@@ -50,7 +91,8 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 // ─── Main CV content - shared between screen preview and print ───────────────
-function CVContent({ profile, education }: { profile: Profile | null; education: EducationItem[] }) {
+function CVContent({ profile, education, experiences, lang }: { profile: Profile | null; education: EducationItem[]; experiences: Experience[]; lang: 'id' | 'en' }) {
+    const t = translations[lang];
     const name = profile?.full_name || 'Nama Lengkap';
     const headline = profile?.headline || '';
     const email = profile?.email || '';
@@ -116,7 +158,7 @@ function CVContent({ profile, education }: { profile: Profile | null; education:
             {/* ══════════ RINGKASAN ══════════ */}
             {bio && (
                 <>
-                    <SectionHeader title="Ringkasan" />
+                    <SectionHeader title={t.summary} />
                     <p style={{ margin: '0 0 4px', textAlign: 'justify', fontSize: '10pt', color: '#000', lineHeight: '1.45' }}>
                         {bio}
                     </p>
@@ -126,20 +168,18 @@ function CVContent({ profile, education }: { profile: Profile | null; education:
             {/* ══════════ PENDIDIKAN ══════════ */}
             {education.length > 0 && (
                 <>
-                    <SectionHeader title="Pendidikan" />
-                    <div>
+                    <SectionHeader title={t.education} />
+                    <div style={{ marginBottom: '8px' }}>
                         {education.map((edu) => (
                             <div key={edu.id} style={{ marginBottom: '6px' }}>
-                                {/* Institution name (bold) + year on the right */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                     <span style={{ fontWeight: 700, fontSize: '10.5pt' }}>
                                         {edu.institution}
                                     </span>
                                     <span style={{ fontSize: '10pt', whiteSpace: 'nowrap', paddingLeft: '12px' }}>
-                                        {edu.start_year} – {edu.end_year === 'now' ? 'Sekarang' : (edu.end_year || 'Sekarang')}
+                                        {edu.start_year} – {edu.end_year === 'now' ? t.present : (edu.end_year || t.present)}
                                     </span>
                                 </div>
-                                {/* Major - only if present and hide level prefix for school levels */}
                                 {edu.program_major && (
                                     <div style={{ fontStyle: 'italic', fontSize: '10pt', color: '#111' }}>
                                         {['SD', 'SMP', 'SMA', 'SMK'].includes(edu.level)
@@ -153,13 +193,55 @@ function CVContent({ profile, education }: { profile: Profile | null; education:
                 </>
             )}
 
+            {/* ══════════ PENGALAMAN ══════════ */}
+            {experiences.length > 0 && (
+                <>
+                    <SectionHeader title={t.experience} />
+                    <div>
+                        {experiences.map((exp) => (
+                            <div key={exp.id} style={{ marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                    <span style={{ fontWeight: 700, fontSize: '10.5pt' }}>
+                                        {exp.role}
+                                    </span>
+                                    <span style={{ fontSize: '10pt', whiteSpace: 'nowrap', paddingLeft: '12px' }}>
+                                        {formatExperienceDate(exp.start_date, exp.end_date, lang)}
+                                    </span>
+                                </div>
+                                <div style={{ fontWeight: 600, fontSize: '10pt', color: '#111' }}>
+                                    {exp.company_or_event_name}
+                                    {exp.umbrella_organization && ` (${exp.umbrella_organization})`}
+                                </div>
+                                {exp.updates && exp.updates.length > 0 && (
+                                    <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
+                                        {exp.updates.map((update) => (
+                                            <li key={update.id} style={{ marginBottom: '2px' }}>
+                                                {update.content}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
         </div>
     );
 }
 
 // ─── Page component ──────────────────────────────────────────────────────────
-export default function CVIndex({ profile, education }: Props) {
+export default function CVIndex({ profile, education, experiences, lang }: Props) {
+    const t = translations[lang];
     const name = profile?.full_name || 'CV';
+
+    // Helper to get route with specific lang
+    const getLangRoute = (l: 'id' | 'en') => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', l);
+        return url.pathname + url.search;
+    };
 
     return (
         <>
@@ -170,6 +252,23 @@ export default function CVIndex({ profile, education }: Props) {
                 position: 'fixed', bottom: '32px', right: '32px', zIndex: 100,
                 display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end'
             }}>
+                <div style={{
+                    display: 'flex', gap: '4px', background: '#fff', padding: '4px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                }}>
+                    <a href={getLangRoute('id')} style={{
+                        padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                        background: lang === 'id' ? '#111827' : 'transparent',
+                        color: lang === 'id' ? '#fff' : '#4b5563',
+                        textDecoration: 'none', transition: 'all 0.2s'
+                    }}>ID</a>
+                    <a href={getLangRoute('en')} style={{
+                        padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                        background: lang === 'en' ? '#111827' : 'transparent',
+                        color: lang === 'en' ? '#fff' : '#4b5563',
+                        textDecoration: 'none', transition: 'all 0.2s'
+                    }}>EN</a>
+                </div>
+
                 <a href="/" style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
                     background: '#fff', color: '#111827', border: '1px solid #e5e7eb', borderRadius: '12px',
@@ -177,7 +276,7 @@ export default function CVIndex({ profile, education }: Props) {
                     fontFamily: 'sans-serif', textDecoration: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s'
                 }}>
-                    <ArrowLeft size={18} /> Beranda
+                    <ArrowLeft size={18} /> {t.home}
                 </a>
                 <button
                     onClick={() => window.print()}
@@ -189,7 +288,7 @@ export default function CVIndex({ profile, education }: Props) {
                         transition: 'all 0.2s'
                     }}
                 >
-                    <Download size={18} /> Download
+                    <Download size={18} /> {t.download}
                 </button>
             </div>
 
@@ -215,13 +314,13 @@ export default function CVIndex({ profile, education }: Props) {
                     borderRadius: '2px',
                     margin: '0 auto'
                 }}>
-                    <CVContent profile={profile} education={education} />
+                    <CVContent profile={profile} education={education} experiences={experiences} lang={lang} />
                 </div>
             </div>
 
             {/* ── Print-only layer ── */}
             <div className="print-only">
-                <CVContent profile={profile} education={education} />
+                <CVContent profile={profile} education={education} experiences={experiences} lang={lang} />
             </div>
 
             {/* ── Global print styles ── */}
