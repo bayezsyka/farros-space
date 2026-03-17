@@ -4,7 +4,7 @@ import { PageProps } from '@/types';
 import { Card, CardContent } from '@/Components/ui/Card';
 import { Typography } from '@/Components/ui/Typography';
 import { Badge } from '@/Components/ui/Badge';
-import { Heart, MessageCircle, MoreVertical, Trash2, Edit2, X, ImagePlus, Maximize2 } from 'lucide-react';
+import { Heart, MessageCircle, MoreVertical, Trash2, Edit2, X, ImagePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import axios from 'axios';
@@ -47,7 +47,6 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     // Edit and Delete states
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -165,11 +164,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                 {/* Left side: Avatar */}
                 <div className="flex flex-col items-center flex-shrink-0">
                     <div
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-muted border border-border cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => {
-                            const avatarUrl = isPublic ? thread.user?.avatar : profile?.avatar_url;
-                            if (avatarUrl) setPreviewImage(avatarUrl);
-                        }}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-muted border border-border"
                     >
                         {isPublic ? (
                             thread.user?.avatar ? (
@@ -306,39 +301,13 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             {/* Image */}
                             {thread.image_url && (
                                 <div
-                                    className="mt-2 sm:mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-border bg-muted/20 cursor-pointer group relative"
-                                    onClick={() => setPreviewImage(thread.image_url)}
+                                    className="mt-2 sm:mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-border bg-muted/20"
                                 >
                                     <img
                                         src={thread.image_url}
                                         alt="Thread attachment"
-                                        className="w-full h-auto max-h-[300px] sm:max-h-[500px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                        className="w-full h-auto max-h-[300px] sm:max-h-[500px] object-cover"
                                         loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <div className="bg-white/90 p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                                            <Maximize2 className="w-5 h-5 text-foreground" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Full Screen Image Preview Modal */}
-                            {previewImage && (
-                                <div
-                                    className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
-                                    onClick={() => setPreviewImage(null)}
-                                >
-                                    <button
-                                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-                                        onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                    <img
-                                        src={previewImage}
-                                        className="max-w-[95vw] max-h-[90vh] object-contain shadow-2xl animate-in zoom-in-95 duration-300"
-                                        alt="Full size preview"
                                     />
                                 </div>
                             )}

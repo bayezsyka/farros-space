@@ -2,7 +2,6 @@ import React, { useState, PropsWithChildren, ReactNode } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
-    MessageSquare,
     User,
     LogOut,
     Menu,
@@ -33,7 +32,6 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
     const navItems = [
         { label: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Biodata', icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
-        { label: 'Threads', icon: MessageSquare, href: route('dashboard.threads'), active: route().current('dashboard.threads') },
         { label: 'Marketplace', icon: Briefcase, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
         { label: 'Social Links', icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
         { label: 'Pendidikan', icon: GraduationCap, href: route('dashboard.education.index'), active: route().current('dashboard.education.*') },

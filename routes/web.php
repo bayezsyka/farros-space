@@ -29,9 +29,7 @@ Route::get('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentCont
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard', [
-            'threadCount' => \App\Models\ThreadPost::count(),
-        ]);
+        return Inertia::render('Dashboard');
     })->name('dashboard');
 
     // Owner route group for manage threads
@@ -59,6 +57,8 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::put('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'update'])->name('dashboard.marketplace.update');
         Route::delete('/marketplace/{marketplaceItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'destroy'])->name('dashboard.marketplace.destroy');
         Route::delete('/marketplace/foto-detail/{fotoDetailItem}', [App\Http\Controllers\Dashboard\AdminMarketplaceController::class, 'destroyFotoDetail'])->name('dashboard.marketplace.foto-detail.destroy');
+
+
     });
 });
 

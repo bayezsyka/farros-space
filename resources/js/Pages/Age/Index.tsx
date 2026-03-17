@@ -24,15 +24,13 @@ import {
     RotateCcw,
     Moon,
     SunMedium,
-    X,
-    Maximize2
+    X
 } from 'lucide-react';
 
 export default function AgeIndex() {
     const defaultBirthDate = new Date(2005, 11, 13);
     const [birthDate, setBirthDate] = useState<Date>(defaultBirthDate);
     const [now, setNow] = useState<Date>(new Date());
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -127,38 +125,17 @@ export default function AgeIndex() {
                                         </div>
 
                                         <div
-                                            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm cursor-pointer hover:bg-muted/30 transition-colors group"
-                                            onClick={() => setPreviewImage('/images/hero-foto-saya.png')}
+                                            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-colors group"
                                         >
                                             <CalendarDays className="h-4 w-4 text-gray-500" />
                                             Lahir pada <span className="font-medium">13 Desember 2005</span>
-                                            <Maximize2 className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </Card>
 
-                        {/* Image Preview Modal */}
-                        {previewImage && (
-                            <div
-                                className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-300"
-                                onClick={() => setPreviewImage(null)}
-                            >
-                                <button
-                                    className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all active:scale-90"
-                                    onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
-                                >
-                                    <X className="w-7 h-7" />
-                                </button>
-                                <img
-                                    src={previewImage}
-                                    className="max-w-[95vw] max-h-[90vh] object-contain shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-500"
-                                    alt="Full size preview"
-                                    draggable={false}
-                                />
-                            </div>
-                        )}
+
 
                         {/* Main Age Card */}
                         <Card className="border border-gray-200 bg-white shadow-sm">
