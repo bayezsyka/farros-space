@@ -32,9 +32,19 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
     const { auth, locale } = usePage<PageProps>().props;
     const { __ } = useTranslation();
     
-    // Combine and sort threads
-    const allThreads = [...latestThreads.map(t => ({...t, is_owner: true})), ...publicThreads.map(t => ({...t, is_owner: false}))]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    // Combine and sort threads (with safeguards for null arrays)
+    const safeLatestThreads = Array.isArray(latestThreads) ? latestThreads : [];
+    const safePublicThreads = Array.isArray(publicThreads) ? publicThreads : [];
+    
+    const allThreads = [
+        ...safeLatestThreads.map(t => ({...t, is_owner: true})), 
+        ...safePublicThreads.map(t => ({...t, is_owner: false}))
+    ]
+        .sort((a, b) => {
+            const timeA = new Date(a.created_at || 0).getTime();
+            const timeB = new Date(b.created_at || 0).getTime();
+            return timeB - timeA;
+        })
         .slice(0, 5);
 
     return (
@@ -59,7 +69,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                         </div>
                         
                         <div className="space-y-3">
-                            {experiences.length > 0 ? experiences.slice(0, 3).map((exp) => (
+                            {(experiences || []).length > 0 ? (experiences || []).slice(0, 3).map((exp) => (
                                 <Link 
                                     key={exp.id} 
                                     href={route('experiences.show', exp.slug || exp.id)}
@@ -105,7 +115,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            {marketplaceItems.length > 0 ? marketplaceItems.slice(0, 4).map((item) => (
+                            {(marketplaceItems || []).length > 0 ? (marketplaceItems || []).slice(0, 4).map((item) => (
                                 <Link 
                                     key={item.id} 
                                     href={route('marketplace.show', item.slug || item.id)}
@@ -186,7 +196,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                                     {thread.is_owner ? (profile?.full_name || 'Farros') : (thread.user?.name || 'Guest')}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground">
-                                                    {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: locale === 'id' ? id : enUS })}
+                                                    {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: locale === 'id' ? id : enUS }) : __('just now')}
                                                 </span>
                                             </div>
                                             <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors break-words">

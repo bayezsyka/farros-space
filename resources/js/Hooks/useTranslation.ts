@@ -5,10 +5,10 @@ export default function useTranslation() {
     const { translations } = usePage<PageProps>().props;
 
     const translate = (key: string, replacements: Record<string, string> = {}) => {
-        let translation = translations[key] || key;
+        let translation = (translations && translations[key]) || key;
 
         Object.keys(replacements).forEach((replacementKey) => {
-            translation = translation.replace(
+            translation = String(translation).replace(
                 `:${replacementKey}`,
                 replacements[replacementKey]
             );
