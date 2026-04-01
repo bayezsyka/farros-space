@@ -5,6 +5,8 @@ import { Container } from '@/Components/ui/Container';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
+import { usePage } from '@inertiajs/react';
+import useTranslation from '@/Hooks/useTranslation';
 import { Card, CardContent } from '@/Components/ui/Card';
 import Modal from '@/Components/Modal';
 import InputLabel from '@/Components/InputLabel';
@@ -15,7 +17,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { Experience } from '@/types';
 import { formatExperienceDate } from '@/lib/utils';
-import { Plus, Briefcase, Users, UserCog, Calendar, Pencil, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, Briefcase, Users, UserCog, Calendar, Pencil, Trash2, ArrowRight, Download, Archive, ArchiveRestore, Sparkles } from 'lucide-react';
+import ImportPdfModal from '@/Components/ui/ImportPdfModal';
 
 interface Props {
     experiences: Experience[];
@@ -26,8 +29,11 @@ interface Props {
 }
 
 export default function Index({ experiences, auth }: Props) {
+    const { locale } = usePage<any>().props;
+    const { __ } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         type: 'work' as 'work' | 'organization' | 'committee',
@@ -72,7 +78,7 @@ export default function Index({ experiences, auth }: Props) {
         };
 
         if (editingExperience) {
-            put(route('experiences.update', editingExperience.id), {
+            put(route('experiences.update', editingExperience.slug), {
                 onSuccess: () => closeModal(),
             });
         } else {
@@ -82,9 +88,21 @@ export default function Index({ experiences, auth }: Props) {
         }
     };
 
-    const handleDelete = (id: number) => {
-        if (confirm('Hapus pengalaman ini? Semua cerita di dalamnya juga akan terhapus.')) {
-            router.delete(route('experiences.destroy', id));
+    const handleDelete = (experience: Experience) => {
+        if (confirm(__('Delete this experience? All stories within it will also be deleted.'))) {
+            router.delete(route('experiences.destroy', experience.slug));
+        }
+    };
+
+    const handleArchive = (experience: Experience) => {
+        if (confirm(__('Archive ":role"? This experience will not appear on the public page.', { role: experience.role }))) {
+            router.post(route('experiences.archive', experience.slug));
+        }
+    };
+
+    const handleUnarchive = (experience: Experience) => {
+        if (confirm(__('Reactivate ":role"?', { role: experience.role }))) {
+            router.post(route('experiences.unarchive', experience.slug));
         }
     };
 
@@ -102,27 +120,52 @@ export default function Index({ experiences, auth }: Props) {
             <Head title="Experiences" />
             
             <PageHeader
-                breadcrumbs={[{ label: 'Experiences' }]}
-                badge={{ icon: Briefcase, label: 'Karier & Organisasi' }}
-                title="Experiences"
-                subtitle="Daftar perjalanan karier, organisasi, dan kepanitiaan yang pernah saya ikuti."
-                actions={auth.canManage ? (
-                    <Button 
-                        onClick={() => openModal()}
-                        className="bg-foreground text-background hover:opacity-90 rounded-2xl px-6 font-bold shadow-lg shadow-foreground/10 h-11"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Tambah Pengalaman
-                    </Button>
-                ) : null}
+                breadcrumbs={[{ label: __('Experiences') }]}
+                badge={{ icon: Briefcase, label: __('Career & Organization') }}
+                title={__('Experiences')}
+                subtitle={__('A list of my career journey, organizations, and committees.')}
+                actions={(
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Link href={route('cv.index')}>
+                            <Button 
+                                variant="outline"
+                                className="rounded-2xl px-6 font-bold h-11 border-border/50 hover:bg-muted"
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                {__('Download CV')}
+                            </Button>
+                        </Link>
+                        {auth.canManage && (
+                            <div className="flex items-center gap-3">
+                                <Button 
+                                    onClick={() => setIsImportModalOpen(true)}
+                                    variant="outline"
+                                    className="rounded-2xl px-6 font-bold h-11 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all gap-2"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    <span className="hidden sm:inline">{__('Import from PDF')}</span>
+                                    <span className="sm:hidden">{__('Import PDF')}</span>
+                                </Button>
+                                <Button 
+                                    onClick={() => openModal()}
+                                    className="bg-foreground text-background hover:opacity-90 rounded-2xl px-6 font-bold shadow-lg shadow-foreground/10 h-11"
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    {__('Add Experience')}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
             />
 
             <section className="py-8 md:py-12">
-                <Container className="max-w-5xl px-4 sm:px-6">
+                <Container>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {experiences.map((exp) => (
-                            <Link key={exp.id} href={route('experiences.show', exp.id)}>
-                                <Card className="group rounded-[2rem] border-border/50 bg-card hover:bg-muted/30 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 h-full flex flex-col">
+                            <div key={exp.id} className="relative">
+                                <Link href={route('experiences.show', exp.slug)}>
+                                    <Card className={`group rounded-[2rem] border-border/50 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 h-full flex flex-col ${!!exp.is_archived ? 'bg-muted/10 grayscale-[0.8] opacity-70' : 'bg-card hover:bg-muted/30'}`}>
                                     <div className="p-6 pb-2 relative overflow-hidden flex-grow">
                                         <div className="flex items-start justify-between mb-6">
                                             <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-300">
@@ -146,7 +189,23 @@ export default function Index({ experiences, auth }: Props) {
                                                         size="icon" 
                                                         onClick={(e) => {
                                                             e.preventDefault();
-                                                            handleDelete(exp.id);
+                                                            if (exp.is_archived) {
+                                                                handleUnarchive(exp);
+                                                            } else {
+                                                                handleArchive(exp);
+                                                            }
+                                                        }}
+                                                        className={`w-9 h-9 rounded-full transition-all ${exp.is_archived ? 'hover:bg-green-500/10 text-green-600' : 'hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600'}`}
+                                                        title={!!exp.is_archived ? __('Activate') : __('Archive')}
+                                                    >
+                                                        {!!exp.is_archived ? <ArchiveRestore className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+                                                    </Button>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            handleDelete(exp);
                                                         }}
                                                         className="w-9 h-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
                                                     >
@@ -158,13 +217,13 @@ export default function Index({ experiences, auth }: Props) {
 
                                         <div className="space-y-1">
                                             <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10 mb-2">
-                                                {exp.type}
+                                                {__(exp.type.charAt(0).toUpperCase() + exp.type.slice(1))}
                                             </div>
                                             <Typography variant="h3" className="text-lg font-black tracking-tight leading-tight group-hover:text-primary transition-colors">
-                                                {exp.role}
+                                                {locale === 'en' ? (exp.role_en || exp.role) : (exp.role_id || exp.role)}
                                             </Typography>
                                             <Typography variant="muted" className="text-sm font-bold text-muted-foreground">
-                                                {exp.company_or_event_name}
+                                                {locale === 'en' ? (exp.company_or_event_name_en || exp.company_or_event_name) : (exp.company_or_event_name_id || exp.company_or_event_name)}
                                             </Typography>
                                         </div>
                                     </div>
@@ -181,7 +240,7 @@ export default function Index({ experiences, auth }: Props) {
                                                         {exp.updates?.length || 0}
                                                     </div>
                                                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                                                        Cerita
+                                                        {__('Stories')}
                                                     </span>
                                                 </div>
                                                 <ArrowRight className="w-4 h-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
@@ -190,6 +249,15 @@ export default function Index({ experiences, auth }: Props) {
                                     </CardContent>
                                 </Card>
                             </Link>
+                            {!!exp.is_archived && (
+                                <div className="absolute top-4 left-6 z-20 pointer-events-none">
+                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                                        <Archive className="w-3 h-3" />
+                                        {__('Archive')}
+                                    </div>
+                                </div>
+                            )}
+                            </div>
                         ))}
 
                         {experiences.length === 0 && (
@@ -197,9 +265,9 @@ export default function Index({ experiences, auth }: Props) {
                                 <div className="p-6 rounded-full bg-muted mb-4">
                                     <Briefcase className="w-12 h-12 text-muted-foreground/20" />
                                 </div>
-                                <Typography variant="h3" className="text-lg font-black mb-1">Belum ada pengalaman</Typography>
+                                <Typography variant="h3" className="text-lg font-black mb-1">{__('No experiences yet')}</Typography>
                                 <Typography variant="muted" className="max-w-xs mx-auto mb-6 text-sm">
-                                    Mulai catat perjalanan karier atau organisasi pertamamu sekarang.
+                                    {__('Start recording your first career or organization journey now.')}
                                 </Typography>
                                 {auth.canManage && (
                                     <Button 
@@ -207,7 +275,7 @@ export default function Index({ experiences, auth }: Props) {
                                         className="bg-foreground text-background hover:opacity-90 rounded-2xl px-8 h-12 font-bold shadow-lg shadow-foreground/10"
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Tambah Pertama
+                                        {__('Add First')}
                                     </Button>
                                 )}
                             </div>
@@ -220,35 +288,35 @@ export default function Index({ experiences, auth }: Props) {
                 <form onSubmit={submit} className="p-6 sm:p-8">
                     <div className="mb-6">
                         <Typography variant="h2" className="text-xl font-black mb-1">
-                            {editingExperience ? 'Edit Pengalaman' : 'Tambah Pengalaman'}
+                            {editingExperience ? __('Edit Experience') : __('Add Experience')}
                         </Typography>
-                        <Typography variant="muted" className="text-xs">Lengkapi detail perjalanan karier atau organisasimu.</Typography>
+                        <Typography variant="muted" className="text-xs">{__('Complete details of your career or organization journey.')}</Typography>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div className="space-y-1.5">
-                            <InputLabel htmlFor="type" value="Tipe" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                            <InputLabel htmlFor="type" value={__('Type')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <select
                                 id="type"
                                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm font-semibold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                                 value={data.type}
                                 onChange={(e) => setData('type', e.target.value as any)}
                             >
-                                <option value="work">Pekerjaan</option>
-                                <option value="organization">Organisasi</option>
-                                <option value="committee">Kepanitiaan</option>
+                                <option value="work">{__('Work')}</option>
+                                <option value="organization">{__('Organization')}</option>
+                                <option value="committee">{__('Committee')}</option>
                             </select>
                             <InputError message={errors.type} className="mt-1" />
                         </div>
 
                         <div className="space-y-1.5">
-                            <InputLabel htmlFor="company_or_event_name" value="Nama Instansi/Acara" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                            <InputLabel htmlFor="company_or_event_name" value={__('Institution/Event Name')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="company_or_event_name"
                                 className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                 value={data.company_or_event_name}
                                 onChange={(e) => setData('company_or_event_name', e.target.value)}
-                                placeholder="Google, BEM Univ, dsb"
+                                placeholder={__('Google, BEM Univ, etc.')}
                                 required
                             />
                             <InputError message={errors.company_or_event_name} className="mt-1" />
@@ -256,33 +324,33 @@ export default function Index({ experiences, auth }: Props) {
 
                         {data.type === 'committee' && (
                             <div className="md:col-span-2 space-y-1.5">
-                                <InputLabel htmlFor="umbrella_organization" value="Organisasi Induk" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                                <InputLabel htmlFor="umbrella_organization" value={__('Umbrella Organization')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                                 <TextInput
                                     id="umbrella_organization"
                                     className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                     value={data.umbrella_organization}
                                     onChange={(e) => setData('umbrella_organization', e.target.value)}
-                                    placeholder="Opsional: BEM, Himpunan, dsb"
+                                    placeholder={__('Optional: BEM, Himpunan, etc.')}
                                 />
                                 <InputError message={errors.umbrella_organization} className="mt-1" />
                             </div>
                         )}
 
                         <div className="md:col-span-2 space-y-1.5">
-                            <InputLabel htmlFor="role" value="Peran / Jabatan" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                            <InputLabel htmlFor="role" value={__('Role / Position')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="role"
                                 className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                 value={data.role}
                                 onChange={(e) => setData('role', e.target.value)}
-                                placeholder="Contoh: Web Developer, Ketua, dsb"
+                                placeholder={__('Example: Web Developer, Chair, etc.')}
                                 required
                             />
                             <InputError message={errors.role} className="mt-1" />
                         </div>
 
                         <div className="space-y-1.5">
-                            <InputLabel htmlFor="start_date" value="Mulai" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                            <InputLabel htmlFor="start_date" value={__('Start')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="start_date"
                                 type="date"
@@ -295,7 +363,7 @@ export default function Index({ experiences, auth }: Props) {
                         </div>
 
                         <div className="space-y-1.5">
-                            <InputLabel htmlFor="end_date" value="Selesai" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
+                            <InputLabel htmlFor="end_date" value={__('End')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="end_date"
                                 type="date"
@@ -315,21 +383,25 @@ export default function Index({ experiences, auth }: Props) {
                                     onChange={(e) => setData('is_current', e.target.checked)}
                                     className="w-5 h-5 rounded-lg text-foreground border-border bg-muted/30"
                                 />
-                                <span className="ml-3 text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">Masih aktif hingga saat ini</span>
+                                <span className="ml-3 text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">{__('Currently active')}</span>
                             </label>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-end gap-2 pt-6 border-t border-border/40">
-                        <SecondaryButton onClick={closeModal} className="rounded-xl h-10 px-6 font-bold text-xs">
-                            Batal
+                        <SecondaryButton onClick={closeModal} className="rounded-xl h-10 px-6 font-bold text-xs" type="button">
+                            {__('Cancel')}
                         </SecondaryButton>
-                        <PrimaryButton className="rounded-xl h-10 px-6 bg-foreground text-background hover:opacity-90 font-bold text-xs" disabled={processing}>
-                            {processing ? '...' : (editingExperience ? 'Simpan' : 'Tambah')}
+                        <PrimaryButton className="rounded-xl h-10 px-6 bg-foreground text-background hover:opacity-90 font-bold text-xs" disabled={processing} type="submit">
+                            {processing ? '...' : (editingExperience ? __('Save') : __('Add'))}
                         </PrimaryButton>
                     </div>
                 </form>
             </Modal>
+            <ImportPdfModal 
+                show={isImportModalOpen} 
+                onClose={() => setIsImportModalOpen(false)} 
+            />
         </AppLayout>
     );
 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Models\Experience;
 use App\Models\User;
+use App\Jobs\GenerateExperienceSummaryJob;
+use App\Jobs\TranslateModelFieldsJob;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,12 +19,18 @@ class ExperienceController extends Controller
         $owner = User::where('is_admin', true)->first();
         if (!$owner) $owner = User::first();
 
-        $experiences = $owner ? $owner->experiences()
+        $experiencesQuery = $owner ? $owner->experiences()
             ->with(['updates' => function ($query) {
                 $query->orderBy('created_at', 'asc');
             }])
-            ->orderBy('start_date', 'desc')
-            ->get() : collect();
+            ->orderBy('start_date', 'desc') : null;
+
+        // If not admin, hide archived experiences
+        if ($experiencesQuery && (!Auth::check() || !Auth::user()->is_admin)) {
+            $experiencesQuery->where('is_archived', false);
+        }
+
+        $experiences = $experiencesQuery ? $experiencesQuery->get() : collect();
 
         return Inertia::render('Experience/Index', [
             'experiences' => $experiences,
@@ -31,6 +39,28 @@ class ExperienceController extends Controller
                 'canManage' => Auth::check() && Auth::user()->is_admin
             ]
         ]);
+    }
+
+    public function archive(Experience $experience)
+    {
+        if ($experience->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $experience->update(['is_archived' => true]);
+
+        return redirect()->back()->with('success', 'Experience archived successfully.');
+    }
+
+    public function unarchive(Experience $experience)
+    {
+        if ($experience->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $experience->update(['is_archived' => false]);
+
+        return redirect()->back()->with('success', 'Experience unarchived successfully.');
     }
 
     public function store(Request $request)
@@ -44,22 +74,27 @@ class ExperienceController extends Controller
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
-        Auth::user()->experiences()->create($validated);
+        $exp = Auth::user()->experiences()->create($validated);
+        
+        TranslateModelFieldsJob::dispatch($exp, ['role', 'company_or_event_name']);
 
         return redirect()->back()->with('success', 'Experience created successfully.');
     }
 
-    public function show($id)
+    public function show(Experience $experience)
     {
         // Get the site owner (admin)
         $owner = User::where('is_admin', true)->first();
         if (!$owner) $owner = User::first();
 
-        $experience = Experience::with(['updates' => function ($query) {
+        // Ensure the experience belongs to the owner
+        if ($owner && $experience->user_id !== $owner->id) {
+            abort(404);
+        }
+
+        $experience->load(['updates' => function ($query) {
             $query->orderBy('created_at', 'asc');
-        }])
-        ->where('user_id', $owner?->id)
-        ->findOrFail($id);
+        }]);
 
         return Inertia::render('Experience/Show', [
             'experience' => $experience,
@@ -86,9 +121,26 @@ class ExperienceController extends Controller
         ]);
 
         $experience->update($validated);
-        $experience->updateCvSummary();
+
+        TranslateModelFieldsJob::dispatch($experience, ['role', 'company_or_event_name']);
+
+        // Hanya dispatch job jika role berubah
+        if ($experience->wasChanged('role')) {
+            GenerateExperienceSummaryJob::dispatch($experience);
+        }
 
         return redirect()->back()->with('success', 'Experience updated successfully.');
+    }
+
+    public function generateSummary(Experience $experience)
+    {
+        if ($experience->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        GenerateExperienceSummaryJob::dispatch($experience);
+
+        return redirect()->back()->with('success', 'AI Summary generation has been added to the queue. Please wait a moment and refresh.');
     }
 
     public function destroy(Experience $experience)

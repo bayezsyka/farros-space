@@ -9,6 +9,7 @@ import { PageHeader } from '@/Components/ui/PageHeader';
 import { ThreadCard } from '@/Features/Threads/components/ThreadCard';
 import { ChevronLeft, ChevronRight, MessageSquare, Users, Sparkles, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface Thread {
     id: number;
@@ -37,6 +38,7 @@ interface Props {
 
 export default function ThreadsIndex({ threads: initialThreads, profile }: Props) {
     const { auth } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
     const [threads, setThreads] = useState(initialThreads);
     const [page, setPage] = useState(1);
     const perPage = 15;
@@ -56,27 +58,28 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
     return (
         <AppLayout title="Threads">
             <PageHeader
-                breadcrumbs={[{ label: 'Threads' }]}
-                badge={{ icon: MessageSquare, label: 'Threads' }}
-                title="Semua Threads"
-                subtitle="Tempat berbagi cerita, pikiran, dan percakapan dari semua orang."
+                breadcrumbs={[{ label: __('Threads') }]}
+                badge={{ icon: MessageSquare, label: __('Threads') }}
+                title={__('All Threads')}
+                subtitle={__('A place to share stories, thoughts, and conversations from everyone.')}
                 stats={[
-                    { icon: MessageSquare, value: threads.length, label: 'Threads' },
-                    { icon: TrendingUp, value: totalLikes, label: 'Likes' },
-                    { icon: Users, value: totalComments, label: 'Komentar' },
+                    { icon: MessageSquare, value: threads.length, label: __('Threads') },
+                    { icon: TrendingUp, value: totalLikes, label: __('Likes') },
+                    { icon: Users, value: totalComments, label: __('Comments') },
                 ]}
             />
 
             {/* ── Main Content ── */}
             <section className="py-8 md:py-12">
-                <Container className="max-w-3xl px-4 sm:px-6">
-                    {/* Post thread box */}
+                <Container>
+                    <div className="max-w-2xl">
+                        {/* Post thread box */}
                     <div className="mb-6">
                         <div className="rounded-2xl border border-border bg-card overflow-hidden">
                             <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-border bg-muted/30 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-muted-foreground" />
                                 <Typography variant="h3" className="text-[14px] font-bold text-foreground">
-                                    Berbagi cerita kamu
+                                    {__('Share your story')}
                                 </Typography>
                             </div>
                             <div className="p-4 sm:p-5">
@@ -89,11 +92,11 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-bold text-foreground">
-                                {threads.length} thread
+                                {threads.length} {__('threads')}
                             </h2>
                             {totalPages > 1 && (
                                 <span className="text-xs text-muted-foreground">
-                                    · halaman {page} dari {totalPages}
+                                    · {__('page :page of :total', { page: page.toString(), total: totalPages.toString() })}
                                 </span>
                             )}
                         </div>
@@ -102,7 +105,7 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                 onClick={() => { setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 className="text-xs font-semibold text-primary hover:underline"
                             >
-                                Ke halaman pertama
+                                {__('To first page')}
                             </button>
                         )}
                     </div>
@@ -124,8 +127,8 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                     <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4 border border-border">
                                         <MessageSquare className="w-7 h-7 text-muted-foreground/40" />
                                     </div>
-                                    <p className="text-sm text-muted-foreground font-medium">Belum ada thread.</p>
-                                    <p className="text-xs text-muted-foreground mt-1">Jadilah yang pertama berbagi cerita!</p>
+                                    <p className="text-sm text-muted-foreground font-medium">{__('No threads yet.')}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{__('Be the first to share a story!')}</p>
                                 </div>
                             )}
                         </div>
@@ -140,7 +143,7 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                     disabled={page === 1}
                                     className="gap-1.5 rounded-xl text-xs font-semibold"
                                 >
-                                    <ChevronLeft className="w-3.5 h-3.5" /> Prev
+                                    <ChevronLeft className="w-3.5 h-3.5" /> {__('Prev')}
                                 </Button>
 
                                 {/* Page numbers */}
@@ -172,10 +175,11 @@ export default function ThreadsIndex({ threads: initialThreads, profile }: Props
                                     disabled={page === totalPages}
                                     className="gap-1.5 rounded-xl text-xs font-semibold"
                                 >
-                                    Next <ChevronRight className="w-3.5 h-3.5" />
+                                    {__('Next')} <ChevronRight className="w-3.5 h-3.5" />
                                 </Button>
                             </div>
                         )}
+                    </div>
                     </div>
                 </Container>
             </section>
@@ -188,6 +192,7 @@ import { ImagePlus, X } from 'lucide-react';
 
 const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }) => {
     const { auth } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
     const [content, setContent] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -200,7 +205,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
         // Validasi ukuran client-side (5MB = 5 * 1024 * 1024 bytes)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran gambar maksimal adalah 5MB.');
+            alert(__('Max image size is 5MB.'));
             if (fileInputRef.current) fileInputRef.current.value = '';
             return;
         }
@@ -238,7 +243,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
         } catch (error: any) {
             console.error(error);
-            alert("Gagal mengirim thread.");
+            alert(__('Failed to post thread.'));
         } finally {
             setIsSubmitting(false);
             // Instead of onSuccess, let's reload the page to get the fresh feed from server since we just stored it
@@ -250,7 +255,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
         return (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
                 <p className="text-sm text-muted-foreground">
-                    Masuk untuk berbagi cerita kamu dengan semua orang.
+                    {__('Log in to share your story with everyone.')}
                 </p>
                 <a
                     href={route('auth.google', { redirect: typeof window !== 'undefined' ? window.location.href : '' })}
@@ -262,7 +267,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                         <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     </svg>
-                    Masuk dengan Google
+                    {__('Sign in with Google')}
                 </a>
             </div>
         );
@@ -284,7 +289,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="Apa yang ada di pikiran kamu?"
+                        placeholder={__("What's on your mind?")}
                         className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[40px] resize-none placeholder:text-muted-foreground"
                         rows={2}
                         onInput={(e) => {
@@ -322,7 +327,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-colors"
-                        title="Upload Gambar (Max 5MB)"
+                        title={__('Upload Image (Max 5MB)')}
                     >
                         <ImagePlus className="w-5 h-5" />
                     </button>
@@ -336,7 +341,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     disabled={(!content.trim() && !image) || isSubmitting || content.length > 5000}
                     className="rounded-xl px-5 font-bold text-xs"
                 >
-                    {isSubmitting ? 'Mengirim...' : 'Kirim Thread'}
+                    {isSubmitting ? __('Sending...') : __('Post Thread')}
                 </Button>
             </div>
         </form>

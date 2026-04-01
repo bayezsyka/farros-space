@@ -3,7 +3,9 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays, Briefcase } from 'lucide-react';
+import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays, Briefcase, Download } from 'lucide-react';
+import ThemeToggle from '@/Components/ThemeToggle';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface Props {
     children: React.ReactNode;
@@ -37,11 +39,24 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const { locale } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
+
+    const changeLocale = (newLocale: string) => {
+        const segments = window.location.pathname.split('/').filter(Boolean);
+        if (segments.length > 0 && (segments[0] === 'id' || segments[0] === 'en')) {
+            segments[0] = newLocale;
+        } else {
+            segments.unshift(newLocale);
+        }
+        window.location.href = '/' + segments.join('/') + window.location.search;
+    };
+
     const navLinks = [
-        { href: '/', label: 'Home', icon: Home },
-        { href: route('threads.index'), label: 'Threads', icon: MessageSquare },
-        { href: route('marketplace.index'), label: 'Marketplace', icon: ShoppingBag },
-        { href: route('experiences.index'), label: 'Experience', icon: Briefcase },
+        { href: route('landing'), label: __('Home'), icon: Home },
+        { href: route('threads.index'), label: __('Threads'), icon: MessageSquare },
+        { href: route('marketplace.index'), label: __('Marketplace'), icon: ShoppingBag },
+        { href: route('experiences.index'), label: __('Experience'), icon: Briefcase },
     ];
 
     return (
@@ -61,11 +76,8 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
             >
                 <Container className="flex h-14 md:h-[60px] items-center justify-between gap-4">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 z-50 group flex-shrink-0">
-                        <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center group-hover:opacity-80 transition-opacity">
-                            <span className="text-background text-xs font-black">F</span>
-                        </div>
-                        <Typography variant="large" className="font-bold tracking-tight text-sm md:text-base hidden sm:block">
+                    <Link href={route('landing')} className="z-50 group flex-shrink-0">
+                        <Typography variant="large" className="font-bold tracking-tight text-sm md:text-base">
                             farros.space
                         </Typography>
                     </Link>
@@ -93,7 +105,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                     className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                                 >
                                     <LayoutDashboard className="w-3.5 h-3.5" />
-                                    Dashboard
+                                    {__('Dashboard')}
                                 </Link>
                                 <div className="flex items-center gap-2 pl-2 border-l border-border ml-1">
                                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
@@ -106,28 +118,67 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                         as="button"
                                         className="text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
                                     >
-                                        Logout
+                                        {__('Logout')}
                                     </Link>
                                 </div>
                             </>
                         )}
 
-                        <Link href="/contact">
-                            <button className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
-                                <Mail className="w-3.5 h-3.5" />
-                                Contact
+                        <div className="flex items-center gap-2 pr-2 border-r border-border mr-2">
+                            <button 
+                                onClick={() => changeLocale('id')}
+                                className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'id' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                            >
+                                ID
                             </button>
-                        </Link>
+                            <button 
+                                onClick={() => changeLocale('en')}
+                                className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                            >
+                                EN
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <ThemeToggle />
+                            <Link href="/contact">
+                                <button className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    {__('Contact')}
+                                </button>
+                            </Link>
+                            <Link href="/cv">
+                                <button className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
+                                    <Download className="w-3.5 h-3.5" />
+                                    {__('CV')}
+                                </button>
+                            </Link>
+                        </div>
                     </div>
 
-                    {/* Mobile Hamburger Button */}
-                    <button
-                        className="md:hidden z-50 p-2 -mr-1 transition-opacity hover:opacity-70 focus:outline-none"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                    </button>
+                    <div className="flex items-center gap-2 md:hidden">
+                        <div className="flex items-center gap-1.5 mr-1 pr-1.5 border-r border-border/50">
+                            <button 
+                                onClick={() => changeLocale('id')}
+                                className={`text-[9px] font-black w-5 h-5 rounded-md flex items-center justify-center ${locale === 'id' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                            >
+                                ID
+                            </button>
+                            <button 
+                                onClick={() => changeLocale('en')}
+                                className={`text-[9px] font-black w-5 h-5 rounded-md flex items-center justify-center ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                            >
+                                EN
+                            </button>
+                        </div>
+                        <ThemeToggle />
+                        <button
+                            className="z-50 p-2 -mr-1 transition-opacity hover:opacity-70 focus:outline-none"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-label="Toggle menu"
+                        >
+                            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
+                    </div>
                 </Container>
             </header>
 
@@ -145,7 +196,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                 style={{ top: '57px' }}
             >
                 <nav className="flex flex-col p-5 space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-1 pb-2">Menu</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-1 pb-2">{__('Menu')}</p>
 
                     {navLinks.map((link) => (
                         <Link
@@ -161,7 +212,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     {user?.is_admin && (
                         <>
                             <div className="border-t border-border/50 my-2" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pb-2">Akun</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pb-2">{__('Account')}</p>
 
                             <Link
                                 href={route('dashboard')}
@@ -169,7 +220,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
-                                Dashboard
+                                {__('Dashboard')}
                             </Link>
 
                             <div className="flex items-center gap-3 px-4 py-3">
@@ -189,18 +240,25 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 className="flex items-center px-4 py-3.5 text-base font-medium text-destructive rounded-2xl hover:bg-destructive/5 transition-colors w-full text-left"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Logout
+                                {__('Logout')}
                             </Link>
                         </>
                     )}
 
-                    <div className="border-t border-border/50 my-2" />
-                    <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
-                        <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-4 text-sm font-semibold text-background transition-all hover:opacity-80">
-                            <Mail className="w-4 h-4" />
-                            Hubungi Saya
-                        </button>
-                    </Link>
+                    <div className="border-t border-border/50 my-2" />                    <div className="flex gap-2 px-3">
+                        <Link href={route('contact')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-muted px-4 py-4 text-xs font-bold text-foreground transition-all hover:bg-muted/80">
+                                <Mail className="w-4 h-4" />
+                                {__('Contact Me')}
+                            </button>
+                        </Link>
+                        <Link href={route('cv.index')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-4 text-xs font-bold text-background transition-all hover:opacity-80">
+                                <Download className="w-4 h-4" />
+                                {__('My CV')}
+                            </button>
+                        </Link>
+                    </div>
                 </nav>
             </div>
 
@@ -215,34 +273,31 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
                         {/* Brand */}
                         <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center">
-                                    <span className="text-background text-xs font-black">F</span>
-                                </div>
+                            <div className="flex items-center">
                                 <span className="font-bold text-foreground">farros.space</span>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                Ruang digital pribadi untuk berbagi cerita, pikiran, dan barang-barang yang ingin dijual.
+                                {__('A personal digital space to share stories, thoughts, and items for sale.')}
                             </p>
                         </div>
 
                         {/* Navigation */}
                         <div className="space-y-3">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Halaman</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{__('Pages')}</p>
                             <div className="flex flex-col gap-2">
                                 {[
-                                    { href: '/', label: 'Home' },
+                                    { href: route('landing'), label: 'Home' },
                                     { href: route('threads.index'), label: 'Threads' },
                                     { href: route('marketplace.index'), label: 'Marketplace' },
                                     { href: route('experiences.index'), label: 'Experience' },
-                                    { href: '/contact', label: 'Contact' },
+                                    { href: route('contact'), label: 'Contact' },
                                 ].map((link) => (
                                     <Link
                                         key={link.label}
                                         href={link.href}
                                         className="text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
                                     >
-                                        {link.label}
+                                        {__(link.label)}
                                     </Link>
                                 ))}
                             </div>
@@ -250,21 +305,21 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
                         {/* Contact info */}
                         <div className="space-y-3">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Kontak</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{__('Contact')}</p>
                             <div className="flex flex-col gap-2">
                                 <Link
-                                    href="/contact"
+                                    href={route('contact')}
                                     className="text-sm text-muted-foreground hover:text-foreground transition-colors w-fit flex items-center gap-1.5"
                                 >
                                     <Mail className="w-3.5 h-3.5" />
-                                    Get in Touch
+                                    {__('Get in Touch')}
                                 </Link>
                                 <Link
-                                    href="/age"
+                                    href={route('age')}
                                     className="text-sm text-muted-foreground hover:text-foreground transition-colors w-fit flex items-center gap-1.5"
                                 >
                                     <CalendarDays className="w-3.5 h-3.5" />
-                                    Age
+                                    {__('Age Calculator')}
                                 </Link>
                             </div>
                         </div>
@@ -273,14 +328,14 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     {/* Bottom bar */}
                     <div className="pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-2">
                         <Typography variant="small" className="text-muted-foreground text-xs">
-                            &copy; {new Date().getFullYear()} farros.space. All rights reserved.
+                            &copy; {new Date().getFullYear()} farros.space. {__('All rights reserved.')}
                         </Typography>
                         <div className="flex items-center gap-4">
                             <Link href={route('marketplace.index')} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                                <ShoppingBag className="w-3 h-3" /> Marketplace
+                                <ShoppingBag className="w-3 h-3" /> {__('Marketplace')}
                             </Link>
                             <Link href={route('threads.index')} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                                <MessageSquare className="w-3 h-3" /> Threads
+                                <MessageSquare className="w-3 h-3" /> {__('Threads')}
                             </Link>
                         </div>
                     </div>

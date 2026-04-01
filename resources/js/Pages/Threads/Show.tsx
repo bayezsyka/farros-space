@@ -6,12 +6,14 @@ import { Container } from '@/Components/ui/Container';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { MessageSquare, ArrowLeft, Heart, Edit2, Trash2, MoreVertical, ImagePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { id as localeId, enUS } from 'date-fns/locale';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
+import useTranslation from '@/Hooks/useTranslation';
 import { Card } from '@/Components/ui/Card';
 import { router } from '@inertiajs/react';
 import { CommentCard } from '@/Features/Threads/components/CommentCard';
+import { ImageLightbox } from '@/Components/ui/ImageLightbox';
 
 interface UserLink {
     id: number;
@@ -49,7 +51,8 @@ interface Props {
 }
 
 export default function ThreadShow({ thread: initialThread, profile }: Props) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
     const user = auth.user;
 
     const [thread, setThread] = useState(initialThread);
@@ -57,6 +60,9 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
     const [isLiked, setIsLiked] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Lightbox state
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -82,7 +88,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
 
 
     const handleDeleteThread = () => {
-        if (!confirm('Apakah Yakin ingin menghapus thread ini?')) return;
+        if (!confirm(__('Are you sure you want to delete this thread?'))) return;
         router.delete(route('threads.destroy', { thread: thread.slug }), {
             preserveScroll: true
         });
@@ -106,7 +112,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                 setIsSubmittingEdit(false);
             },
             onError: () => {
-                alert("Gagal menyimpan perubahan.");
+                alert(__('Failed to save changes.'));
                 setIsSubmittingEdit(false);
             }
         });
@@ -117,7 +123,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran gambar maksimal adalah 5MB.');
+            alert(__('Max image size is 5MB.'));
             if (fileInputRef.current) fileInputRef.current.value = '';
             return;
         }
@@ -151,7 +157,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
             if (error.response?.status === 401) {
                 window.location.href = route('auth.google', { redirect: window.location.href });
             } else {
-                alert("Gagal mengirim komentar.");
+                alert(__('Failed to post comment.'));
             }
         } finally {
             setIsSubmitting(false);
@@ -162,242 +168,253 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
         <AppLayout title="Detail Thread">
             <PageHeader
                 breadcrumbs={[
-                    { label: 'Threads', href: route('threads.index') },
-                    { label: 'Detail' }
+                    { label: __('Threads'), href: route('threads.index') },
+                    { label: __('Detail') }
                 ]}
-                badge={{ icon: MessageSquare, label: 'Komentar' }}
-                title="Percakapan"
-                subtitle="Balasan dan dukungan untuk ulasan publik."
+                badge={{ icon: MessageSquare, label: __('Comments') }}
+                title={__('Conversation')}
+                subtitle={__('Replies and support for public reviews.')}
             />
 
             <section className="py-8 md:py-12 relative animate-in fade-in slide-in-from-bottom-6 duration-700">
-                <Container className="max-w-2xl px-4 sm:px-6">
-                    <Link
-                        href={route('threads.index')}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground mb-6 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" /> Kembali
-                    </Link>
+                <Container>
+                    <div className="max-w-2xl">
+                        <Link
+                            href={route('threads.index')}
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground mb-6 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" /> {__('Back')}
+                        </Link>
 
-                    <Card className="rounded-2xl border border-border bg-card overflow-hidden w-full px-5 py-6">
-                        <div className="flex gap-3 sm:gap-4">
-                            <div className="flex flex-col items-center flex-shrink-0">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-muted border border-border">
-                                    {isPublic ? (
-                                        thread.user?.avatar ? (
-                                            <img src={thread.user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <Card className="rounded-2xl border border-border bg-card overflow-hidden w-full px-5 py-6">
+                            <div className="flex gap-3 sm:gap-4">
+                                <div className="flex flex-col items-center flex-shrink-0">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-muted border border-border">
+                                        {isPublic ? (
+                                            thread.user?.avatar ? (
+                                                <img src={thread.user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm sm:text-base">
+                                                    {thread.user?.name?.charAt(0) || 'G'}
+                                                </div>
+                                            )
+                                        ) : profile?.avatar_url ? (
+                                            <img src={profile.avatar_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm sm:text-base">
-                                                {thread.user?.name?.charAt(0) || 'G'}
-                                            </div>
-                                        )
-                                    ) : profile?.avatar_url ? (
-                                        <img src={profile.avatar_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm sm:text-base">
-                                            {profile?.full_name?.charAt(0) || 'F'}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex-grow min-w-0 pb-2">
-                                <div className="flex items-center gap-1.5 flex-wrap min-w-0 mb-2">
-                                    <span className="font-bold text-[15px] sm:text-[16px] hover:underline cursor-pointer truncate max-w-[150px] sm:max-w-none">
-                                        {isPublic ? (
-                                            thread.user?.id ? (
-                                                <Link href={route('threads.user', thread.user.name)} className="hover:text-primary transition-colors">
-                                                    {thread.user.name || 'Guest'}
-                                                </Link>
-                                            ) : 'Guest'
-                                        ) : (
-                                            <Link href={route('threads.user', 'owner')} className="hover:text-primary transition-colors">
-                                                {profile?.full_name || 'Farros'}
-                                            </Link>
-                                        )}
-                                    </span>
-                                    {thread.tags && (
-                                        <>
-                                            <span className="text-muted-foreground hidden sm:inline">·</span>
-                                            <span className="text-muted-foreground text-[14px]">{thread.tags.split(',')[0]}</span>
-                                        </>
-                                    )}
-                                    <span className="text-muted-foreground">·</span>
-                                    <span className="text-muted-foreground text-[13px] sm:text-[14px]">
-                                        {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: localeId }) : 'baru saja'}
-                                    </span>
-                                </div>
-
-                                {/* Menus */}
-                                {canManage && (
-                                    <div className="absolute top-6 right-5">
-                                        <button
-                                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                            className="p-1.5 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                                        >
-                                            <MoreVertical className="w-5 h-5 sm:w-6 sm:h-6" />
-                                        </button>
-                                        {isMenuOpen && (
-                                            <div className="absolute right-0 top-10 w-40 bg-popover rounded-xl border border-border shadow-md overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-100">
-                                                <button
-                                                    onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors text-left font-medium"
-                                                >
-                                                    <Edit2 className="w-4 h-4" /> Edit Thread
-                                                </button>
-                                                <button
-                                                    onClick={handleDeleteThread}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left font-medium border-t border-border/50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" /> Hapus
-                                                </button>
+                                                {profile?.full_name?.charAt(0) || 'F'}
                                             </div>
                                         )}
                                     </div>
-                                )}
-                            </div>
+                                </div>
 
-                            <div className="flex-grow min-w-0 pb-2">
-                                <div className="text-[14px] sm:text-[16px] leading-relaxed whitespace-pre-wrap break-words">
-                                    {isEditing ? (
-                                        <form onSubmit={handleEditSubmit} className="mt-4 space-y-4 p-4 bg-muted/20 border border-border rounded-xl">
-                                            <textarea
-                                                value={editContent}
-                                                onChange={e => setEditContent(e.target.value)}
-                                                className="w-full bg-transparent border-none focus:ring-0 text-[14px] sm:text-[16px] p-0 min-h-[80px] resize-none"
-                                            />
+                                <div className="flex-grow min-w-0 pb-2 relative">
+                                    <div className="flex items-center gap-1.5 flex-wrap min-w-0 mb-2 pr-8">
+                                        <span className="font-bold text-[15px] sm:text-[16px] hover:underline cursor-pointer truncate max-w-[150px] sm:max-w-none">
+                                            {isPublic ? (
+                                                thread.user?.id ? (
+                                                    <Link href={route('threads.user', thread.user.name)} className="hover:text-primary transition-colors">
+                                                        {thread.user.name || 'Guest'}
+                                                    </Link>
+                                                ) : 'Guest'
+                                            ) : (
+                                                <Link href={route('threads.user', 'owner')} className="hover:text-primary transition-colors">
+                                                    {profile?.full_name || 'Farros'}
+                                                </Link>
+                                            )}
+                                        </span>
+                                        {thread.tags && (
+                                            <>
+                                                <span className="text-muted-foreground hidden sm:inline">·</span>
+                                                <span className="text-muted-foreground text-[14px]">{thread.tags.split(',')[0]}</span>
+                                            </>
+                                        )}
+                                        <span className="text-muted-foreground">·</span>
+                                        <span className="text-muted-foreground text-[13px] sm:text-[14px]">
+                                            {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: locale === 'id' ? localeId : enUS }) : __('just now')}
+                                        </span>
+                                    </div>
 
-                                            <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="file"
-                                                        ref={fileInputRef}
-                                                        accept="image/jpeg,image/png,image/jpg,image/webp"
-                                                        className="hidden"
-                                                        onChange={handleImageChange}
-                                                    />
+                                    {/* Menus */}
+                                    {canManage && (
+                                        <div className="absolute top-0 right-0">
+                                            <button
+                                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                                className="p-1.5 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                            >
+                                                <MoreVertical className="w-5 h-5 sm:w-6 sm:h-6" />
+                                            </button>
+                                            {isMenuOpen && (
+                                                <div className="absolute right-0 top-10 w-40 bg-popover rounded-xl border border-border shadow-md overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-100">
                                                     <button
-                                                        type="button"
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-colors"
+                                                        onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
+                                                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors text-left font-medium"
                                                     >
-                                                        <ImagePlus className="w-5 h-5 sm:w-6 sm:h-6" />
-                                                    </button>
-                                                    {editImage && <span className="text-xs text-primary font-medium">{editImage.name}</span>}
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setIsEditing(false); setEditImage(null); }}
-                                                        className="text-sm font-semibold px-4 py-2 text-muted-foreground hover:text-foreground"
-                                                    >
-                                                        Batal
+                                                        <Edit2 className="w-4 h-4" /> {__('Edit Thread')}
                                                     </button>
                                                     <button
-                                                        type="submit"
-                                                        disabled={isSubmittingEdit}
-                                                        className="bg-primary text-primary-foreground text-sm font-bold px-5 py-2 rounded-full disabled:opacity-50 hover:bg-primary/90"
+                                                        onClick={handleDeleteThread}
+                                                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left font-medium border-t border-border/50"
                                                     >
-                                                        {isSubmittingEdit ? 'Menyimpan...' : 'Simpan'}
+                                                        <Trash2 className="w-4 h-4" /> {__('Delete')}
                                                     </button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    ) : (
-                                        <>
-                                            {thread.content}
-                                            {thread.image_url && (
-                                                <div className="mt-4 rounded-2xl overflow-hidden border border-border bg-muted/20 block">
-                                                    <img
-                                                        src={thread.image_url}
-                                                        alt="Thread attachment"
-                                                        className="w-full h-auto object-cover max-h-[500px]"
-                                                        loading="lazy"
-                                                    />
                                                 </div>
                                             )}
-                                        </>
+                                        </div>
                                     )}
-                                </div>
 
-                                <div className="flex items-center gap-6 pt-4 border-b border-border/40 pb-4 mt-2">
-                                    <button className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 group transition-colors" onClick={handleLike}>
-                                        <div className={cn("p-2 rounded-full group-hover:bg-red-500/10 transition-colors", isLiked && "text-red-500")}>
-                                            <Heart className={cn("w-[20px] h-[20px]", isLiked && "fill-current")} />
-                                        </div>
-                                        <span className="text-sm font-medium">{likes}</span>
-                                    </button>
-                                    <button className="flex items-center gap-1.5 text-muted-foreground cursor-default transition-colors">
-                                        <div className="p-2 rounded-full transition-colors text-blue-500">
-                                            <MessageSquare className="w-[20px] h-[20px]" />
-                                        </div>
-                                        <span className="text-sm font-medium">{thread.comments_count}</span>
-                                    </button>
-                                </div>
+                                    <div className="text-[14px] sm:text-[16px] leading-relaxed whitespace-pre-wrap break-words">
+                                        {isEditing ? (
+                                            <form onSubmit={handleEditSubmit} className="mt-4 space-y-4 p-4 bg-muted/20 border border-border rounded-xl">
+                                                <textarea
+                                                    value={editContent}
+                                                    onChange={e => setEditContent(e.target.value)}
+                                                    className="w-full bg-transparent border-none focus:ring-0 text-[14px] sm:text-[16px] p-0 min-h-[80px] resize-none"
+                                                />
 
-                                {/* Comments List & Form */}
-                                {thread.allow_comments && (
-                                    <div className="mt-5 space-y-5">
-                                        {user ? (
-                                            <form onSubmit={submitComment} className="flex gap-3">
-                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                                                    {user?.avatar ? (
-                                                        <img src={user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">
-                                                            {user.name.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-grow min-w-0">
-                                                    <textarea
-                                                        value={newComment}
-                                                        onChange={(e) => setNewComment(e.target.value)}
-                                                        placeholder="Tulis balasan..."
-                                                        className="w-full bg-transparent border-none focus:ring-0 text-sm sm:text-[15px] p-0 min-h-[40px] resize-none"
-                                                        rows={2}
-                                                        onInput={(e) => {
-                                                            const target = e.target as HTMLTextAreaElement;
-                                                            target.style.height = 'auto';
-                                                            target.style.height = target.scrollHeight + 'px';
-                                                        }}
-                                                    />
-                                                    <div className="flex justify-end mt-2">
+                                                <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="file"
+                                                            ref={fileInputRef}
+                                                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                                                            className="hidden"
+                                                            onChange={handleImageChange}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-colors"
+                                                        >
+                                                            <ImagePlus className="w-5 h-5 sm:w-6 sm:h-6" />
+                                                        </button>
+                                                        {editImage && <span className="text-xs text-primary font-medium">{editImage.name}</span>}
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setIsEditing(false); setEditImage(null); }}
+                                                            className="text-sm font-semibold px-4 py-2 text-muted-foreground hover:text-foreground"
+                                                        >
+                                                            {__('Cancel')}
+                                                        </button>
                                                         <button
                                                             type="submit"
-                                                            disabled={!newComment.trim() || isSubmitting}
-                                                            className="bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-full disabled:opacity-50"
+                                                            disabled={isSubmittingEdit}
+                                                            className="bg-primary text-primary-foreground text-sm font-bold px-5 py-2 rounded-full disabled:opacity-50 hover:bg-primary/90"
                                                         >
-                                                            {isSubmitting ? 'Mengirim...' : 'Balas'}
+                                                            {isSubmittingEdit ? __('Saving...') : __('Save')}
                                                         </button>
                                                     </div>
                                                 </div>
                                             </form>
                                         ) : (
-                                            <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-muted/30 rounded-2xl border border-dashed border-border gap-3">
-                                                <span className="text-sm text-muted-foreground font-medium text-center sm:text-left">
-                                                    Anda harus masuk terlebih dahulu untuk ikut dalam percakapan.
-                                                </span>
-                                                <a
-                                                    href={route('auth.google', { redirect: window.location.href })}
-                                                    className="flex-shrink-0 bg-background border border-border px-5 py-2 rounded-full text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all"
-                                                >
-                                                    Masuk
-                                                </a>
-                                            </div>
+                                            <>
+                                                {thread.content}
+                                                {thread.image_url && (
+                                                    <>
+                                                        <div 
+                                                            className="mt-4 rounded-2xl overflow-hidden border border-border bg-muted/10 cursor-pointer group/image transition-all hover:border-primary/30 max-w-xs"
+                                                            onClick={() => setIsLightboxOpen(true)}
+                                                        >
+                                                            <div className="aspect-square relative flex items-center justify-center overflow-hidden">
+                                                                <img
+                                                                    src={thread.image_url}
+                                                                    alt="Thread attachment"
+                                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-[1.01]"
+                                                                    loading="lazy"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <ImageLightbox 
+                                                            images={[thread.image_url]}
+                                                            index={isLightboxOpen ? 0 : null}
+                                                            onClose={() => setIsLightboxOpen(false)}
+                                                        />
+                                                    </>
+                                                )}
+                                            </>
                                         )}
-
-                                        <div className="space-y-4 pt-4 divide-y divide-border/40">
-                                            {thread.comments?.map((comment: any) => (
-                                                <CommentCard key={comment.id} comment={comment} onDeleted={handleCommentDeleted} />
-                                            ))}
-                                        </div>
                                     </div>
-                                )}
 
+                                    <div className="flex items-center gap-6 pt-4 border-b border-border/40 pb-4 mt-2">
+                                        <button className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 group transition-colors" onClick={handleLike}>
+                                            <div className={cn("p-2 rounded-full group-hover:bg-red-500/10 transition-colors", isLiked && "text-red-500")}>
+                                                <Heart className={cn("w-[20px] h-[20px]", isLiked && "fill-current")} />
+                                            </div>
+                                            <span className="text-sm font-medium">{likes}</span>
+                                        </button>
+                                        <button className="flex items-center gap-1.5 text-muted-foreground cursor-default transition-colors">
+                                            <div className="p-2 rounded-full transition-colors text-blue-500">
+                                                <MessageSquare className="w-[20px] h-[20px]" />
+                                            </div>
+                                            <span className="text-sm font-medium">{thread.comments_count}</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Comments List & Form */}
+                                    {thread.allow_comments && (
+                                        <div className="mt-5 space-y-5">
+                                            {user ? (
+                                                <form onSubmit={submitComment} className="flex gap-3">
+                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                                                        {user?.avatar ? (
+                                                            <img src={user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">
+                                                                {user.name.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-grow min-w-0">
+                                                        <textarea
+                                                            value={newComment}
+                                                            onChange={(e) => setNewComment(e.target.value)}
+                                                            placeholder={__('Write a reply...')}
+                                                            className="w-full bg-transparent border-none focus:ring-0 text-sm sm:text-[15px] p-0 min-h-[40px] resize-none"
+                                                            rows={2}
+                                                            onInput={(e) => {
+                                                                const target = e.target as HTMLTextAreaElement;
+                                                                target.style.height = 'auto';
+                                                                target.style.height = target.scrollHeight + 'px';
+                                                            }}
+                                                        />
+                                                        <div className="flex justify-end mt-2">
+                                                            <button
+                                                                type="submit"
+                                                                disabled={!newComment.trim() || isSubmitting}
+                                                                className="bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-full disabled:opacity-50"
+                                                            >
+                                                                {isSubmitting ? __('Sending...') : __('Reply')}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-muted/30 rounded-2xl border border-dashed border-border gap-3">
+                                                    <span className="text-sm text-muted-foreground font-medium text-center sm:text-left">
+                                                        {__('You must log in first to participate in the conversation.')}
+                                                    </span>
+                                                    <a
+                                                        href={route('auth.google', { redirect: window.location.href })}
+                                                        className="flex-shrink-0 bg-background border border-border px-5 py-2 rounded-full text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all"
+                                                    >
+                                                        {__('Log in')}
+                                                    </a>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-4 pt-4 divide-y divide-border/40">
+                                                {thread.comments?.map((comment: any) => (
+                                                    <CommentCard key={comment.id} comment={comment} onDeleted={handleCommentDeleted} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    </div>
                 </Container>
             </section>
         </AppLayout>

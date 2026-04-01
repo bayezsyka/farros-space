@@ -19,14 +19,29 @@ class SetLocale
 
         if (in_array($locale, ['id', 'en'])) {
             app()->setLocale($locale);
-        } else {
-            // Force Indonesian for any route without a language prefix (Admin/Dashboard/Auth)
-            $locale = 'id';
-            app()->setLocale($locale);
+            \Illuminate\Support\Facades\URL::defaults(['locale' => $locale]);
+            
+            // Remove 'locale' from route parameters so it's not passed as the first argument to controller actions
+            if ($request->route()) {
+                $request->route()->forgetParameter('locale');
+            }
+            
+            return $next($request);
         }
 
-        \Illuminate\Support\Facades\URL::defaults(['locale' => $locale]);
+        // List of segments that should NOT be prefixed (e.g. storage, files, telescope)
+        $exclude = ['storage', 'telescope', 'up', 'horizon', 'sanctum', 'vendor'];
+        if (in_array($locale, $exclude)) {
+            return $next($request);
+        }
 
-        return $next($request);
+        // Redirect to default locale if missing
+        $defaultLocale = 'id';
+        app()->setLocale($defaultLocale);
+        
+        $path = $request->path();
+        if ($path === '/') $path = '';
+        
+        return redirect('/' . $defaultLocale . '/' . $path . ($request->getQueryString() ? '?' . $request->getQueryString() : ''));
     }
 }

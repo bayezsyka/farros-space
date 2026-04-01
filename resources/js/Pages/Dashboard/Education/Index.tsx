@@ -4,6 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { AdminPageHeader } from '@/Components/ui/AdminPageHeader';
 import { Button } from '@/Components/ui/Button';
 import { Typography } from '@/Components/ui/Typography';
+import useTranslation from '@/Hooks/useTranslation';
 import {
     Plus, Trash2, Edit2, Check, X, GraduationCap,
     GripVertical, ExternalLink,
@@ -80,13 +81,14 @@ function EducationForm({
     onCancel: () => void;
     submitLabel?: string;
 }) {
+    const { __ } = useTranslation();
     const meta = getLevelMeta(data.level);
 
     return (
         <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className={labelClass}>Tingkat *</label>
+                    <label className={labelClass}>{__('Level')} *</label>
                     <select
                         className={inputClass}
                         value={data.level}
@@ -95,7 +97,7 @@ function EducationForm({
                     >
                         {LEVELS.map((l) => (
                             <option key={l.value} value={l.value}>
-                                {l.label} — {l.full}
+                                {l.label} — {__(l.full)}
                             </option>
                         ))}
                     </select>
@@ -103,15 +105,15 @@ function EducationForm({
                 </div>
 
                 <div>
-                    <label className={labelClass}>Nama Sekolah / Institusi *</label>
+                    <label className={labelClass}>{__('Institution')} *</label>
                     <input
                         type="text"
                         className={inputClass}
                         placeholder={
-                            meta.value === 'SD' ? 'Contoh: SDN Margahayu 01'
-                                : meta.value === 'SMP' ? 'Contoh: SMPN 1 Jakarta'
-                                    : meta.value === 'SMA' || meta.value === 'SMK' ? 'Contoh: SMAN 1 Brebes'
-                                        : 'Contoh: Universitas Diponegoro'
+                            meta.value === 'SD' ? __('Example: SDN Margahayu 01')
+                                : meta.value === 'SMP' ? __('Example: SMPN 1 Jakarta')
+                                    : meta.value === 'SMA' || meta.value === 'SMK' ? __('Example: SMAN 1 Brebes')
+                                        : __('Example: Diponegoro University')
                         }
                         value={data.institution}
                         onChange={(e) => setData('institution', e.target.value)}
@@ -122,7 +124,7 @@ function EducationForm({
 
                 {meta.hasMajor && (
                     <div className="md:col-span-2">
-                        <label className={labelClass}> Jurusan / Program Studi <span className="ml-1 text-zinc-400 normal-case font-normal">(opsional)</span></label>
+                        <label className={labelClass}> {__('Major / Program')} <span className="ml-1 text-zinc-400 normal-case font-normal">({__('optional')})</span></label>
                         <input
                             type="text"
                             className={inputClass}
@@ -133,7 +135,7 @@ function EducationForm({
                 )}
 
                 <div>
-                    <label className={labelClass}>Tahun Masuk *</label>
+                    <label className={labelClass}>{__('Start Year')} *</label>
                     <input
                         type="text"
                         className={inputClass}
@@ -145,7 +147,7 @@ function EducationForm({
                 </div>
 
                 <div>
-                    <label className={labelClass}>Tahun Lulus <span className="ml-1 text-zinc-400 normal-case font-normal">(kosongkan jika aktif)</span></label>
+                    <label className={labelClass}>{__('End Year')} <span className="ml-1 text-zinc-400 normal-case font-normal">({__('leave blank if active')})</span></label>
                     <input
                         type="text"
                         className={inputClass}
@@ -158,11 +160,11 @@ function EducationForm({
 
             <div className="flex gap-3 justify-end pt-4 border-t border-zinc-100">
                 <Button type="button" variant="outline" onClick={onCancel}>
-                    Batal
+                    {__('Cancel')}
                 </Button>
                 <Button type="submit" disabled={processing} className="rounded-xl">
                     <Check className="w-3.5 h-3.5 mr-1" />
-                    {processing ? 'Menyimpan...' : (submitLabel ?? 'Simpan')}
+                    {processing ? __('Saving...') : (submitLabel ? __(submitLabel) : __('Save'))}
                 </Button>
             </div>
         </form>
@@ -187,6 +189,7 @@ function SortableRow({
     handleUpdate: (e: React.FormEvent, id: number) => void;
     setEditingId: (id: number | null) => void;
 }) {
+    const { __ } = useTranslation();
     const {
         attributes,
         listeners,
@@ -255,8 +258,8 @@ function SortableRow({
             <div className="text-xs text-zinc-500 font-medium shrink-0 text-right whitespace-nowrap">
                 {item.start_year} –{' '}
                 {item.end_year
-                    ? (item.end_year === 'now' ? 'Sekarang' : item.end_year)
-                    : <span className="text-green-600 font-semibold">Aktif</span>
+                    ? (item.end_year === 'now' ? __('Present') : item.end_year)
+                    : <span className="text-green-600 font-semibold">{__('Active')}</span>
                 }
             </div>
 
@@ -281,6 +284,7 @@ function SortableRow({
 
 // ── Main Page ────────────────────────────────────────────────────────
 export default function EducationIndex({ education: initialEducation }: Props) {
+    const { __ } = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [localEducation, setLocalEducation] = useState(initialEducation);
@@ -338,7 +342,7 @@ export default function EducationIndex({ education: initialEducation }: Props) {
     };
 
     const handleDelete = (id: number) => {
-        if (!confirm('Yakin ingin menghapus data pendidikan ini?')) return;
+        if (!confirm(__('Are you sure you want to delete this education record?'))) return;
         router.delete(route('dashboard.education.destroy', id), { preserveScroll: true });
     };
 
@@ -375,27 +379,27 @@ export default function EducationIndex({ education: initialEducation }: Props) {
     const sorted = [...localEducation].sort((a, b) => a.sort_order - b.sort_order);
 
     return (
-        <DashboardLayout header="Pendidikan">
-            <Head title="Kelola Pendidikan" />
+        <DashboardLayout header={__('Education')}>
+            <Head title={__('Manage Education')} />
 
             <AdminPageHeader
-                title="Riwayat Pendidikan"
-                description="Tarik dan lepas (drag & drop) untuk mengatur urutan. Data ini akan muncul otomatis di CV."
+                title={__('Education History')}
+                description={__('Drag and drop to rearrange. This data will automatically appear on your CV.')}
                 icon={<GraduationCap className="w-5 h-5" />}
             />
 
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <span className="inline-flex items-center gap-1.5 bg-zinc-100 text-zinc-600 text-xs font-semibold px-3 py-1.5 rounded-full">
-                        {localEducation.length} data
+                        {localEducation.length} {__('data')}
                     </span>
                     <a href="/cv" target="_blank" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Preview CV
+                        <ExternalLink className="w-3 h-3" /> {__('Preview CV')}
                     </a>
                 </div>
                 {!isCreating && (
                     <Button onClick={() => setIsCreating(true)} className="gap-2 rounded-xl">
-                        <Plus className="w-4 h-4" /> Tambah Pendidikan
+                        <Plus className="w-4 h-4" /> {__('Add Education')}
                     </Button>
                 )}
             </div>
@@ -403,7 +407,7 @@ export default function EducationIndex({ education: initialEducation }: Props) {
             <div className="space-y-4">
                 {isCreating && (
                     <div className="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm ring-1 ring-blue-100">
-                        <Typography variant="large" className="font-semibold mb-5 text-zinc-900">✦ Tambah Riwayat Pendidikan</Typography>
+                        <Typography variant="large" className="font-semibold mb-5 text-zinc-900">✦ {__('Add Educational History')}</Typography>
                         <EducationForm
                             data={createForm.data}
                             setData={(k, v) => createForm.setData(k as any, v)}
@@ -411,7 +415,7 @@ export default function EducationIndex({ education: initialEducation }: Props) {
                             processing={createForm.processing}
                             onSubmit={handleCreate}
                             onCancel={() => { setIsCreating(false); createForm.reset(); }}
-                            submitLabel="Tambahkan"
+                            submitLabel="Add"
                         />
                     </div>
                 )}
@@ -420,7 +424,7 @@ export default function EducationIndex({ education: initialEducation }: Props) {
                     {localEducation.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-6 text-center text-zinc-500">
                             <GraduationCap className="w-12 h-12 mb-4 text-zinc-200" />
-                            <p>Belum ada data pendidikan.</p>
+                            <p>{__('No education data yet.')}</p>
                         </div>
                     ) : (
                         <DndContext

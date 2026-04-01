@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { id as localeId, enUS } from 'date-fns/locale';
 import { MoreVertical, Trash2, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface UserLink {
     id: number;
@@ -26,7 +27,8 @@ interface CommentCardProps {
 }
 
 export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
     const user = auth.user;
 
     const isOwner = user?.id === comment.user.id;
@@ -37,7 +39,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
-        if (!confirm('Apakah Yakin ingin menghapus komentar ini?')) return;
+        if (!confirm(__('Are you sure you want to delete this comment?'))) return;
         setIsDeleting(true);
         try {
             // Using axios because comments are often loaded dynamically in ThreadCard
@@ -47,7 +49,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
             if (onDeleted) onDeleted(comment.id);
         } catch (error) {
             console.error(error);
-            alert("Gagal menghapus komentar");
+            alert(__('Failed to delete comment.'));
             setIsDeleting(false);
         }
     };
@@ -68,7 +70,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
                     <span className="font-bold text-[12px] sm:text-[14px]">{comment.user.name}</span>
                     <span className="text-muted-foreground text-[10px] sm:text-xs">·</span>
                     <span className="text-muted-foreground text-[10px] sm:text-xs">
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: localeId })}
+                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: locale === 'id' ? localeId : enUS })}
                     </span>
                 </div>
                 <p className="text-[12px] sm:text-[14px] text-foreground/90 break-words">{comment.content}</p>
@@ -90,7 +92,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
                                 className="w-full flex items-center gap-2 px-3 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors text-left"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
-                                {isDeleting ? 'Menghapus...' : 'Hapus'}
+                                {isDeleting ? __('Deleting...') : __('Delete')}
                             </button>
                         </div>
                     )}

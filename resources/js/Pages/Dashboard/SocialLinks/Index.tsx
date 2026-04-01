@@ -4,6 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
 import { Plus, Trash2, Edit2, Check, X, Github, Instagram, Linkedin, Twitter, Link as LinkIcon, Facebook, Youtube } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface SocialLink {
     id: number;
@@ -28,6 +29,7 @@ const PLATFORMS = [
 ];
 
 export default function Index({ socialLinks }: Props) {
+    const { __ } = useTranslation();
     const [isEditing, setIsEditing] = useState<number | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -107,7 +109,7 @@ export default function Index({ socialLinks }: Props) {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Yakin ingin menghapus tautan ini?')) {
+        if (confirm(__('Are you sure you want to delete this link?'))) {
             router.delete(route('dashboard.social-links.destroy', id), {
                 preserveScroll: true,
             });
@@ -121,33 +123,33 @@ export default function Index({ socialLinks }: Props) {
     };
 
     return (
-        <DashboardLayout header="Media Sosial">
-            <Head title="Media Sosial" />
+        <DashboardLayout header={__('Social Media')}>
+            <Head title={__('Social Media')} />
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <Typography variant="h3" className="font-bold tracking-tight text-zinc-900">
-                            Tautan Media Sosial
+                            {__('Social Links')}
                         </Typography>
                         <p className="text-zinc-500 text-sm mt-1">
-                            Kelola tautan media sosial yang akan ditampilkan pada Hero Section.
+                            {__('Manage social links to be displayed on the Hero Section.')}
                         </p>
                     </div>
                     {!isCreating && (
                         <Button onClick={() => setIsCreating(true)} className="gap-2 rounded-xl">
-                            <Plus className="w-4 h-4" /> Tambah Baru
+                            <Plus className="w-4 h-4" /> {__('Add New')}
                         </Button>
                     )}
                 </div>
 
                 {isCreating && (
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                        <Typography variant="large" className="font-semibold mb-4">Tambahkan Tautan Baru</Typography>
+                        <Typography variant="large" className="font-semibold mb-4">{__('Add New Link')}</Typography>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-700 mb-1">Platform</label>
+                                    <label className="block text-sm font-medium text-zinc-700 mb-1">{__('Platform')}</label>
                                     <select
                                         value={createData.platform}
                                         onChange={e => updateCreateUrl(e.target.value, createData.username)}
@@ -160,7 +162,7 @@ export default function Index({ socialLinks }: Props) {
                                     {createErrors.platform && <p className="text-red-500 text-xs mt-1">{createErrors.platform}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-700 mb-1">Username / ID</label>
+                                    <label className="block text-sm font-medium text-zinc-700 mb-1">{__('Username / ID')}</label>
                                     <input
                                         type="text"
                                         value={createData.username}
@@ -171,7 +173,7 @@ export default function Index({ socialLinks }: Props) {
                                     {createErrors.username && <p className="text-red-500 text-xs mt-1">{createErrors.username}</p>}
                                 </div>
                                 <div className="hidden">
-                                    <label className="block text-sm font-medium text-zinc-700 mb-1">URL Publik (Otomatis)</label>
+                                    <label className="block text-sm font-medium text-zinc-700 mb-1">{__('Public URL (Automatic)')}</label>
                                     <input
                                         type="url"
                                         value={createData.url}
@@ -187,16 +189,16 @@ export default function Index({ socialLinks }: Props) {
                                             onChange={e => setCreateData('is_active', e.target.checked)}
                                             className="rounded border-zinc-300 text-primary shadow-sm focus:ring-primary"
                                         />
-                                        <span className="text-sm text-zinc-700 font-medium">Tampilkan di Hero Section</span>
+                                        <span className="text-sm text-zinc-700 font-medium">{__('Show in Hero Section')}</span>
                                     </label>
                                 </div>
                             </div>
                             <div className="flex gap-3 justify-end pt-4 border-t border-zinc-100">
                                 <Button type="button" variant="outline" onClick={() => setIsCreating(false)} className="rounded-xl">
-                                    Batal
+                                    {__('Cancel')}
                                 </Button>
                                 <Button type="submit" disabled={createProcessing} className="rounded-xl">
-                                    Simpan
+                                    {__('Save')}
                                 </Button>
                             </div>
                         </form>
@@ -208,17 +210,17 @@ export default function Index({ socialLinks }: Props) {
                         <table className="w-full text-left text-sm text-zinc-600">
                             <thead className="bg-zinc-50 border-b border-zinc-200">
                                 <tr>
-                                    <th className="px-6 py-4 font-semibold text-zinc-900">Platform</th>
-                                    <th className="px-6 py-4 font-semibold text-zinc-900">URL / Username</th>
-                                    <th className="px-6 py-4 font-semibold text-zinc-900 text-center">Status</th>
-                                    <th className="px-6 py-4 font-semibold text-zinc-900 text-right">Aksi</th>
+                                    <th className="px-6 py-4 font-semibold text-zinc-900">{__('Platform')}</th>
+                                    <th className="px-6 py-4 font-semibold text-zinc-900">{__('Username')}</th>
+                                    <th className="px-6 py-4 font-semibold text-zinc-900 text-center">{__('Status')}</th>
+                                    <th className="px-6 py-4 font-semibold text-zinc-900 text-right">{__('Action')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100">
                                 {socialLinks.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-8 text-center text-zinc-500">
-                                            Belum ada tautan sosial yang ditambahkan.
+                                            {__('No social links added yet.')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -229,7 +231,7 @@ export default function Index({ socialLinks }: Props) {
                                                     <form onSubmit={(e) => handleUpdate(e, link.id)} className="space-y-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
                                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                             <div>
-                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">Platform</label>
+                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">{__('Platform')}</label>
                                                                 <select
                                                                     value={editData.platform}
                                                                     onChange={e => updateEditUrl(e.target.value, editData.username)}
@@ -242,7 +244,7 @@ export default function Index({ socialLinks }: Props) {
                                                                 {editErrors.platform && <p className="text-red-500 text-xs mt-1">{editErrors.platform}</p>}
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">Username</label>
+                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">{__('Username')}</label>
                                                                 <input
                                                                     type="text"
                                                                     value={editData.username}
@@ -251,7 +253,7 @@ export default function Index({ socialLinks }: Props) {
                                                                 />
                                                             </div>
                                                             <div className="hidden">
-                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">URL</label>
+                                                                <label className="block text-xs font-semibold text-zinc-700 mb-1 uppercase tracking-wider">{__('URL')}</label>
                                                                 <input
                                                                     type="url"
                                                                     value={editData.url}
@@ -268,14 +270,14 @@ export default function Index({ socialLinks }: Props) {
                                                                     onChange={e => setEditData('is_active', e.target.checked)}
                                                                     className="rounded border-zinc-300 text-primary shadow-sm"
                                                                 />
-                                                                <span className="text-sm font-medium text-zinc-700">Tampil (Aktif)</span>
+                                                                <span className="text-sm font-medium text-zinc-700">{__('Show (Active)')}</span>
                                                             </label>
                                                             <div className="flex gap-2">
                                                                 <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(null)} className="rounded-lg h-9">
-                                                                    <X className="w-4 h-4 mr-1" /> Batal
+                                                                    <X className="w-4 h-4 mr-1" /> {__('Cancel')}
                                                                 </Button>
                                                                 <Button type="submit" size="sm" disabled={editProcessing} className="rounded-lg h-9">
-                                                                    <Check className="w-4 h-4 mr-1" /> Simpan
+                                                                    <Check className="w-4 h-4 mr-1" /> {__('Save')}
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -301,7 +303,7 @@ export default function Index({ socialLinks }: Props) {
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${link.is_active ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-600'}`}>
-                                                            {link.is_active ? 'Aktif' : 'Nonaktif'}
+                                                            {link.is_active ? __('Active') : __('Inactive')}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">

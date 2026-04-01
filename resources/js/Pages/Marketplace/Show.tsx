@@ -1,7 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, ShoppingBag, Star, Clock, MessageCircle, Tag, Share2, CheckCircle2, Loader2 } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
 import { ShareItemModal } from '@/Components/ui/ShareItemModal';
 import { useState, useEffect, useCallback } from 'react';
 import { generateShareBlob, buildShareCaption, buildImageCaption } from '@/Components/ui/shareHelpers';
@@ -15,10 +16,14 @@ interface FotoDetailItem {
 interface MarketplaceItem {
     id: number;
     name: string;
+    name_id: string | null;
+    name_en: string | null;
     slug: string;
     image_path: string | null;
     status: 'baru' | 'bekas';
     description: string | null;
+    description_id: string | null;
+    description_en: string | null;
     price: number | null;
     whatsapp: string | null;
     created_at: string;
@@ -30,8 +35,11 @@ interface Props {
 }
 
 export default function Show({ item }: Props) {
+    const { __ } = useTranslation();
+    const { locale } = usePage<any>().props;
+
     const waNumber = item.whatsapp?.replace(/\D/g, '') ?? '';
-    const waMessage = encodeURIComponent(`Halo, saya tertarik dengan barang "${item.name}" yang ada di marketplace kamu.`);
+    const waMessage = encodeURIComponent(__('Halo, saya tertarik dengan barang ":name" yang ada di marketplace kamu.', { name: item.name }));
     const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : null;
 
     // Share state
@@ -131,12 +139,12 @@ export default function Show({ item }: Props) {
                     <div className="mb-8">
                         <Link
                             href={route('marketplace.index')}
-                            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-900 transition-colors group"
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group"
                         >
-                            <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center group-hover:bg-zinc-200 transition-colors">
+                            <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 transition-colors">
                                 <ArrowLeft className="w-3.5 h-3.5" />
                             </div>
-                            Kembali ke Marketplace
+                            {__('Back to Marketplace')}
                         </Link>
                     </div>
 
@@ -146,7 +154,7 @@ export default function Show({ item }: Props) {
                             {/* Main Photo */}
                             <button
                                 onClick={() => item.image_path && openLightbox(0)}
-                                className={`relative aspect-square w-full rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 block group ${item.image_path ? 'cursor-zoom-in' : 'cursor-default'}`}
+                                className={`relative aspect-square w-full rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 block group ${item.image_path ? 'cursor-zoom-in' : 'cursor-default'}`}
                             >
                                 {item.image_path ? (
                                     <>
@@ -158,14 +166,14 @@ export default function Show({ item }: Props) {
                                         {/* Zoom hint */}
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-end justify-end p-4">
                                             <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-xl">
-                                                Tap untuk perbesar
+                                                {__('Tap to enlarge')}
                                             </div>
                                         </div>
                                     </>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center w-full h-full text-zinc-300 gap-3">
                                         <ShoppingBag className="w-16 h-16" />
-                                        <span className="text-sm font-medium">Tidak ada gambar</span>
+                                        <span className="text-sm font-medium">{__('No image')}</span>
                                     </div>
                                 )}
 
@@ -176,9 +184,9 @@ export default function Show({ item }: Props) {
                                         ${item.status === 'baru' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}
                                     `}>
                                         {item.status === 'baru' ? (
-                                            <><Star className="w-3.5 h-3.5 fill-white" />Barang Baru</>
+                                            <><Star className="w-3.5 h-3.5 fill-white" />{__('New Item')}</>
                                         ) : (
-                                            <><Clock className="w-3.5 h-3.5" />Barang Bekas</>
+                                            <><Clock className="w-3.5 h-3.5" />{__('Used Item')}</>
                                         )}
                                     </span>
                                 </div>
@@ -203,11 +211,11 @@ export default function Show({ item }: Props) {
                                             <button
                                                 key={detail.id}
                                                 onClick={() => openLightbox(lbIdx)}
-                                                className="relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 hover:border-zinc-400 group cursor-zoom-in transition-all bg-zinc-50 focus:outline-none focus:border-zinc-700"
+                                                className="relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-500 group cursor-zoom-in transition-all bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:border-zinc-700 dark:focus:border-zinc-600"
                                             >
                                                 <img
                                                     src={detail.foto_path}
-                                                    alt={`Detail foto ${idx + 1}`}
+                                                    alt={__('Detail photo :number', { number: (idx + 1).toString() })}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
@@ -228,14 +236,14 @@ export default function Show({ item }: Props) {
                             {/* Header */}
                             <div>
                                 <div className="flex items-start justify-between gap-4">
-                                    <h1 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight">
+                                    <h1 className="text-3xl md:text-4xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
                                         {item.name}
                                     </h1>
                                     <button
                                         onClick={handleShare}
                                         disabled={shareGenerating}
-                                        className="shrink-0 w-10 h-10 rounded-xl border border-zinc-200 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all disabled:opacity-50"
-                                        title={shareGenerating ? 'Menyiapkan...' : 'Bagikan'}
+                                        className="shrink-0 w-10 h-10 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all disabled:opacity-50"
+                                        title={shareGenerating ? __('Preparing...') : __('Share')}
                                     >
                                         {shareGenerating
                                             ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -244,7 +252,7 @@ export default function Show({ item }: Props) {
                                 </div>
 
                                 <div className="mt-3 flex items-center gap-3">
-                                    <div className="inline-flex items-center gap-1.5 bg-zinc-900 text-white px-4 py-2 rounded-xl">
+                                    <div className="inline-flex items-center gap-1.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 px-4 py-2 rounded-xl">
                                         <Tag className="w-4 h-4" />
                                         <span className="text-lg font-black">
                                             {new Intl.NumberFormat('id-ID', {
@@ -260,32 +268,32 @@ export default function Show({ item }: Props) {
                             {/* Condition Card */}
                             <div className={`
                                 flex items-start gap-4 p-4 rounded-2xl border
-                                ${item.status === 'baru' ? 'bg-emerald-50/50 border-emerald-100' : 'bg-amber-50/50 border-amber-100'}
+                                ${item.status === 'baru' ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30' : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30'}
                             `}>
-                                <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${item.status === 'baru' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                                <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${item.status === 'baru' ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40'}`}>
                                     {item.status === 'baru'
                                         ? <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                                         : <Clock className="w-5 h-5 text-amber-600" />
                                     }
                                 </div>
                                 <div>
-                                    <p className={`text-sm font-bold ${item.status === 'baru' ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                        Kondisi: {item.status === 'baru' ? 'Barang Baru' : 'Barang Bekas'}
+                                    <p className={`text-sm font-bold ${item.status === 'baru' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                                        {__('Condition')}: {item.status === 'baru' ? __('New Item') : __('Used Item')}
                                     </p>
-                                    <p className={`text-sm mt-0.5 ${item.status === 'baru' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                    <p className={`text-sm mt-0.5 ${item.status === 'baru' ? 'text-emerald-600 dark:text-emerald-500' : 'text-amber-600 dark:text-amber-500'}`}>
                                         {item.status === 'baru'
-                                            ? 'Produk masih baru, belum pernah digunakan.'
-                                            : 'Produk seminimal mungkin bekas pakai. Kondisi dijelaskan di deskripsi.'}
+                                            ? __('Product is still new, never used.')
+                                            : __('Product is used. Condition details are provided in the description.')}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Description */}
                             <div>
-                                <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3">Deskripsi</h2>
-                                <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100">
-                                    <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-sm">
-                                        {item.description}
+                                <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3">{__('Description')}</h2>
+                                <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800">
+                                    <p className="text-zinc-700 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap text-sm">
+                                        {locale === 'en' ? (item.description_en || item.description) : (item.description_id || item.description)}
                                     </p>
                                 </div>
                             </div>
@@ -300,20 +308,20 @@ export default function Show({ item }: Props) {
                                         className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:bg-[#20bc5a] text-white font-bold rounded-2xl transition-colors text-base shadow-sm"
                                     >
                                         <MessageCircle className="w-5 h-5" />
-                                        Hubungi via WhatsApp
+                                        {__('Contact via WhatsApp')}
                                     </a>
                                 ) : (
                                     <div className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-zinc-100 text-zinc-400 font-bold rounded-2xl text-base cursor-default">
                                         <MessageCircle className="w-5 h-5" />
-                                        Kontak belum tersedia
+                                        {__('Contact not available')}
                                     </div>
                                 )}
                                 <Link
                                     href={route('marketplace.index')}
-                                    className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-white hover:bg-zinc-50 text-zinc-700 font-semibold rounded-2xl transition-colors text-base border border-zinc-200"
+                                    className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold rounded-2xl transition-colors text-base border border-zinc-200 dark:border-zinc-800"
                                 >
                                     <ArrowLeft className="w-4 h-4" />
-                                    Lihat Barang Lain
+                                    {__('See other items')}
                                 </Link>
                             </div>
                         </div>

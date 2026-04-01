@@ -15,6 +15,7 @@ import {
     Link as LinkIcon,
     GraduationCap,
 } from 'lucide-react';
+import ThemeToggle from '@/Components/ThemeToggle';
 import { cn } from '@/utils';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
@@ -41,21 +42,21 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
     ];
 
     return (
-        <div className="min-h-screen bg-zinc-50/50 flex overflow-hidden font-sans">
+        <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-950 flex overflow-hidden font-sans">
             {/* Sidebar Desktop - Autohide / Hover effect */}
             <aside
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    "hidden md:flex flex-col border-r border-zinc-200 bg-white transition-all duration-300 ease-in-out z-50",
+                    "hidden md:flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-all duration-300 ease-in-out z-50",
                     isHovered ? "w-64" : "w-20"
                 )}
             >
-                <div className="h-16 flex items-center px-6 border-b border-zinc-100 shrink-0 overflow-hidden">
+                <div className="h-16 flex items-center px-6 border-b border-zinc-100 dark:border-zinc-800 shrink-0 overflow-hidden">
                     <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0">
                         <Typography variant="large" className="text-white font-black text-xs lowercase">f</Typography>
                     </div>
-                    <span className={cn("ml-3 font-bold text-zinc-900 tracking-tight transition-opacity duration-200 whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>
+                    <span className={cn("ml-3 font-bold text-zinc-900 dark:text-zinc-100 tracking-tight transition-opacity duration-200 whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>
                         farros.space
                     </span>
                 </div>
@@ -68,11 +69,11 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                             className={cn(
                                 "flex items-center px-3 py-3 rounded-xl transition-all duration-200 group relative",
                                 item.active
-                                    ? "bg-zinc-100 text-zinc-900"
-                                    : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
+                                    ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                    : "text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100"
                             )}
                         >
-                            <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", item.active ? "text-zinc-900" : "text-zinc-400 group-hover:text-zinc-900")} />
+                            <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", item.active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100")} />
                             <span className={cn("ml-3 font-semibold text-sm transition-all duration-200 whitespace-nowrap", isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none")}>
                                 {item.label}
                             </span>
@@ -80,9 +81,9 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                     ))}
                 </div>
 
-                <div className="p-3 border-t border-zinc-100 space-y-1">
+                <div className="p-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
                     <Link
-                        href="/"
+                        href={route('landing')}
                         className="flex items-center px-3 py-3 rounded-xl text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all font-semibold text-sm"
                     >
                         <Home className="w-5 h-5 shrink-0" />
@@ -139,7 +140,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                     ))}
                 </div>
 
-                <div className="pt-6 border-t border-zinc-100">
+                <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
                     <Link
                         href={route('logout')}
                         method="post"
@@ -155,7 +156,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Navbar */}
-                <header className="h-16 bg-white flex items-center justify-between px-6 md:px-10 border-b border-zinc-100 shrink-0">
+                <header className="h-16 bg-white dark:bg-zinc-900 flex items-center justify-between px-6 md:px-10 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
                     <div className="flex items-center">
                         <Button
                             variant="ghost"
@@ -168,7 +169,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                         {header && (
                             <div className="flex items-center">
                                 {typeof header === 'string' ? (
-                                    <span className="font-bold text-zinc-900 text-sm">{header}</span>
+                                    <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">{header}</span>
                                 ) : (
                                     header
                                 )}
@@ -177,11 +178,12 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                     </div>
 
                     <div className="flex items-center space-x-6">
+                        <ThemeToggle />
                         <div className="hidden sm:flex flex-col items-end">
-                            <span className="text-sm font-bold text-zinc-900">{auth.user.name}</span>
+                            <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{auth.user.name}</span>
                             <span className="text-[11px] text-zinc-400 font-medium tracking-wide uppercase">{auth.user.is_admin ? 'Administrator' : 'User'}</span>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center overflow-hidden">
                             <User className="w-5 h-5 text-zinc-400" />
                         </div>
                     </div>

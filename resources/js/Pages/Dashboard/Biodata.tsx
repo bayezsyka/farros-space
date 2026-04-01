@@ -6,6 +6,7 @@ import { Save, User, Mail, Phone, Calendar, MapPin, Briefcase, TextQuote, Home }
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import { AdminPageHeader } from '@/Components/ui/AdminPageHeader';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface Profile {
     id: number;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function Biodata({ profile }: Props) {
+    const { __ } = useTranslation();
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
         full_name: profile?.full_name || '',
         birth_place: profile?.birth_place || '',
@@ -48,19 +50,19 @@ export default function Biodata({ profile }: Props) {
     const labelClass = "block text-sm font-semibold text-zinc-700 mb-1.5";
 
     return (
-        <DashboardLayout header="Biodata">
-            <Head title="Kelola Biodata" />
+        <DashboardLayout header={__('Biodata')}>
+            <Head title={__('Manage Biodata')} />
 
             <AdminPageHeader
-                title="Biodata"
-                description="Informasi ini akan ditampilkan pada halaman publik situs Anda."
+                title={__('Biodata')}
+                description={__('This information will be displayed on your site\'s public page.')}
                 icon={<User className="w-5 h-5" />}
             />
 
             <form onSubmit={submit} className="space-y-5 max-w-3xl">
                 {/* Avatar */}
                 <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-                    <p className="text-sm font-bold text-zinc-700 mb-4">Foto Profil</p>
+                    <p className="text-sm font-bold text-zinc-700 mb-4">{__('Profile Photo')}</p>
                     <div className="flex items-center gap-5">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-100 border-2 border-zinc-200 shrink-0">
                             {(profile as any)?.avatar_url ? (
@@ -79,18 +81,18 @@ export default function Biodata({ profile }: Props) {
                                 accept="image/*"
                             />
                             <InputError message={errors.avatar} className="mt-1" />
-                            <p className="text-xs text-zinc-400 mt-1.5">JPG, PNG, atau WEBP. Maks 10MB.</p>
+                            <p className="text-xs text-zinc-400 mt-1.5">{__('JPG, PNG, or WEBP. Max 10MB.')}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Info Dasar */}
+                {/* Basic Info */}
                 <div className="bg-white rounded-2xl border border-zinc-100 p-6 space-y-4">
-                    <p className="text-sm font-bold text-zinc-700">Informasi Dasar</p>
+                    <p className="text-sm font-bold text-zinc-700">{__('Basic Information')}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="full_name" className={labelClass}>Nama Lengkap</label>
+                            <label htmlFor="full_name" className={labelClass}>{__('Full Name')}</label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                                 <TextInput
@@ -99,14 +101,14 @@ export default function Biodata({ profile }: Props) {
                                     value={data.full_name}
                                     onChange={(e) => setData('full_name', e.target.value)}
                                     required
-                                    placeholder="Masukkan nama lengkap"
+                                    placeholder={__('Enter full name')}
                                 />
                             </div>
                             <InputError message={errors.full_name} className="mt-1" />
                         </div>
 
                         <div>
-                            <label htmlFor="headline" className={labelClass}>Headline / Tagline</label>
+                            <label htmlFor="headline" className={labelClass}>{__('Headline / Tagline')}</label>
                             <div className="relative">
                                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                                 <TextInput
@@ -114,7 +116,7 @@ export default function Biodata({ profile }: Props) {
                                     className="w-full pl-9"
                                     value={data.headline}
                                     onChange={(e) => setData('headline', e.target.value)}
-                                    placeholder="Contoh: Fullstack Developer"
+                                    placeholder={__('Example: Fullstack Developer')}
                                 />
                             </div>
                             <InputError message={errors.headline} className="mt-1" />
@@ -140,7 +142,7 @@ export default function Biodata({ profile }: Props) {
                         </div>
 
                         <div>
-                            <label htmlFor="phone" className={labelClass}>No. Telepon</label>
+                            <label htmlFor="phone" className={labelClass}>{__('Phone Number')}</label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                                 <TextInput
@@ -157,7 +159,7 @@ export default function Biodata({ profile }: Props) {
 
                     {/* Address */}
                     <div>
-                        <label htmlFor="address" className={labelClass}>Alamat (untuk CV)</label>
+                        <label htmlFor="address" className={labelClass}>{__('Address (for CV)')}</label>
                         <div className="relative">
                             <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                             <TextInput
@@ -165,7 +167,7 @@ export default function Biodata({ profile }: Props) {
                                 className="w-full pl-9"
                                 value={data.address}
                                 onChange={(e) => setData('address', e.target.value)}
-                                placeholder="Contoh: Jakarta, Indonesia"
+                                placeholder={__('Example: Jakarta, Indonesia')}
                             />
                         </div>
                         <InputError message={errors.address} className="mt-1" />
@@ -173,7 +175,7 @@ export default function Biodata({ profile }: Props) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="birth_place" className={labelClass}>Tempat Lahir</label>
+                            <label htmlFor="birth_place" className={labelClass}>{__('Birth Place')}</label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                                 <TextInput
@@ -181,14 +183,14 @@ export default function Biodata({ profile }: Props) {
                                     className="w-full pl-9"
                                     value={data.birth_place}
                                     onChange={(e) => setData('birth_place', e.target.value)}
-                                    placeholder="Contoh: Jakarta"
+                                    placeholder={__('Example: Jakarta')}
                                 />
                             </div>
                             <InputError message={errors.birth_place} className="mt-1" />
                         </div>
 
                         <div>
-                            <label htmlFor="birth_date" className={labelClass}>Tanggal Lahir</label>
+                            <label htmlFor="birth_date" className={labelClass}>{__('Birth Date')}</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
                                 <TextInput
@@ -206,7 +208,7 @@ export default function Biodata({ profile }: Props) {
 
                 {/* Bio */}
                 <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-                    <label htmlFor="bio" className={labelClass}>Bio Singkat</label>
+                    <label htmlFor="bio" className={labelClass}>{__('Short Bio')}</label>
                     <div className="relative">
                         <TextQuote className="absolute left-3 top-3.5 w-4 h-4 text-zinc-300" />
                         <textarea
@@ -214,7 +216,7 @@ export default function Biodata({ profile }: Props) {
                             className="w-full pl-9 pr-4 py-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all resize-none min-h-[120px]"
                             value={data.bio}
                             onChange={(e) => setData('bio', e.target.value)}
-                            placeholder="Ceritakan sedikit tentang diri Anda..."
+                            placeholder={__('Tell us about yourself...')}
                         />
                     </div>
                     <InputError message={errors.bio} className="mt-1" />
@@ -224,7 +226,7 @@ export default function Biodata({ profile }: Props) {
                 <div className="flex items-center justify-between pb-8 pt-1">
                     {recentlySuccessful && (
                         <p className="text-sm text-emerald-600 font-medium animate-in fade-in slide-in-from-bottom-1">
-                            ✓ Berhasil disimpan
+                            ✓ {__('Successfully saved')}
                         </p>
                     )}
                     <button
@@ -233,7 +235,7 @@ export default function Biodata({ profile }: Props) {
                         className="ml-auto inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60"
                     >
                         <Save className="w-4 h-4" />
-                        {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                        {processing ? __('Saving...') : __('Save Changes')}
                     </button>
                 </div>
             </form>

@@ -15,5 +15,9 @@ class SiteProfile extends Model
         'address',
         'headline',
         'bio',
+        'headline_id',
+        'headline_en',
+        'bio_id',
+        'bio_en',
     ];
 }

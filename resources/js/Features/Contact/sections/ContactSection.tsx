@@ -3,8 +3,9 @@ import { Container } from '@/Components/ui/Container';
 import { Section } from '@/Components/ui/Section';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
-import { Mail, Phone, MapPin, GraduationCap, ExternalLink, MessageSquare, Home, ArrowRight, Calendar } from 'lucide-react';
+import { Mail, Phone, MapPin, GraduationCap, ExternalLink, MessageSquare, Home, ArrowRight, Calendar, Download } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface ContactSectionProps {
     profile: {
@@ -18,6 +19,7 @@ interface ContactSectionProps {
 }
 
 export const ContactSection = ({ profile, education = [] }: ContactSectionProps) => {
+    const { __ } = useTranslation();
     const whatsappNumber = profile.phone?.replace(/^0/, '62').replace(/\D/g, '');
     const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
 
@@ -48,30 +50,30 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                 <Container className="relative py-12 md:py-16">
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-5">
-                        <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+                        <Link href={route('landing')} className="hover:text-foreground transition-colors flex items-center gap-1">
                             <Home className="w-3.5 h-3.5" />
-                            Home
+                            {__('Home')}
                         </Link>
                         <span>/</span>
-                        <span className="text-foreground font-medium">Contact</span>
+                        <span className="text-foreground font-medium">{__('Contact')}</span>
                     </div>
 
                     <div className="inline-flex items-center gap-2 border border-border bg-muted/50 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5">
                         <MessageSquare className="w-3.5 h-3.5" />
-                        Get in Touch
+                        {__('Get in Touch')}
                     </div>
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-foreground tracking-tight leading-[1.05] mb-3">
-                        Hubungi Saya
+                        {__('Contact Me')}
                     </h1>
                     <p className="text-muted-foreground text-base sm:text-lg max-w-lg">
-                        Terbuka untuk proyek baru, kolaborasi kreatif, atau sekadar sapa. Jangan sungkan untuk menghubungi.
+                        {__('Open for new projects, creative collaborations, or just a simple hello. Feel free to reach out.')}
                     </p>
                 </Container>
             </div>
 
             {/* ── Main Content ── */}
             <Container className="py-10 md:py-14 lg:py-16">
-                <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start max-w-6xl">
+                <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start">
 
                     {/* ── Left Column: Contact Info ── */}
                     <div className="lg:col-span-2 space-y-6">
@@ -79,7 +81,7 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                         {/* Contact Cards */}
                         <div className="space-y-3">
                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                                Kontak
+                                {__('Contact')}
                             </p>
 
                             {/* Email */}
@@ -125,7 +127,7 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                                         <MapPin className="w-5 h-5" />
                                     </div>
                                     <div className="flex-grow min-w-0">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Asal</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{__('Origin')}</p>
                                         <p className="text-sm font-semibold text-foreground">{profile.birth_place}</p>
                                         {birthDate && (
                                             <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
@@ -138,17 +140,40 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                             )}
                         </div>
 
+                        
+                        {/* Download CV CTA */}
+                        <div className="relative bg-primary text-primary-foreground rounded-2xl p-6 overflow-hidden shadow-lg shadow-primary/20">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
+                            <div className="relative space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                                        <Download className="w-4 h-4" />
+                                    </div>
+                                    <p className="text-sm font-bold">{__('Need a Full CV?')}</p>
+                                </div>
+                                <p className="text-xs opacity-90 leading-relaxed">
+                                    {__('Get my professional resume in PDF format for deeper qualification details.')}
+                                </p>
+                                <Link href={route('cv.index')}>
+                                    <button className="w-full flex items-center justify-center gap-2 bg-white text-primary rounded-xl px-4 py-2.5 text-xs font-black hover:bg-white/90 transition-all mt-2">
+                                        {__('View & Download CV')}
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+
                         {/* Quick message CTA */}
                         <div className="relative bg-foreground text-background rounded-2xl p-6 overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-background/5 rounded-full -translate-y-8 translate-x-8" />
                             <div className="relative space-y-3">
-                                <p className="text-sm font-bold">Pesan Cepat?</p>
+                                <p className="text-sm font-bold">{__('Quick Message?')}</p>
                                 <p className="text-xs opacity-70 leading-relaxed">
-                                    Respons lebih cepat via WhatsApp. Jangan ragu untuk chat langsung!
+                                    {__('Faster response via WhatsApp. Feel free to chat directly!')}
                                 </p>
                                 <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
                                     <button className="flex items-center gap-2 bg-background text-foreground rounded-xl px-4 py-2.5 text-sm font-bold hover:opacity-90 transition-opacity mt-2">
-                                        Chat di WhatsApp
+                                        {__('Chat on WhatsApp')}
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </button>
                                 </a>
@@ -165,8 +190,8 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                                     <GraduationCap className="w-5 h-5 text-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-bold text-foreground leading-none mb-1">Riwayat Pendidikan</h2>
-                                    <p className="text-xs text-muted-foreground">Educational background</p>
+                                    <h2 className="text-base font-bold text-foreground leading-none mb-1">{__('Education History')}</h2>
+                                    <p className="text-xs text-muted-foreground">{__('Educational background')}</p>
                                 </div>
                             </div>
 
@@ -216,7 +241,7 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
                                         <GraduationCap className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                                        <p className="text-sm text-muted-foreground">Belum ada data pendidikan.</p>
+                                        <p className="text-sm text-muted-foreground">{__('No education data yet.')}</p>
                                     </div>
                                 )}
                             </div>
@@ -225,10 +250,10 @@ export const ContactSection = ({ profile, education = [] }: ContactSectionProps)
                         {/* Back to home */}
                         <div className="mt-6 flex justify-end">
                             <Link
-                                href="/"
+                                href={route('landing')}
                                 className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
                             >
-                                <Home className="w-4 h-4" /> Kembali ke Home
+                                <Home className="w-4 h-4" /> {__('Back to Home')}
                             </Link>
                         </div>
                     </div>

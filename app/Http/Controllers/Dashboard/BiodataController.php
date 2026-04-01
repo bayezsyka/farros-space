@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteProfile;
+use App\Jobs\TranslateModelFieldsJob;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Traits\ImageCompressor;
@@ -53,6 +54,9 @@ class BiodataController extends Controller
 
         $profile->fill($data);
         $profile->save();
+
+        // Dispatch translation job
+        TranslateModelFieldsJob::dispatch($profile, ['headline', 'bio']);
 
         return redirect()->back()->with('success', 'Biodata updated successfully.');
     }

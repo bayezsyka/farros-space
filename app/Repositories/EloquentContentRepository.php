@@ -6,6 +6,8 @@ use App\Contracts\ContentRepositoryInterface;
 use App\Models\SiteProfile;
 use App\Models\Education;
 use App\Models\ThreadPost;
+use App\Models\Experience;
+use App\Models\MarketplaceItem;
 
 class EloquentContentRepository implements ContentRepositoryInterface
 {
@@ -38,5 +40,21 @@ class EloquentContentRepository implements ContentRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->get()
             ->all();
+    }
+
+    public function getExperiences(): array
+    {
+        return Experience::where('is_archived', false)
+            ->withCount('updates')
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->toArray();
+    }
+
+    public function getMarketplaceItems(): array
+    {
+        return MarketplaceItem::orderBy('created_at', 'desc')
+            ->get()
+            ->toArray();
     }
 }

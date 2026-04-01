@@ -15,6 +15,10 @@ class MarketplaceItem extends Model
         'description',
         'price',
         'whatsapp',
+        'name_id',
+        'name_en',
+        'description_id',
+        'description_en',
     ];
     
     protected $casts = [

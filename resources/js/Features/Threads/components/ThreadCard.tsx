@@ -6,11 +6,13 @@ import { Typography } from '@/Components/ui/Typography';
 import { Badge } from '@/Components/ui/Badge';
 import { Heart, MessageCircle, MoreVertical, Trash2, Edit2, X, ImagePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as localeId, enUS } from 'date-fns/locale';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
+import useTranslation from '@/Hooks/useTranslation';
 import { router } from '@inertiajs/react';
 import { CommentCard } from './CommentCard';
+import { ImageLightbox } from '@/Components/ui/ImageLightbox';
 
 interface Thread {
     id: number;
@@ -39,7 +41,8 @@ interface ThreadCardProps {
 }
 
 export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProps) => {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
+    const { __ } = useTranslation();
     const user = auth.user;
     const [likes, setLikes] = useState(thread.likes_count);
     const [isLiked, setIsLiked] = useState(false);
@@ -55,6 +58,9 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
     const [editImage, setEditImage] = useState<File | null>(null);
     const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Lightbox state
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
     const isOwner = user?.id === thread.user_id;
     const isAdmin = user?.is_admin === true;
@@ -104,7 +110,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
             if (error.response?.status === 401) {
                 window.location.href = route('auth.google');
             } else {
-                alert("Gagal mengirim komentar.");
+                alert(__('Failed to post comment.'));
             }
         } finally {
             setIsSubmittingComment(false);
@@ -112,7 +118,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
     };
 
     const handleDeleteThread = () => {
-        if (!confirm('Apakah Yakin ingin menghapus thread ini?')) return;
+        if (!confirm(__('Are you sure you want to delete this thread?'))) return;
         router.delete(route('threads.destroy', { thread: thread.slug }), {
             preserveScroll: true
         });
@@ -136,7 +142,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                 setIsSubmittingEdit(false);
             },
             onError: () => {
-                alert("Gagal menyimpan perubahan.");
+                alert(__('Failed to save changes.'));
                 setIsSubmittingEdit(false);
             }
         });
@@ -147,7 +153,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran gambar maksimal adalah 5MB.');
+            alert(__('Max image size is 5MB.'));
             if (fileInputRef.current) fileInputRef.current.value = '';
             return;
         }
@@ -214,7 +220,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             )}
                             <span className="text-muted-foreground">·</span>
                             <span className="text-muted-foreground text-[11px] sm:text-[14px] whitespace-nowrap">
-                                {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: id }) : 'baru saja'}
+                                {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: locale === 'id' ? localeId : enUS }) : __('just now')}
                             </span>
                         </div>
 
@@ -233,13 +239,13 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                             onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
                                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm text-foreground hover:bg-muted/50 transition-colors text-left font-medium"
                                         >
-                                            <Edit2 className="w-4 h-4" /> Edit
+                                            <Edit2 className="w-4 h-4" /> {__('Edit')}
                                         </button>
                                         <button
                                             onClick={handleDeleteThread}
                                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm text-destructive hover:bg-destructive/10 transition-colors text-left font-medium border-t border-border/50"
                                         >
-                                            <Trash2 className="w-4 h-4" /> Hapus
+                                            <Trash2 className="w-4 h-4" /> {__('Delete')}
                                         </button>
                                     </div>
                                 )}
@@ -280,14 +286,14 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                         onClick={() => { setIsEditing(false); setEditImage(null); }}
                                         className="text-xs font-semibold px-3 py-1.5 text-muted-foreground hover:text-foreground"
                                     >
-                                        Batal
+                                        {__('Cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmittingEdit}
                                         className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full disabled:opacity-50"
                                     >
-                                        {isSubmittingEdit ? 'Menyimpan...' : 'Simpan'}
+                                        {isSubmittingEdit ? __('Saving...') : __('Save')}
                                     </button>
                                 </div>
                             </div>
@@ -300,16 +306,27 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
                             {/* Image */}
                             {thread.image_url && (
-                                <div
-                                    className="mt-2 sm:mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-border bg-muted/20"
-                                >
-                                    <img
-                                        src={thread.image_url}
-                                        alt="Thread attachment"
-                                        className="w-full h-auto max-h-[300px] sm:max-h-[500px] object-cover"
-                                        loading="lazy"
+                                <>
+                                    <div
+                                        className="mt-2 sm:mt-3 rounded-2xl overflow-hidden border border-border bg-muted/10 cursor-pointer group/image transition-all hover:border-primary/30 max-w-xs"
+                                        onClick={() => setIsLightboxOpen(true)}
+                                    >
+                                        <div className="aspect-square relative">
+                                            <img
+                                                src={thread.image_url}
+                                                alt="Thread attachment"
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-[1.02]"
+                                                loading="lazy"
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/5 transition-colors" />
+                                        </div>
+                                    </div>
+                                    <ImageLightbox 
+                                        images={[thread.image_url]}
+                                        index={isLightboxOpen ? 0 : null}
+                                        onClose={() => setIsLightboxOpen(false)}
                                     />
-                                </div>
+                                </>
                             )}
                         </>
                     )}
@@ -356,7 +373,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                             <textarea
                                                 value={newComment}
                                                 onChange={(e) => setNewComment(e.target.value)}
-                                                placeholder="Tulis komentar..."
+                                                placeholder={__('Write a comment...')}
                                                 className="w-full bg-transparent border-none focus:ring-0 text-[13px] sm:text-[14px] p-0 min-h-[20px] resize-none"
                                                 rows={1}
                                                 onInput={(e) => {
@@ -371,13 +388,13 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                                     disabled={!newComment.trim() || isSubmittingComment}
                                                     className="bg-primary text-primary-foreground text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 rounded-full disabled:opacity-50"
                                                 >
-                                                    Balas
+                                                    {__('Reply')}
                                                 </button>
                                             </div>
                                         </form>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center py-4 sm:py-6 px-3 sm:px-4 bg-zinc-50 rounded-xl sm:rounded-2xl border border-dashed border-zinc-200 gap-2 sm:gap-3">
-                                            <p className="text-[12px] sm:text-[14px] text-zinc-500 font-medium text-center">Masuk untuk memberikan komentar</p>
+                                            <p className="text-[12px] sm:text-[14px] text-zinc-500 font-medium text-center">{__('Log in to comment')}</p>
                                             <a
                                                 href={route('auth.google', { redirect: window.location.href })}
                                                 className="flex items-center gap-2 sm:gap-3 bg-white border border-zinc-200 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
@@ -388,7 +405,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                                     <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
                                                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                                 </svg>
-                                                Lanjutkan dengan Google
+                                                    {__('Continue with Google')}
                                             </a>
                                         </div>
                                     )}

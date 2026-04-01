@@ -73,9 +73,9 @@ export function PageHeader({
                         {/* Breadcrumb */}
                         {breadcrumbs && breadcrumbs.length > 0 && (
                             <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4 flex-wrap">
-                                <Link href="/" className="flex items-center gap-1 hover:text-foreground transition-colors">
+                                <Link href={route('landing')} className="flex-center gap-1.5 hover:text-foreground transition-colors">
                                     <Home className="w-3.5 h-3.5" />
-                                    <span>Home</span>
+                                    <span>{typeof window !== 'undefined' && (window as any).translations ? ((window as any).translations['Home'] || 'Home') : 'Home'}</span>
                                 </Link>
                                 {breadcrumbs.map((crumb, i) => (
                                     <React.Fragment key={i}>

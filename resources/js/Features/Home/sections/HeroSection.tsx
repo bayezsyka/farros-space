@@ -13,11 +13,14 @@ import {
     X
 } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface HeroSectionProps {
     profile: {
         full_name?: string;
         headline?: string;
+        headline_id?: string;
+        headline_en?: string;
         email?: string;
         phone?: string;
     };
@@ -25,6 +28,8 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ profile }: HeroSectionProps) => {
     const [mounted, setMounted] = useState(false);
+    const { __ } = useTranslation();
+    const { locale } = usePage<any>().props;
 
     useEffect(() => {
         setMounted(true);
@@ -32,6 +37,10 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
 
     const { social_links } = usePage<any>().props;
     const name = profile?.full_name || 'Farros';
+    
+    const headline = locale === 'en' 
+        ? (profile?.headline_en || profile?.headline) 
+        : (profile?.headline_id || profile?.headline);
 
     const getIcon = (platformId: string) => {
         switch (platformId) {
@@ -91,20 +100,20 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
 
                     {/* Bio */}
                     <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed font-medium text-center max-w-sm md:max-w-md">
-                        {profile?.headline ?? 'I build beautifully simple things, and I love what I do.'}
+                        {headline ?? __('I build beautifully simple things, and I love what I do.')}
                     </p>
 
                     {/* Buttons */}
                     <div className="mt-5 w-full max-w-xs md:max-w-sm flex flex-col gap-2.5">
-                        <Link href="/contact" className="block">
+                        <Link href={route('contact')} className="block">
                             <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3.5 text-sm md:text-base font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-                                Get in Touch <ArrowRight className="w-4 h-4" />
+                                {__('Get in Touch')} <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
-                        <Link href="/cv" className="block">
+                        <Link href={route('cv.index')} className="block">
                             <button className="w-full flex items-center justify-center gap-2 border border-border bg-background/60 backdrop-blur-sm text-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-muted transition-all">
                                 <Download className="w-4 h-4" />
-                                Download CV
+                                {__('Download CV')}
                             </button>
                         </Link>
                     </div>
@@ -195,22 +204,19 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     }}
                 >
                     <p className="text-xl text-muted-foreground leading-snug font-medium">
-                        {profile?.headline
-                            ? profile.headline
-                            : <>I build beautifully simple things,<br />and I love what I do.</>
-                        }
+                        {headline ?? __('I build beautifully simple things, and I love what I do.')}
                     </p>
 
                     <div className="flex flex-col items-end gap-2.5">
-                        <Link href="/contact">
+                        <Link href={route('contact')}>
                             <button className="flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-                                Get in Touch <ArrowRight className="w-4 h-4" />
+                                {__('Get in Touch')} <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
-                        <Link href="/cv">
+                        <Link href={route('cv.index')}>
                             <button className="flex items-center justify-center gap-2 border border-border bg-background/60 backdrop-blur-sm text-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-muted transition-all">
                                 <Download className="w-4 h-4" />
-                                Download CV
+                                {__('Download CV')}
                             </button>
                         </Link>
                     </div>

@@ -10,6 +10,8 @@ class ExperienceUpdate extends Model
         'experience_id',
         'content',
         'image_path',
+        'content_id',
+        'content_en',
     ];
 
     public function experience()

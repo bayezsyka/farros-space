@@ -3,15 +3,21 @@ import { Container } from '@/Components/ui/Container';
 import { Head, Link } from '@inertiajs/react';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { ArrowRight, Tag, ShoppingBag, Star, Clock, Package, Sparkles, Search } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import useTranslation from '@/Hooks/useTranslation';
 import { useState } from 'react';
 
 interface MarketplaceItem {
     id: number;
     name: string;
+    name_id: string | null;
+    name_en: string | null;
     slug: string;
     image_path: string | null;
     status: 'baru' | 'bekas';
     description: string | null;
+    description_id: string | null;
+    description_en: string | null;
     price: number;
     created_at: string;
 }
@@ -21,6 +27,9 @@ interface Props {
 }
 
 export default function Index({ items }: Props) {
+    const { locale } = usePage<any>().props;
+    const { __ } = useTranslation();
+
     const newItems = items.filter((i) => i.status === 'baru');
     const usedItems = items.filter((i) => i.status === 'bekas');
 
@@ -28,16 +37,19 @@ export default function Index({ items }: Props) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredItems = items.filter((item) => {
+        const itemName = locale === 'en' ? (item.name_en || item.name) : (item.name_id || item.name);
+        const itemDesc = locale === 'en' ? (item.description_en || item.description) : (item.description_id || item.description);
+        
         const matchFilter = activeFilter === 'semua' || item.status === activeFilter;
-        const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (item.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchSearch = itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (itemDesc || '').toLowerCase().includes(searchQuery.toLowerCase());
         return matchFilter && matchSearch;
     });
 
     const filters: { key: 'semua' | 'baru' | 'bekas'; label: string; count: number }[] = [
-        { key: 'semua', label: 'Semua', count: items.length },
-        { key: 'baru', label: 'Baru', count: newItems.length },
-        { key: 'bekas', label: 'Bekas', count: usedItems.length },
+        { key: 'semua', label: __('All'), count: items.length },
+        { key: 'baru', label: __('New'), count: newItems.length },
+        { key: 'bekas', label: __('Used'), count: usedItems.length },
     ];
 
     return (
@@ -45,14 +57,14 @@ export default function Index({ items }: Props) {
             <Head title="Marketplace - farros.space" />
 
             <PageHeader
-                breadcrumbs={[{ label: 'Marketplace' }]}
-                badge={{ icon: ShoppingBag, label: 'Marketplace' }}
-                title={<>Temukan barang<span className="block text-muted-foreground/50">berkualitas.</span></>}
-                subtitle="Koleksi barang pilihan — baru dan bekas — yang sudah diperiksa kondisinya."
+                breadcrumbs={[{ label: __('Marketplace') }]}
+                badge={{ icon: ShoppingBag, label: __('Marketplace') }}
+                title={locale === 'en' ? <>Discover quality<span className="block text-muted-foreground/50">products.</span></> : <>Temukan barang<span className="block text-muted-foreground/50">berkualitas.</span></>}
+                subtitle={__('Curated collection — new and used — quality checked for you.')}
                 stats={[
-                    { icon: Package, value: items.length, label: 'Total item' },
-                    { icon: Sparkles, value: newItems.length, label: 'Barang baru' },
-                    { icon: Clock, value: usedItems.length, label: 'Barang bekas' },
+                    { icon: Package, value: items.length, label: __('Total items') },
+                    { icon: Sparkles, value: newItems.length, label: __('New items') },
+                    { icon: Clock, value: usedItems.length, label: __('Used items') },
                 ]}
             />
 
@@ -65,7 +77,7 @@ export default function Index({ items }: Props) {
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                             <input
                                 type="text"
-                                placeholder="Cari barang..."
+                                placeholder={__('Search items...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
@@ -106,8 +118,8 @@ export default function Index({ items }: Props) {
                         <>
                             <div className="flex items-center justify-between mb-6">
                                 <p className="text-sm font-medium text-muted-foreground">
-                                    {filteredItems.length} item ditemukan
-                                    {searchQuery && <span className="ml-1">untuk "<span className="font-semibold text-foreground">{searchQuery}</span>"</span>}
+                                    {filteredItems.length} {__('items found')}
+                                    {searchQuery && <span className="ml-1">{__('for')} "<span className="font-semibold text-foreground">{searchQuery}</span>"</span>}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
@@ -122,19 +134,19 @@ export default function Index({ items }: Props) {
                                 <ShoppingBag className="w-9 h-9 text-muted-foreground/40" />
                             </div>
                             <h3 className="text-lg font-bold text-foreground mb-2">
-                                {searchQuery ? 'Tidak ditemukan' : 'Belum ada barang'}
+                                {searchQuery ? __('Not found') : __('No items yet')}
                             </h3>
                             <p className="text-sm text-muted-foreground max-w-xs">
                                 {searchQuery
-                                    ? `Tidak ada barang yang cocok dengan "${searchQuery}".`
-                                    : 'Barang akan segera ditambahkan. Cek kembali nanti!'}
+                                    ? __('No items match your search ":query"', { query: searchQuery })
+                                    : __('Items will be added soon. Check back later!')}
                             </p>
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
                                     className="mt-4 text-sm font-semibold text-primary hover:underline"
                                 >
-                                    Hapus pencarian
+                                    {__('Clear search')}
                                 </button>
                             )}
                         </div>
@@ -147,6 +159,8 @@ export default function Index({ items }: Props) {
 
 // ── Item Card Component ──
 function ItemCard({ item }: { item: MarketplaceItem }) {
+    const { locale } = usePage<any>().props;
+    const { __ } = useTranslation();
     return (
         <Link
             href={route('marketplace.show', item.slug)}
@@ -176,9 +190,9 @@ function ItemCard({ item }: { item: MarketplaceItem }) {
                                 : 'bg-amber-500 text-white'}
                         `}>
                             {item.status === 'baru' ? (
-                                <><Star className="w-2.5 h-2.5 fill-white" />Baru</>
+                                <><Star className="w-2.5 h-2.5 fill-white" />{__('New')}</>
                             ) : (
-                                <><Clock className="w-2.5 h-2.5" />Bekas</>
+                                <><Clock className="w-2.5 h-2.5" />{__('Used')}</>
                             )}
                         </span>
                     </div>
@@ -194,11 +208,11 @@ function ItemCard({ item }: { item: MarketplaceItem }) {
                 {/* Content */}
                 <div className="p-3 sm:p-4">
                     <h3 className="font-bold text-foreground line-clamp-1 group-hover:text-foreground/70 transition-colors text-[13px] sm:text-[14px]">
-                        {item.name}
+                        {locale === 'en' ? (item.name_en || item.name) : (item.name_id || item.name)}
                     </h3>
-                    {item.description && (
+                    {(item.description_en || item.description_id || item.description) && (
                         <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                            {item.description}
+                            {locale === 'en' ? (item.description_en || item.description) : (item.description_id || item.description)}
                         </p>
                     )}
                     <div className="mt-2.5 pt-2.5 border-t border-border/50 flex items-center justify-between gap-2">

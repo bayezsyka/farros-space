@@ -12,6 +12,7 @@ use Inertia\Response;
 use App\Traits\ImageCompressor;
 use App\Models\SiteProfile;
 use App\Models\FotoDetailItem;
+use App\Jobs\TranslateModelFieldsJob;
 
 class AdminMarketplaceController extends Controller
 {
@@ -72,6 +73,9 @@ class AdminMarketplaceController extends Controller
         unset($validated['foto_details']);
 
         $item = MarketplaceItem::create($validated);
+        
+        // Dispatch translation job
+        TranslateModelFieldsJob::dispatch($item, ['name', 'description']);
 
         if ($request->hasFile('foto_details')) {
             foreach ($request->file('foto_details') as $foto) {
@@ -142,6 +146,9 @@ class AdminMarketplaceController extends Controller
         unset($validated['foto_details']);
 
         $marketplaceItem->update($validated);
+        
+        // Dispatch translation job
+        TranslateModelFieldsJob::dispatch($marketplaceItem, ['name', 'description']);
 
         if ($request->hasFile('foto_details')) {
             foreach ($request->file('foto_details') as $foto) {

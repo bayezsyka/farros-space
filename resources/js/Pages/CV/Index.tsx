@@ -31,6 +31,7 @@ interface Experience {
     end_date: string | null;
     summary_id: string | null;
     summary_en: string | null;
+    slug: string;
     updates?: ExperienceUpdate[];
 }
 
@@ -211,8 +212,14 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                     </span>
                                 </div>
                                 <div style={{ fontWeight: 600, fontSize: '10pt', color: '#111' }}>
-                                    {exp.company_or_event_name}
-                                    {exp.umbrella_organization && ` (${exp.umbrella_organization})`}
+                                    <a 
+                                        href={route('experiences.show', { locale: lang, experience: exp.slug })}
+                                        style={{ color: 'inherit', textDecoration: 'none' }}
+                                        className="company-link"
+                                    >
+                                        {exp.company_or_event_name}
+                                        {exp.umbrella_organization && ` (${exp.umbrella_organization})`}
+                                    </a>
                                 </div>
                                 {/** SHOW SUMMARY IF EXISTS, FALLBACK TO UPDATES **/}
                                 {(() => {
@@ -291,7 +298,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                     }}>EN</a>
                 </div>
 
-                <a href="/" style={{
+                <a href={route('landing')} style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
                     background: '#fff', color: '#111827', border: '1px solid #e5e7eb', borderRadius: '12px',
                     padding: '10px 16px', fontSize: '14px', fontWeight: 600,
@@ -369,6 +376,9 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
 
                 .print-only {
                     display: none;
+                }
+                .company-link:hover {
+                    text-decoration: underline !important;
                 }
             `}</style>
         </>

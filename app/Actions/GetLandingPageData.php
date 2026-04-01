@@ -28,11 +28,16 @@ class GetLandingPageData
             ->values()
             ->toArray();
 
+        $experiences = $this->repository->getExperiences();
+        $marketplaceItems = $this->repository->getMarketplaceItems();
+
         return [
             'profile' => $profile,
             'education' => $education,
-            'latestThreads' => array_slice($threads, 0, 3),
-            'publicThreads' => array_slice($publicThreads, 0, 3),
+            'latestThreads' => array_slice($threads, 0, 8),
+            'publicThreads' => array_slice($publicThreads, 0, 8),
+            'experiences' => array_slice($experiences, 0, 6),
+            'marketplaceItems' => array_slice($marketplaceItems, 0, 6),
         ];
     }
 }
