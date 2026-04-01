@@ -86,6 +86,7 @@ class ExperienceController extends Controller
         ]);
 
         $experience->update($validated);
+        $experience->updateCvSummary();
 
         return redirect()->back()->with('success', 'Experience updated successfully.');
     }

@@ -33,6 +33,7 @@ interface Props {
 
 export default function Show({ experience, auth }: Props) {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
     const fileInput = useRef<HTMLInputElement>(null);
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
@@ -67,6 +68,21 @@ export default function Show({ experience, auth }: Props) {
                 clearErrors();
             },
             forceFormData: true,
+        });
+    };
+
+    const handleFinalSave = () => {
+        import('@inertiajs/react').then(({ router }) => {
+            router.put(route('experiences.update', experience.id), {
+                type: experience.type,
+                company_or_event_name: experience.company_or_event_name,
+                umbrella_organization: experience.umbrella_organization,
+                role: experience.role,
+                start_date: experience.start_date,
+                end_date: experience.end_date,
+            }, {
+                onSuccess: () => setIsEditing(false),
+            });
         });
     };
 
@@ -120,7 +136,7 @@ export default function Show({ experience, auth }: Props) {
                                 <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center shadow-inner">
                                     {getTypeIcon(experience.type)}
                                 </div>
-                                <div>
+                                <div className="flex-grow">
                                     <div className="flex items-center gap-2 mb-0.5">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
                                             {experience.type}
@@ -131,15 +147,46 @@ export default function Show({ experience, auth }: Props) {
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-xl border border-border/50 text-[11px] font-bold text-muted-foreground">
-                                    <Calendar className="w-3 h-3" />
-                                    {formatExperienceDate(experience.start_date, experience.end_date)}
-                                </div>
-                                {experience.umbrella_organization && (
+                            <div className="flex flex-col items-end gap-3">
+                                <div className="flex flex-wrap gap-2 justify-end">
                                     <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-xl border border-border/50 text-[11px] font-bold text-muted-foreground">
-                                        <Users className="w-3 h-3" />
-                                        {experience.umbrella_organization}
+                                        <Calendar className="w-3 h-3" />
+                                        {formatExperienceDate(experience.start_date, experience.end_date)}
+                                    </div>
+                                    {experience.umbrella_organization && (
+                                        <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-xl border border-border/50 text-[11px] font-bold text-muted-foreground">
+                                            <Users className="w-3 h-3" />
+                                            {experience.umbrella_organization}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {auth.canManage && (
+                                    <div className="flex gap-2">
+                                        {isEditing ? (
+                                            <>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    onClick={() => setIsEditing(false)}
+                                                    className="rounded-xl h-9 px-4 font-bold text-xs"
+                                                >
+                                                    Batal
+                                                </Button>
+                                                <Button 
+                                                    onClick={handleFinalSave}
+                                                    className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl h-9 px-6 font-bold text-xs shadow-lg shadow-primary/20"
+                                                >
+                                                    Simpan (Update AI)
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <Button 
+                                                onClick={() => setIsEditing(true)}
+                                                className="bg-foreground text-background hover:opacity-90 rounded-xl h-9 px-5 font-bold text-xs"
+                                            >
+                                                Perbarui Experience
+                                            </Button>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -147,7 +194,7 @@ export default function Show({ experience, auth }: Props) {
                     </div>
 
                     {/* Add Update Form */}
-                    {auth.canManage && (
+                    {auth.canManage && isEditing && (
                         <div className="mb-12">
                             <Card className="rounded-[2rem] border border-border bg-card overflow-hidden shadow-sm">
                                 <form onSubmit={submit} className="p-6">
@@ -240,12 +287,12 @@ export default function Show({ experience, auth }: Props) {
                                                         <Clock className="w-3 h-3" />
                                                         {new Date(update.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                                                     </div>
-                                                    {auth.canManage && (
+                                                    {auth.canManage && isEditing && (
                                                         <Button 
                                                             variant="ghost" 
                                                             size="icon" 
                                                             onClick={() => handleDeleteUpdate(update.id)}
-                                                            className="w-7 h-7 rounded-full hover:bg-destructive/5 hover:text-destructive text-muted-foreground/30 hover:opacity-100 opacity-0 group-hover:opacity-100 transition-all"
+                                                            className="w-7 h-7 rounded-full hover:bg-destructive/5 hover:text-destructive text-muted-foreground/30 transition-all"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                         </Button>

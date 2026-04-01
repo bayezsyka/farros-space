@@ -14,6 +14,8 @@ class Experience extends Model
         'role',
         'start_date',
         'end_date',
+        'summary_id',
+        'summary_en',
     ];
 
     public function user()
@@ -24,5 +26,18 @@ class Experience extends Model
     public function updates()
     {
         return $this->hasMany(ExperienceUpdate::class);
+    }
+
+    public function updateCvSummary()
+    {
+        $allContent = $this->updates()->orderBy('created_at', 'asc')->pluck('content')->implode("\n");
+        $summaryData = app(\App\Services\GeminiService::class)->generateCvSummary($allContent, $this->role);
+        
+        if ($summaryData && isset($summaryData['id'], $summaryData['en'])) {
+            $this->update([
+                'summary_id' => $summaryData['id'],
+                'summary_en' => $summaryData['en'],
+            ]);
+        }
     }
 }

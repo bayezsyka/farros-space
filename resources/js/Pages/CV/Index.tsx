@@ -29,6 +29,8 @@ interface Experience {
     role: string;
     start_date: string;
     end_date: string | null;
+    summary_id: string | null;
+    summary_en: string | null;
     updates?: ExperienceUpdate[];
 }
 
@@ -212,15 +214,35 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                     {exp.company_or_event_name}
                                     {exp.umbrella_organization && ` (${exp.umbrella_organization})`}
                                 </div>
-                                {exp.updates && exp.updates.length > 0 && (
-                                    <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
-                                        {exp.updates.map((update) => (
-                                            <li key={update.id} style={{ marginBottom: '2px' }}>
-                                                {update.content}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                                {/** SHOW SUMMARY IF EXISTS, FALLBACK TO UPDATES **/}
+                                {(() => {
+                                    const summary = lang === 'en' ? exp.summary_en : exp.summary_id;
+                                    if (summary) {
+                                        return (
+                                            <div style={{ margin: '4px 0 0', paddingLeft: '0', fontSize: '9.5pt', color: '#222', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>
+                                                {summary.split('\n').map((line, i) => {
+                                                    const cleanLine = line.replace(/^\s*[\*\-\•]\s*/, '').trim();
+                                                    if (!cleanLine) return null;
+                                                    return (
+                                                        <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
+                                                            <span style={{ fontSize: '10pt', flexShrink: 0 }}>•</span>
+                                                            <span style={{ fontSize: '9.5pt' }}>{cleanLine}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    }
+                                    return exp.updates && exp.updates.length > 0 && (
+                                        <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
+                                            {exp.updates.map((update: any) => (
+                                                <li key={update.id} style={{ marginBottom: '2px' }}>
+                                                    {update.content}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })()}
                             </div>
                         ))}
                     </div>

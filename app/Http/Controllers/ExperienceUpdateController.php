@@ -38,6 +38,8 @@ class ExperienceUpdateController extends Controller
             abort(403);
         }
 
+        $experience = $experienceUpdate->experience;
+
         if ($experienceUpdate->image_path) {
             Storage::disk('public')->delete($experienceUpdate->image_path);
         }
