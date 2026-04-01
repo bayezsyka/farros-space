@@ -62,7 +62,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                             {experiences.length > 0 ? experiences.slice(0, 3).map((exp) => (
                                 <Link 
                                     key={exp.id} 
-                                    href={route('experiences.show', exp.slug)}
+                                    href={route('experiences.show', exp.slug || exp.id)}
                                     className="group flex items-center justify-between p-4 rounded-3xl bg-muted/30 border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all active:scale-[0.98]"
                                 >
                                     <div className="flex items-center gap-4">
@@ -108,7 +108,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                             {marketplaceItems.length > 0 ? marketplaceItems.slice(0, 4).map((item) => (
                                 <Link 
                                     key={item.id} 
-                                    href={route('marketplace.show', item.slug)}
+                                    href={route('marketplace.show', item.slug || item.id)}
                                     className="group relative bg-muted/20 border border-border/50 rounded-3xl overflow-hidden hover:bg-muted/40 transition-all active:scale-[0.98]"
                                 >
                                     <div className="aspect-[4/3] bg-muted/50 relative overflow-hidden">
@@ -164,7 +164,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                     style={{ animationDelay: `${idx * 100}ms` }}
                                 >
                                     <Link 
-                                        href={route('threads.show', thread.slug)}
+                                        href={route('threads.show', thread.slug || thread.id)}
                                         className="flex items-start gap-4 p-3 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
                                     >
                                         <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0 border border-border/50">

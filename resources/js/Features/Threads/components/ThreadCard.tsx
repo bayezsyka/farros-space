@@ -70,7 +70,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
         if (isSubmittingComment) return;
         setIsSubmittingComment(true);
         try {
-            const response = await axios.post(route('threads.like', { thread: thread.slug }));
+            const response = await axios.post(route('threads.like', { thread: thread.slug || thread.id }));
             setLikes(response.data.count);
             setIsLiked(response.data.status === 'liked');
         } catch (error) {
@@ -86,7 +86,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
         if (!showComments && comments.length === 0) {
             try {
-                const response = await axios.get(route('threads.comments.index', { thread: thread.slug }));
+                const response = await axios.get(route('threads.comments.index', { thread: thread.slug || thread.id }));
                 setComments(response.data);
             } catch (error) {
                 console.error("Failed to fetch comments", error);
@@ -101,7 +101,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
         setIsSubmittingComment(true);
         try {
-            const response = await axios.post(route('threads.comments.store', { thread: thread.slug }), {
+            const response = await axios.post(route('threads.comments.store', { thread: thread.slug || thread.id }), {
                 content: newComment
             });
             setComments([response.data, ...comments]);
@@ -119,7 +119,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
     const handleDeleteThread = () => {
         if (!confirm(__('Are you sure you want to delete this thread?'))) return;
-        router.delete(route('threads.destroy', { thread: thread.slug }), {
+        router.delete(route('threads.destroy', { thread: thread.slug || thread.id }), {
             preserveScroll: true
         });
     };
@@ -134,7 +134,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
         if (editContent.trim()) formData.append('content', editContent);
         if (editImage) formData.append('image', editImage);
 
-        router.post(route('threads.update', { thread: thread.slug }), formData as any, {
+        router.post(route('threads.update', { thread: thread.slug || thread.id }), formData as any, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
