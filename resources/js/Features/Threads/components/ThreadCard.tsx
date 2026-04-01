@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Card, CardContent } from '@/Components/ui/Card';
@@ -11,8 +11,10 @@ import axios from 'axios';
 import { cn } from '@/lib/utils';
 import useTranslation from '@/Hooks/useTranslation';
 import { router } from '@inertiajs/react';
-import { CommentCard } from './CommentCard';
-import { ImageLightbox } from '@/Components/ui/ImageLightbox';
+
+// Lazy load heavy components
+const CommentCard = lazy(() => import('./CommentCard').then(m => ({ default: m.CommentCard })));
+const ImageLightbox = lazy(() => import('@/Components/ui/ImageLightbox').then(m => ({ default: m.ImageLightbox })));
 
 interface Thread {
     id: number;
@@ -174,14 +176,14 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                     >
                         {isPublic ? (
                             thread.user?.avatar ? (
-                                <img src={thread.user.avatar} alt={thread.user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                <img src={thread.user.avatar.replace('=s96-c', '=s60-c')} alt={thread.user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xs sm:text-sm">
                                     {thread.user?.name?.charAt(0) || 'G'}
                                 </div>
                             )
                         ) : profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={profile.avatar_url.replace('=s96-c', '=s60-c')} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xs sm:text-sm">
                                 {profile?.full_name?.charAt(0) || 'F'}
@@ -321,11 +323,13 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                             <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/5 transition-colors" />
                                         </div>
                                     </div>
-                                    <ImageLightbox 
-                                        images={[thread.image_url]}
-                                        index={isLightboxOpen ? 0 : null}
-                                        onClose={() => setIsLightboxOpen(false)}
-                                    />
+                                    <Suspense fallback={null}>
+                                        <ImageLightbox 
+                                            images={[thread.image_url]}
+                                            index={isLightboxOpen ? 0 : null}
+                                            onClose={() => setIsLightboxOpen(false)}
+                                        />
+                                    </Suspense>
                                 </>
                             )}
                         </>
@@ -360,7 +364,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             <div className="flex gap-2 sm:gap-3">
                                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
                                     {user?.avatar ? (
-                                        <img src={user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                        <img src={user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold bg-zinc-100 text-zinc-400">
                                             {user ? user.name.charAt(0) : 'U'}
@@ -413,9 +417,11 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             </div>
 
                             <div className="space-y-3 sm:space-y-4 pt-2 divide-y divide-border/50">
-                                {comments.map((comment) => (
-                                    <CommentCard key={comment.id} comment={comment} onDeleted={commentDeletedHandler} />
-                                ))}
+                                <Suspense fallback={<div className="h-10 animate-pulse bg-muted rounded-xl" />}>
+                                    {comments.map((comment) => (
+                                        <CommentCard key={comment.id} comment={comment} onDeleted={commentDeletedHandler} />
+                                    ))}
+                                </Suspense>
                             </div>
                         </div>
                     )}

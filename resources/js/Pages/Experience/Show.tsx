@@ -178,7 +178,7 @@ export default function Show({ experience, auth }: Props) {
 
     return (
         <AppLayout title={experience.role}>
-            <Head title={`${experience.role} at ${experience.company_or_event_name}`} />
+            <Head title={experience.role} />
 
             <PageHeader
                 breadcrumbs={[

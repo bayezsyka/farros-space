@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { usePage, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
@@ -12,8 +12,9 @@ import { cn } from '@/lib/utils';
 import useTranslation from '@/Hooks/useTranslation';
 import { Card } from '@/Components/ui/Card';
 import { router } from '@inertiajs/react';
-import { CommentCard } from '@/Features/Threads/components/CommentCard';
-import { ImageLightbox } from '@/Components/ui/ImageLightbox';
+
+const CommentCard = lazy(() => import('@/Features/Threads/components/CommentCard').then(m => ({ default: m.CommentCard })));
+const ImageLightbox = lazy(() => import('@/Components/ui/ImageLightbox').then(m => ({ default: m.ImageLightbox })));
 
 interface UserLink {
     id: number;
@@ -192,14 +193,14 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-muted border border-border">
                                         {isPublic ? (
                                             thread.user?.avatar ? (
-                                                <img src={thread.user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                <img src={thread.user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm sm:text-base">
                                                     {thread.user?.name?.charAt(0) || 'G'}
                                                 </div>
                                             )
                                         ) : profile?.avatar_url ? (
-                                            <img src={profile.avatar_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                            <img src={profile.avatar_url.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm sm:text-base">
                                                 {profile?.full_name?.charAt(0) || 'F'}
@@ -326,11 +327,13 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <ImageLightbox 
-                                                            images={[thread.image_url]}
-                                                            index={isLightboxOpen ? 0 : null}
-                                                            onClose={() => setIsLightboxOpen(false)}
-                                                        />
+                                                        <Suspense fallback={null}>
+                                                            <ImageLightbox 
+                                                                images={[thread.image_url]}
+                                                                index={isLightboxOpen ? 0 : null}
+                                                                onClose={() => setIsLightboxOpen(false)}
+                                                            />
+                                                        </Suspense>
                                                     </>
                                                 )}
                                             </>
@@ -359,7 +362,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                                 <form onSubmit={submitComment} className="flex gap-3">
                                                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
                                                         {user?.avatar ? (
-                                                            <img src={user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                            <img src={user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">
                                                                 {user.name.charAt(0)}
@@ -405,9 +408,11 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                             )}
 
                                             <div className="space-y-4 pt-4 divide-y divide-border/40">
-                                                {thread.comments?.map((comment: any) => (
-                                                    <CommentCard key={comment.id} comment={comment} onDeleted={handleCommentDeleted} />
-                                                ))}
+                                                <Suspense fallback={<div className="h-20 animate-pulse bg-muted rounded-xl" />}>
+                                                    {thread.comments?.map((comment: any) => (
+                                                        <CommentCard key={comment.id} comment={comment} onDeleted={handleCommentDeleted} />
+                                                    ))}
+                                                </Suspense>
                                             </div>
                                         </div>
                                     )}

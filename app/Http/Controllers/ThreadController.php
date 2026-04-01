@@ -28,9 +28,8 @@ class ThreadController extends Controller
             ->withCount('comments')
             ->where('visibility', 'public')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn($post) => ThreadPostData::fromModel($post)->toArray())
-            ->toArray();
+            ->paginate(15)
+            ->through(fn($post) => ThreadPostData::fromModel($post)->toArray());
 
         return Inertia::render('Threads/Index', [
             'threads' => $threads,
@@ -69,8 +68,8 @@ class ThreadController extends Controller
 
         $data = [
             'user_id' => Auth::id(),
-            'title' => $request->title,
-            'content' => $request->content,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
             'visibility' => 'public',
             'allow_comments' => true,
         ];
@@ -98,8 +97,8 @@ class ThreadController extends Controller
         ]);
 
         $data = [
-            'title' => $request->title,
-            'content' => $request->content,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
         ];
 
         if ($request->hasFile('image')) {

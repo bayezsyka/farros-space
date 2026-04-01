@@ -54,7 +54,7 @@ export default function Index({ items }: Props) {
 
     return (
         <AppLayout title="Marketplace">
-            <Head title="Marketplace - farros.space" />
+            <Head title={__('Marketplace')} />
 
             <PageHeader
                 breadcrumbs={[{ label: __('Marketplace') }]}

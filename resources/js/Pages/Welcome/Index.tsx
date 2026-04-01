@@ -38,7 +38,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
         .slice(0, 5);
 
     return (
-        <AppLayout title="Farros Space" overlayHeader={true}>
+        <AppLayout title={__('Home')} overlayHeader={true}>
             <HeroSection profile={profile} />
 
             <div className="relative z-20 pb-20 bg-background rounded-t-[3rem] border-t border-border/50 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)]">

@@ -58,7 +58,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
         <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 first:pt-0 group relative">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
                 {comment.user.avatar ? (
-                    <img src={comment.user.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={comment.user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold">
                         {comment.user.name.charAt(0)}

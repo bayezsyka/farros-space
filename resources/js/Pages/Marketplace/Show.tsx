@@ -131,7 +131,7 @@ export default function Show({ item }: Props) {
 
     return (
         <AppLayout title={item.name}>
-            <Head title={`${item.name} - Marketplace farros.space`} />
+            <Head title={item.name} />
 
             <section className="py-10 md:py-16">
                 <Container>

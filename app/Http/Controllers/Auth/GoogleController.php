@@ -33,7 +33,7 @@ class GoogleController extends Controller
             ], [
                 'name' => $googleUser->name,
                 'google_id' => $googleUser->id,
-                'avatar' => $googleUser->avatar,
+                'avatar' => str_replace('=s96-c', '=s60-c', $googleUser->avatar),
                 'password' => bcrypt(Str::random(16)),
             ]);
 
