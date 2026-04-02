@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd } from '@/lib/structuredData';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import { Container } from '@/Components/ui/Container';
 import { PageHeader } from '@/Components/ui/PageHeader';
@@ -116,8 +118,12 @@ export default function Index({ experiences, auth }: Props) {
     };
 
     return (
-        <AppLayout title="Experiences">
-            <Head title="Experiences" />
+        <AppLayout title={__('Experiences')}>
+            <SeoHead 
+                title={__('Experiences')} 
+                description={__('Professional career journey, organizations, and committees.')}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Experiences'), url: route('experiences.index') }])}
+            />
             
             <PageHeader
                 breadcrumbs={[{ label: __('Experiences') }]}

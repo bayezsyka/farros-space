@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import SeoHead from '@/Components/SeoHead';
 import { Container } from '@/Components/ui/Container';
 import { Card } from '@/Components/ui/Card';
 import {
@@ -103,12 +104,12 @@ export default function AgeIndex() {
 
     return (
         <AppLayout title={__('age.title')}>
-            <Head>
-                <meta
-                    name="description"
-                    content={__('age.meta_description')}
-                />
-            </Head>
+            <SeoHead 
+                title={__('age.title')}
+                description={__('age.meta_description')}
+                robots="noindex, nofollow"
+                canonicalPath="age"
+            />
 
             <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-gray-100 py-12">
                 <Container>

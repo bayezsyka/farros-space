@@ -1,5 +1,6 @@
-import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd } from '@/lib/structuredData';
 import { Download, ArrowLeft } from 'lucide-react';
 import { formatExperienceDate } from '@/lib/utils';
 import useTranslation from '@/Hooks/useTranslation';
@@ -255,7 +256,12 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
 
     return (
         <>
-            <Head title={`${__('cv.head_prefix')} – ${name}`} />
+            <SeoHead 
+                title={`${__('cv.head_prefix')} – ${name}`}
+                description={profile?.bio?.substring(0, 160) || __('CV of Farros - Professional experiences and education.')}
+                canonicalPath="cv"
+                jsonLd={createBreadcrumbJsonLd([{ name: __('CV'), url: route('cv') }])}
+            />
 
             {/* ── SIMPLE FLOATING ACTIONS (hidden on print) ── */}
             <div className="no-print" style={{

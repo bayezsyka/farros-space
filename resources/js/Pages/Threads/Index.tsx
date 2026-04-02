@@ -1,5 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { usePage, Link } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd } from '@/lib/structuredData';
 import { PageProps } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
@@ -59,7 +61,12 @@ export default function ThreadsIndex({ threads, profile }: Props) {
     };
 
     return (
-        <AppLayout title="Threads">
+        <AppLayout title={__('Threads')}>
+            <SeoHead 
+                title={__('Threads — Community Conversations')}
+                description={__('Explore and participate in community threads, stories, and discussions.')}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Threads'), url: route('threads.index') }])}
+            />
             <PageHeader
                 breadcrumbs={[{ label: __('Threads') }]}
                 badge={{ icon: MessageSquare, label: __('Threads') }}

@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { usePage, useForm, Link } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd } from '@/lib/structuredData';
 import { Container } from '@/Components/ui/Container';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
-import { usePage } from '@inertiajs/react';
 import useTranslation from '@/Hooks/useTranslation';
 import { Card, CardContent } from '@/Components/ui/Card';
 import InputError from '@/Components/InputError';
@@ -177,8 +178,15 @@ export default function Show({ experience, auth }: Props) {
     };
 
     return (
-        <AppLayout title={experience.role}>
-            <Head title={experience.role} />
+        <AppLayout title={locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role)}>
+            <SeoHead 
+                title={`${locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role)} | ${locale === 'en' ? (experience.company_or_event_name_en || experience.company_or_event_name) : (experience.company_or_event_name_id || experience.company_or_event_name)}`}
+                description={locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role)}
+                jsonLd={createBreadcrumbJsonLd([
+                    { name: __('Experiences'), url: route('experiences.index') },
+                    { name: locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role), url: route('experiences.show', experience.slug) }
+                ])}
+            />
 
             <PageHeader
                 breadcrumbs={[

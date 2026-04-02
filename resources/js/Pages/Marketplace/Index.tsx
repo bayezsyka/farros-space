@@ -6,6 +6,8 @@ import { ArrowRight, Tag, ShoppingBag, Star, Clock, Package, Sparkles, Search } 
 import { usePage } from '@inertiajs/react';
 import useTranslation from '@/Hooks/useTranslation';
 import { useState } from 'react';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd } from '@/lib/structuredData';
 
 interface MarketplaceItem {
     id: number;
@@ -14,6 +16,7 @@ interface MarketplaceItem {
     name_en: string | null;
     slug: string;
     image_path: string | null;
+    image_cropped_path: string | null;
     status: 'baru' | 'bekas';
     description: string | null;
     description_id: string | null;
@@ -53,8 +56,12 @@ export default function Index({ items }: Props) {
     ];
 
     return (
-        <AppLayout title="Marketplace">
-            <Head title={__('Marketplace')} />
+        <AppLayout title={__('Marketplace')}>
+            <SeoHead 
+                title={__('Marketplace')} 
+                description={__('Curated collection — new and used — quality checked for you.')}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Marketplace'), url: route('marketplace.index') }])}
+            />
 
             <PageHeader
                 breadcrumbs={[{ label: __('Marketplace') }]}
@@ -171,10 +178,13 @@ function ItemCard({ item }: { item: MarketplaceItem }) {
                 <div className="relative aspect-square overflow-hidden bg-muted/30">
                     {item.image_path ? (
                         <img
-                            src={item.image_path}
+                            src={item.image_cropped_path || item.image_path || ''}
                             alt={item.name}
                             className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                             loading="lazy"
+                            decoding="async"
+                            width="300"
+                            height="300"
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground/30 gap-2">

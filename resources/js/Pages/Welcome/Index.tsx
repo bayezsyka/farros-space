@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import SeoHead from '@/Components/SeoHead';
+import { createWebsiteJsonLd, createPersonJsonLd } from '@/lib/structuredData';
 import { HeroSection } from '@/Features/Home/sections/HeroSection';
 import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
@@ -49,6 +51,13 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
 
     return (
         <AppLayout title={__('Home')} overlayHeader={true}>
+            <SeoHead 
+                title={__('Farros Space — Digital Portfolio & Marketplace')}
+                description={locale === 'en' 
+                    ? "Welcome to Farros Space. Explorations in web development, professional experiences, and a curated marketplace of items." 
+                    : "Selamat datang di Farros Space. Eksplorasi pengembangan web, pengalaman profesional, dan marketplace barang pilihan."}
+                jsonLd={[createWebsiteJsonLd(), createPersonJsonLd(profile)]}
+            />
             <HeroSection profile={profile} />
 
             <div className="relative z-20 pb-20 bg-background rounded-t-[3rem] border-t border-border/50 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)]">
@@ -123,7 +132,15 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                 >
                                     <div className="aspect-[4/3] bg-muted/50 relative overflow-hidden">
                                         {item.image_path ? (
-                                            <img src={item.image_path} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                                            <img 
+                                                src={item.image_cropped_path || item.image_path || ''} 
+                                                alt={item.name} 
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                                loading="lazy" 
+                                                decoding="async" 
+                                                width="200" 
+                                                height="150" 
+                                            />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
                                                 <ShoppingBag className="w-6 h-6 text-muted-foreground/30" />

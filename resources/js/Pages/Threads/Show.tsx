@@ -1,7 +1,9 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { usePage, Link } from '@inertiajs/react';
+import { usePage, Link, router } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
+import SeoHead from '@/Components/SeoHead';
+import { createBreadcrumbJsonLd, createDiscussionForumPostingJsonLd } from '@/lib/structuredData';
 import { Container } from '@/Components/ui/Container';
 import { PageHeader } from '@/Components/ui/PageHeader';
 import { MessageSquare, ArrowLeft, Heart, Edit2, Trash2, MoreVertical, ImagePlus } from 'lucide-react';
@@ -11,7 +13,6 @@ import axios from 'axios';
 import { cn } from '@/lib/utils';
 import useTranslation from '@/Hooks/useTranslation';
 import { Card } from '@/Components/ui/Card';
-import { router } from '@inertiajs/react';
 
 const CommentCard = lazy(() => import('@/Features/Threads/components/CommentCard').then(m => ({ default: m.CommentCard })));
 const ImageLightbox = lazy(() => import('@/Components/ui/ImageLightbox').then(m => ({ default: m.ImageLightbox })));
@@ -166,7 +167,19 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
     };
 
     return (
-        <AppLayout title="Detail Thread">
+        <AppLayout title={__('Detail Thread')}>
+            <SeoHead 
+                title={`${thread.content.substring(0, 60)}${thread.content.length > 60 ? '...' : ''} | ${__('Threads')}`}
+                description={thread.content.substring(0, 160)}
+                image={thread.image_url || undefined}
+                jsonLd={[
+                    createBreadcrumbJsonLd([
+                        { name: __('Threads'), url: route('threads.index') },
+                        { name: __('Detail'), url: route('threads.show', thread.slug) }
+                    ]),
+                    createDiscussionForumPostingJsonLd(thread, profile)
+                ]}
+            />
             <PageHeader
                 breadcrumbs={[
                     { label: __('Threads'), href: route('threads.index') },

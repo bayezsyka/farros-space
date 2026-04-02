@@ -1,6 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
+import { createProductJsonLd } from '@/lib/structuredData';
 import { ArrowLeft, ShoppingBag, Star, Clock, MessageCircle, Tag, Share2, CheckCircle2, Loader2 } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 import { ShareItemModal } from '@/Components/ui/ShareItemModal';
@@ -130,8 +132,14 @@ export default function Show({ item }: Props) {
     const detailPhotos = item.foto_detail_items ?? [];
 
     return (
-        <AppLayout title={item.name}>
-            <Head title={item.name} />
+        <AppLayout title={locale === 'en' ? (item.name_en || item.name) : (item.name_id || item.name)}>
+            <SeoHead 
+                title={locale === 'en' ? (item.name_en || item.name) : (item.name_id || item.name)}
+                description={locale === 'en' ? (item.description_en || item.description || undefined) : (item.description_id || item.description || undefined)}
+                image={item.image_path || undefined}
+                type="product"
+                jsonLd={createProductJsonLd(item, locale)}
+            />
 
             <section className="py-10 md:py-16">
                 <Container>
@@ -162,6 +170,10 @@ export default function Show({ item }: Props) {
                                             src={item.image_path}
                                             alt={item.name}
                                             className="object-cover w-full h-full group-hover:scale-[1.02] transition-transform duration-500"
+                                            fetchPriority="high"
+                                            decoding="async"
+                                            width="800"
+                                            height="800"
                                         />
                                         {/* Zoom hint */}
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-end justify-end p-4">

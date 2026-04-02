@@ -1,4 +1,5 @@
-import { Link, Head, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
 import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
@@ -63,7 +64,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
     return (
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary selection:text-primary-foreground">
-            <Head title={title} />
+            <SeoHead title={title} />
 
             <header
                 className={`
@@ -166,11 +167,11 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                             <div className="flex items-center gap-2">
                                 <ThemeToggle />
                                 <div className="hidden md:flex items-center gap-2">
-                                    <Link href="/contact" className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
+                                    <Link href={route('contact')} className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
                                         <Mail className="w-3.5 h-3.5" />
                                         {__('Contact')}
                                     </Link>
-                                    <Link href="/cv" className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
+                                    <Link href={route('cv.index')} className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
                                         <Download className="w-3.5 h-3.5" />
                                         {__('CV')}
                                     </Link>

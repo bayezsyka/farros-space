@@ -40,7 +40,12 @@ class HandleInertiaRequests extends Middleware
                 'success' => session('success'),
                 'error' => session('error'),
             ],
-            'social_links' => \App\Models\SocialLink::where('is_active', true)->get(),
+            'social_links' => \Illuminate\Support\Facades\Cache::remember('social_links', 86400, function () {
+                return \App\Models\SocialLink::where('is_active', true)->select('id', 'platform', 'url', 'icon')->get();
+            }),
+            'site_profile' => \Illuminate\Support\Facades\Cache::remember('site_profile', 86400, function () {
+                return \App\Models\SiteProfile::first();
+            }),
         ];
     }
 
