@@ -174,6 +174,7 @@ function ItemCard({ item }: { item: MarketplaceItem }) {
                             src={item.image_path}
                             alt={item.name}
                             className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground/30 gap-2">

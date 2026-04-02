@@ -12,6 +12,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { X, Download, Copy, Check, Loader2, Share2 } from 'lucide-react';
 import { generateShareBlob, buildShareCaption, formatPrice, ShareableItem } from './shareHelpers';
+import useTranslation from '@/Hooks/useTranslation';
+import { usePage } from '@inertiajs/react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -25,13 +27,15 @@ interface ShareItemModalProps {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
+    const { __ } = useTranslation();
+    const { locale } = usePage<any>().props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [generating, setGenerating] = useState(true);
     const [generated, setGenerated] = useState(false);
     const [copied, setCopied] = useState(false);
 
     const waNumber = item.whatsapp?.replace(/\D/g, '') ?? '';
-    const caption = buildShareCaption(item);
+    const caption = buildShareCaption(item, locale as any);
 
     // Lock body scroll
     useEffect(() => {
@@ -56,7 +60,7 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
         setGenerating(true); setGenerated(false);
 
         (async () => {
-            const blob = await generateShareBlob(item);
+            const blob = await generateShareBlob(item, locale as any);
             if (cancelled || !canvas) return;
 
             // Draw from blob onto canvas for preview
@@ -131,7 +135,7 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
     return (
         <div
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-            role="dialog" aria-modal="true" aria-label="Share item"
+            role="dialog" aria-modal="true" aria-label={__("Share item")}
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden border border-zinc-100 max-h-[92vh]">
@@ -143,14 +147,14 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
                             <Share2 className="w-4 h-4 text-violet-600" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-bold text-zinc-900">Bagikan Item</h2>
-                            <p className="text-xs text-zinc-400 mt-0.5">Poster 1:1 · 1080×1080px</p>
+                            <h2 className="text-sm font-bold text-zinc-900">{__("Share Item")}</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">{__("Poster :res", { res: "1:1" })} · 1080×1080px</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
-                        aria-label="Tutup"
+                        aria-label={__("Close")}
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -165,11 +169,11 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
                         {generating && (
                             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
                                 <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
-                                <p className="text-xs font-semibold text-zinc-500">Membuat poster...</p>
+                                <p className="text-xs font-semibold text-zinc-500">{__("Creating poster...")}</p>
                             </div>
                         )}
                     </div>
-                    <p className="text-[11px] text-zinc-400 text-center">Preview · Output 1080×1080px</p>
+                    <p className="text-[11px] text-zinc-400 text-center">{__("Preview · Output :res", { res: "1080×1080px" })}</p>
 
                     {/* Caption */}
                     <div>
@@ -183,7 +187,7 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
                                     }`}
                             >
                                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                {copied ? 'Tersalin!' : 'Salin'}
+                                {copied ? __("Copied!") : __("Copy")}
                             </button>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4">
@@ -200,7 +204,7 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
                         onClick={onClose}
                         className="px-4 py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
                     >
-                        Tutup
+                        {__("Close")}
                     </button>
 
                     <div className="flex-1 flex gap-2 justify-end">
@@ -219,7 +223,7 @@ export function ShareItemModal({ item, onClose }: ShareItemModalProps) {
                             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors disabled:opacity-40 shadow-sm"
                         >
                             <Download className="w-4 h-4" />
-                            Download Foto
+                            {__("Download Photo")}
                         </button>
                     </div>
                 </div>

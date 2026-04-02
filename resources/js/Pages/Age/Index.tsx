@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Container } from '@/Components/ui/Container';
 import { Card } from '@/Components/ui/Card';
@@ -14,7 +14,7 @@ import {
     differenceInSeconds,
     format
 } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import {
     CalendarDays,
     Clock3,
@@ -26,8 +26,15 @@ import {
     SunMedium,
     X
 } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
+import { PageProps } from '@/types';
 
 export default function AgeIndex() {
+    const { __ } = useTranslation();
+    const { locale } = usePage<PageProps>().props;
+    const dateLocale = locale === 'en' ? enUS : id;
+    const numberLocale = locale === 'en' ? 'en-US' : 'id-ID';
+
     const defaultBirthDate = new Date(2005, 11, 13);
     const [birthDate, setBirthDate] = useState<Date>(defaultBirthDate);
     const [now, setNow] = useState<Date>(new Date());
@@ -59,47 +66,47 @@ export default function AgeIndex() {
     const quickStats = useMemo(() => {
         return [
             {
-                label: 'Minggu Penuh',
-                value: Math.floor(stats.days / 7).toLocaleString('id-ID'),
+                label: __('age.stats.full_weeks'),
+                value: Math.floor(stats.days / 7).toLocaleString(numberLocale),
                 icon: CalendarDays,
             },
             {
-                label: 'Bulan Penuh',
-                value: Math.floor(stats.days / 30).toLocaleString('id-ID'),
+                label: __('age.stats.full_months'),
+                value: Math.floor(stats.days / 30).toLocaleString(numberLocale),
                 icon: Moon,
             },
             {
-                label: 'Musim Dilewati',
-                value: Math.floor((stats.days / 365.25) * 12).toLocaleString('id-ID'),
+                label: __('age.stats.seasons_passed'),
+                value: Math.floor((stats.days / 365.25) * 12).toLocaleString(numberLocale),
                 icon: SunMedium,
             },
             {
-                label: 'Dekade',
+                label: __('age.stats.decades'),
                 value: (stats.years / 10).toFixed(1),
                 icon: Sparkles,
             },
         ];
-    }, [stats.days, stats.years]);
+    }, [stats.days, stats.years, numberLocale, __]);
 
     const breakdown = useMemo(() => {
         return [
-            { label: 'Tahun', value: stats.years.toLocaleString('id-ID'), icon: Hourglass },
-            { label: 'Bulan', value: stats.months.toLocaleString('id-ID'), icon: CalendarDays },
-            { label: 'Minggu', value: stats.weeks.toLocaleString('id-ID'), icon: Timer },
-            { label: 'Hari', value: stats.days.toLocaleString('id-ID'), icon: Clock3 },
-            { label: 'Jam', value: stats.hours.toLocaleString('id-ID'), icon: Clock3 },
-            { label: 'Menit', value: stats.minutes.toLocaleString('id-ID'), icon: Timer },
-            { label: 'Detik', value: stats.seconds.toLocaleString('id-ID'), icon: Sparkles },
-            { label: 'Dekade', value: (stats.years / 10).toFixed(1), icon: Hourglass },
+            { label: __('age.time.years'), value: stats.years.toLocaleString(numberLocale), icon: Hourglass },
+            { label: __('age.time.months'), value: stats.months.toLocaleString(numberLocale), icon: CalendarDays },
+            { label: __('age.time.weeks'), value: stats.weeks.toLocaleString(numberLocale), icon: Timer },
+            { label: __('age.time.days'), value: stats.days.toLocaleString(numberLocale), icon: Clock3 },
+            { label: __('age.time.hours'), value: stats.hours.toLocaleString(numberLocale), icon: Clock3 },
+            { label: __('age.time.minutes'), value: stats.minutes.toLocaleString(numberLocale), icon: Timer },
+            { label: __('age.time.seconds'), value: stats.seconds.toLocaleString(numberLocale), icon: Sparkles },
+            { label: __('age.time.decades'), value: (stats.years / 10).toFixed(1), icon: Hourglass },
         ];
-    }, [stats]);
+    }, [stats, numberLocale, __]);
 
     return (
-        <AppLayout title="Usia Saya">
+        <AppLayout title={__('age.title')}>
             <Head>
                 <meta
                     name="description"
-                    content="Halaman personal untuk melihat usia saya secara real-time dalam berbagai satuan waktu."
+                    content={__('age.meta_description')}
                 />
             </Head>
 
@@ -115,12 +122,12 @@ export default function AgeIndex() {
                                     <div className="space-y-4">
                                         <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">
                                             <CalendarDays className="h-3.5 w-3.5 text-gray-500" />
-                                            Personal age tracker
+                                            {__('age.hero.badge')}
                                         </div>
 
                                         <div className="space-y-2">
                                             <h1 className="text-3xl font-semibold tracking-tight text-gray-950 md:text-4xl">
-                                                Usia Saya
+                                                {__('age.title')}
                                             </h1>
                                         </div>
 
@@ -128,7 +135,7 @@ export default function AgeIndex() {
                                             className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-colors group"
                                         >
                                             <CalendarDays className="h-4 w-4 text-gray-500" />
-                                            Lahir pada <span className="font-medium">13 Desember 2005</span>
+                                            {__('age.hero.born_at')} <span className="font-medium">{format(birthDate, 'd MMMM yyyy', { locale: dateLocale })}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -146,20 +153,20 @@ export default function AgeIndex() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-                                            Usia Saat Ini
+                                            {__('age.current.title')}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            Dihitung langsung hingga detik ini
+                                            {__('age.current.subtitle')}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                                     {[
-                                        { label: 'Tahun', value: duration.years ?? 0 },
-                                        { label: 'Bulan', value: duration.months ?? 0 },
-                                        { label: 'Hari', value: duration.days ?? 0 },
-                                        { label: 'Jam', value: duration.hours ?? 0 },
+                                        { label: __('age.time.years'), value: duration.years ?? 0 },
+                                        { label: __('age.time.months'), value: duration.months ?? 0 },
+                                        { label: __('age.time.days'), value: duration.days ?? 0 },
+                                        { label: __('age.time.hours'), value: duration.hours ?? 0 },
                                     ].map((item) => (
                                         <div
                                             key={item.label}
@@ -178,11 +185,11 @@ export default function AgeIndex() {
                                 <div className="mt-6 flex flex-wrap items-center justify-center gap-3 border-t border-gray-100 pt-6 text-sm text-gray-500">
                                     <span className="inline-flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1">
                                         <Timer className="h-4 w-4 text-gray-500" />
-                                        {duration.minutes ?? 0} menit
+                                        {duration.minutes ?? 0} {__('age.time.minutes').toLowerCase()}
                                     </span>
                                     <span className="inline-flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1">
                                         <Clock3 className="h-4 w-4 text-gray-500" />
-                                        {duration.seconds ?? 0} detik
+                                        {duration.seconds ?? 0} {__('age.time.seconds').toLowerCase()}
                                     </span>
                                 </div>
                             </div>
@@ -191,9 +198,9 @@ export default function AgeIndex() {
                         {/* Breakdown */}
                         <div className="space-y-4">
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-800">Dalam satuan waktu</h2>
+                                <h2 className="text-sm font-semibold text-gray-800">{__('age.breakdown.title')}</h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Ringkasan umur saya dalam berbagai skala.
+                                    {__('age.breakdown.subtitle')}
                                 </p>
                             </div>
 
@@ -226,9 +233,9 @@ export default function AgeIndex() {
                         {/* Quick stats */}
                         <div className="space-y-4">
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-800">Catatan kecil</h2>
+                                <h2 className="text-sm font-semibold text-gray-800">{__('age.notes.title')}</h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Beberapa angka menarik dari perjalanan waktu saya.
+                                    {__('age.notes.subtitle')}
                                 </p>
                             </div>
 
@@ -261,7 +268,7 @@ export default function AgeIndex() {
                         {/* Footer time */}
                         <div className="pt-2 text-center">
                             <p className="text-sm text-gray-400">
-                                {format(now, 'EEEE, d MMMM yyyy • HH:mm:ss', { locale: id })}
+                                {format(now, 'EEEE, d MMMM yyyy • HH:mm:ss', { locale: dateLocale })}
                             </p>
                         </div>
                     </div>

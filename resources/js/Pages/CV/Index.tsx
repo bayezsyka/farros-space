@@ -1,7 +1,9 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Download, ArrowLeft } from 'lucide-react';
 import { formatExperienceDate } from '@/lib/utils';
+import useTranslation from '@/Hooks/useTranslation';
+import { PageProps } from '@/types';
 
 interface Profile {
     full_name?: string;
@@ -52,27 +54,6 @@ interface Props {
     lang: 'id' | 'en';
 }
 
-const translations = {
-    id: {
-        summary: "Ringkasan",
-        education: "Pendidikan",
-        experience: "Pengalaman",
-        home: "Beranda",
-        download: "Download",
-        present: "Sekarang",
-        contact: "Kontak",
-    },
-    en: {
-        summary: "Summary",
-        education: "Education",
-        experience: "Experience",
-        home: "Home",
-        download: "Download",
-        present: "Present",
-        contact: "Contact",
-    }
-};
-
 // ─── Reusable styled section header (bold, uppercase, underlined) ───────────
 function SectionHeader({ title }: { title: string }) {
     return (
@@ -95,8 +76,8 @@ function SectionHeader({ title }: { title: string }) {
 
 // ─── Main CV content - shared between screen preview and print ───────────────
 function CVContent({ profile, education, experiences, lang }: { profile: Profile | null; education: EducationItem[]; experiences: Experience[]; lang: 'id' | 'en' }) {
-    const t = translations[lang];
-    const name = profile?.full_name || 'Nama Lengkap';
+    const { __ } = useTranslation();
+    const name = profile?.full_name || __('cv.name_placeholder');
     const headline = profile?.headline || '';
     const email = profile?.email || '';
     const phone = profile?.phone || '';
@@ -161,7 +142,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ RINGKASAN ══════════ */}
             {bio && (
                 <>
-                    <SectionHeader title={t.summary} />
+                    <SectionHeader title={__('cv.summary')} />
                     <p style={{ margin: '0 0 4px', textAlign: 'justify', fontSize: '10pt', color: '#000', lineHeight: '1.45' }}>
                         {bio}
                     </p>
@@ -171,7 +152,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ PENDIDIKAN ══════════ */}
             {education.length > 0 && (
                 <>
-                    <SectionHeader title={t.education} />
+                    <SectionHeader title={__('cv.education')} />
                     <div style={{ marginBottom: '8px' }}>
                         {education.map((edu) => (
                             <div key={edu.id} style={{ marginBottom: '6px' }}>
@@ -180,7 +161,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                         {edu.institution}
                                     </span>
                                     <span style={{ fontSize: '10pt', whiteSpace: 'nowrap', paddingLeft: '12px' }}>
-                                        {edu.start_year} – {edu.end_year === 'now' ? t.present : (edu.end_year || t.present)}
+                                        {edu.start_year || ''} – {edu.end_year === 'now' ? __('cv.present') : (edu.end_year || __('cv.present'))}
                                     </span>
                                 </div>
                                 {edu.program_major && (
@@ -199,7 +180,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ PENGALAMAN ══════════ */}
             {experiences.length > 0 && (
                 <>
-                    <SectionHeader title={t.experience} />
+                    <SectionHeader title={__('cv.experience')} />
                     <div>
                         {experiences.map((exp) => (
                             <div key={exp.id} style={{ marginBottom: '10px' }}>
@@ -262,8 +243,8 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
 
 // ─── Page component ──────────────────────────────────────────────────────────
 export default function CVIndex({ profile, education, experiences, lang }: Props) {
-    const t = translations[lang];
-    const name = profile?.full_name || 'CV';
+    const { __ } = useTranslation();
+    const name = profile?.full_name || __('cv.title_placeholder');
 
     // Helper to get route with specific lang
     const getLangRoute = (l: 'id' | 'en') => {
@@ -274,7 +255,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
 
     return (
         <>
-            <Head title={`CV – ${name}`} />
+            <Head title={`${__('cv.head_prefix')} – ${name}`} />
 
             {/* ── SIMPLE FLOATING ACTIONS (hidden on print) ── */}
             <div className="no-print" style={{
@@ -298,14 +279,14 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                     }}>EN</a>
                 </div>
 
-                <a href={route('landing')} style={{
+                <a href={route('landing', { locale: lang })} style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
                     background: '#fff', color: '#111827', border: '1px solid #e5e7eb', borderRadius: '12px',
                     padding: '10px 16px', fontSize: '14px', fontWeight: 600,
                     fontFamily: 'sans-serif', textDecoration: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s'
                 }}>
-                    <ArrowLeft size={18} /> {t.home}
+                    <ArrowLeft size={18} /> {__('cv.home')}
                 </a>
                 <button
                     onClick={() => window.print()}
@@ -317,7 +298,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                         transition: 'all 0.2s'
                     }}
                 >
-                    <Download size={18} /> {t.download}
+                    <Download size={18} /> {__('cv.download')}
                 </button>
             </div>
 

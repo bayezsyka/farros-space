@@ -23,37 +23,45 @@ class EloquentContentRepository implements ContentRepositoryInterface
 
     public function getThreadPosts(): array
     {
-        return ThreadPost::withCount('comments')
+        return ThreadPost::select(['id', 'title', 'slug', 'content', 'image_url', 'likes_count', 'shares_count', 'visibility', 'allow_comments', 'tags', 'published_at', 'created_at'])
+            ->withCount('comments')
             ->whereNull('user_id')
             ->where('visibility', 'public')
             ->orderBy('created_at', 'desc')
+            ->limit(8)
             ->get()
             ->all();
     }
 
     public function getPublicThreads(): array
     {
-        return ThreadPost::with(['user', 'comments.user'])
+        return ThreadPost::select(['id', 'user_id', 'title', 'slug', 'content', 'image_url', 'likes_count', 'shares_count', 'visibility', 'allow_comments', 'tags', 'published_at', 'created_at'])
+            ->with(['user:id,name,avatar'])
             ->withCount('comments')
             ->whereNotNull('user_id')
             ->where('visibility', 'public')
             ->orderBy('created_at', 'desc')
+            ->limit(8)
             ->get()
             ->all();
     }
 
     public function getExperiences(): array
     {
-        return Experience::where('is_archived', false)
+        return Experience::select(['id', 'role', 'company_or_event_name', 'type', 'start_date', 'slug', 'is_archived'])
+            ->where('is_archived', false)
             ->withCount('updates')
             ->orderBy('start_date', 'desc')
+            ->limit(6)
             ->get()
             ->toArray();
     }
 
     public function getMarketplaceItems(): array
     {
-        return MarketplaceItem::orderBy('created_at', 'desc')
+        return MarketplaceItem::select(['id', 'slug', 'name', 'price', 'status', 'image_path', 'created_at'])
+            ->orderBy('created_at', 'desc')
+            ->limit(6)
             ->get()
             ->toArray();
     }

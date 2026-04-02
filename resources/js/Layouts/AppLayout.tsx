@@ -3,9 +3,10 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays, Briefcase, Download } from 'lucide-react';
+import { Menu, X, ShoppingBag, MessageSquare, Mail, LayoutDashboard, Home, CalendarDays, Briefcase, Download, LogIn, LogOut, Monitor, Sun, Moon } from 'lucide-react';
 import ThemeToggle from '@/Components/ThemeToggle';
 import useTranslation from '@/Hooks/useTranslation';
+import { useTheme } from '@/Contexts/ThemeProvider';
 
 interface Props {
     children: React.ReactNode;
@@ -16,6 +17,7 @@ interface Props {
 export default function AppLayout({ children, title, overlayHeader }: Props) {
     const { auth } = usePage<PageProps>().props;
     const user = auth.user;
+    const { theme, setTheme } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -65,30 +67,26 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
             <header
                 className={`
-                    fixed top-0 left-0 right-0 z-[100] w-full transition-all duration-300 ease-in-out
+                    fixed left-0 right-0 z-[100] w-full transition-all duration-300 ease-in-out
                     ${overlayHeader
                         ? scrolled
-                            ? 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm py-0'
-                            : 'bg-transparent border-transparent py-2'
-                        : 'relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm'
+                            ? 'bg-background/95 backdrop-blur border-b shadow-sm'
+                            : 'bg-transparent border-transparent'
+                        : 'bg-background/95 backdrop-blur border-b shadow-sm'
                     }
                 `}
             >
-                <Container className="flex h-14 md:h-[60px] items-center justify-between gap-4">
-                    {/* Logo */}
-                    <Link href={route('landing')} className="z-50 group flex-shrink-0">
-                        <Typography variant="large" className="font-bold tracking-tight text-sm md:text-base">
-                            farros.space
-                        </Typography>
-                    </Link>
-
+                <Container className="flex h-16 md:h-[72px] items-center justify-between gap-4">
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-1">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.label}
                                 href={link.href}
-                                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all ${route().current(link.href.split('/').pop() || '')
+                                    ? 'text-primary bg-primary/5'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                             >
                                 {link.icon && <link.icon className="w-3.5 h-3.5" />}
                                 {link.label}
@@ -96,88 +94,100 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                         ))}
                     </nav>
 
-                    {/* Desktop Right side */}
-                    <div className="hidden md:flex items-center gap-2">
-                        {user?.is_admin && (
-                            <>
-                                <Link
-                                    href={route('dashboard')}
-                                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                                >
-                                    <LayoutDashboard className="w-3.5 h-3.5" />
-                                    {__('Dashboard')}
-                                </Link>
-                                <div className="flex items-center gap-2 pl-2 border-l border-border ml-1">
-                                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
-                                        {user.name.charAt(0)}
+                    {/* Right side controls */}
+                    <div className="flex items-center gap-2">
+                        {/* ── Desktop Account / Sticky Side ── */}
+                        <div className="hidden md:flex items-center gap-2">
+                            {user ? (
+                                <>
+                                    {user.is_admin && (
+                                        <Link
+                                            href={route('dashboard')}
+                                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                                        >
+                                            <LayoutDashboard className="w-3.5 h-3.5" />
+                                            {__('Dashboard')}
+                                        </Link>
+                                    )}
+                                    <div className="flex items-center gap-2 pl-2 border-l border-border ml-1 pr-1 mr-1">
+                                        {user.avatar ? (
+                                            <img src={user.avatar} className="w-7 h-7 rounded-full border border-primary/20 object-cover" alt={user.name} />
+                                        ) : (
+                                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
+                                                {user.name.charAt(0)}
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium text-muted-foreground hidden lg:inline mr-1">{user.name}</span>
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
+                                        >
+                                            <LogOut className="w-3.5 h-3.5" />
+                                            {__('Logout')}
+                                        </Link>
                                     </div>
-                                    <span className="text-sm font-medium text-muted-foreground">{user.name}</span>
-                                    <Link
-                                        href={route('logout')}
-                                        method="post"
-                                        as="button"
-                                        className="text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
-                                    >
-                                        {__('Logout')}
+                                </>
+                            ) : (
+                                <a
+                                    href={route('auth.google')}
+                                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl bg-primary text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95 mr-2"
+                                >
+                                    <LogIn className="w-3.5 h-3.5" />
+                                    {__('Login with Google')}
+                                </a>
+                            )}
+                        </div>
+
+                        {/* ── Utility Section (Hides on Scroll, Desktop Only) ── */}
+                        <div
+                            className={`hidden md:flex items-center gap-2 transition-all duration-500 origin-right ${scrolled
+                                ? 'opacity-0 scale-95 pointer-events-none max-w-0 -mr-2 overflow-hidden'
+                                : 'opacity-100 scale-100 max-w-md'
+                                }`}
+                        >
+                            {/* Language Switcher */}
+                            <div className="flex items-center gap-1.5 pr-2 border-r border-border/50 mr-1 hidden sm:flex">
+                                <button
+                                    onClick={() => changeLocale('id')}
+                                    className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'id' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                                >
+                                    ID
+                                </button>
+                                <button
+                                    onClick={() => changeLocale('en')}
+                                    className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                                >
+                                    EN
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <ThemeToggle />
+                                <div className="hidden md:flex items-center gap-2">
+                                    <Link href="/contact" className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
+                                        <Mail className="w-3.5 h-3.5" />
+                                        {__('Contact')}
+                                    </Link>
+                                    <Link href="/cv" className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
+                                        <Download className="w-3.5 h-3.5" />
+                                        {__('CV')}
                                     </Link>
                                 </div>
-                            </>
-                        )}
+                            </div>
+                        </div>
 
-                        <div className="flex items-center gap-2 pr-2 border-r border-border mr-2">
-                            <button 
-                                onClick={() => changeLocale('id')}
-                                className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'id' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                        {/* MOBILE: Menu Trigger */}
+                        <div className="md:hidden ml-1">
+                            <button
+                                className="z-50 p-2 -mr-1 transition-opacity hover:opacity-70 focus:outline-none"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                aria-label="Toggle menu"
                             >
-                                ID
-                            </button>
-                            <button 
-                                onClick={() => changeLocale('en')}
-                                className={`text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center transition-all ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-                            >
-                                EN
+                                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                             </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <ThemeToggle />
-                            <Link href="/contact">
-                                <button className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
-                                    <Mail className="w-3.5 h-3.5" />
-                                    {__('Contact')}
-                                </button>
-                            </Link>
-                            <Link href="/cv">
-                                <button className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
-                                    <Download className="w-3.5 h-3.5" />
-                                    {__('CV')}
-                                </button>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 md:hidden">
-                        <div className="flex items-center gap-1.5 mr-1 pr-1.5 border-r border-border/50">
-                            <button 
-                                onClick={() => changeLocale('id')}
-                                className={`text-[9px] font-black w-5 h-5 rounded-md flex items-center justify-center ${locale === 'id' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                            >
-                                ID
-                            </button>
-                            <button 
-                                onClick={() => changeLocale('en')}
-                                className={`text-[9px] font-black w-5 h-5 rounded-md flex items-center justify-center ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                            >
-                                EN
-                            </button>
-                        </div>
-                        <ThemeToggle />
-                        <button
-                            className="z-50 p-2 -mr-1 transition-opacity hover:opacity-70 focus:outline-none"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-label="Toggle menu"
-                        >
-                            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                        </button>
                     </div>
                 </Container>
             </header>
@@ -185,7 +195,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
             {/* Backdrop */}
             <div
                 className={`fixed left-0 right-0 bottom-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                style={{ top: '57px' }}
+                style={{ top: '72px' }}
                 onClick={() => setMobileMenuOpen(false)}
             />
 
@@ -193,77 +203,147 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
             <div
                 className={`fixed left-0 right-0 z-40 bg-background border-b border-border shadow-2xl transition-all duration-300 ease-in-out md:hidden rounded-b-3xl overflow-hidden ${mobileMenuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-3 pointer-events-none'
                     }`}
-                style={{ top: '57px' }}
+                style={{ top: '72px' }}
             >
-                <nav className="flex flex-col p-5 space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pt-1 pb-2">{__('Menu')}</p>
+                <nav className="flex flex-col p-4 space-y-0.5">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-3 pt-1 pb-1.5">{__('Menu')}</p>
 
                     {navLinks.map((link) => (
                         <Link
                             key={link.label}
                             href={link.href}
-                            className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
+                            className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-2xl transition-all active:scale-[0.98] ${route().current(link.href.split('/').pop() || '')
+                                ? 'bg-primary/5 text-primary'
+                                : 'text-foreground/80 hover:bg-muted'
+                                }`}
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            {link.icon && <link.icon className="w-5 h-5 text-muted-foreground flex-shrink-0" />}
+                            <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${route().current(link.href.split('/').pop() || '')
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-muted/50 text-muted-foreground'
+                                }`}>
+                                {link.icon && <link.icon className="w-3.5 h-3.5" />}
+                            </div>
                             {link.label}
                         </Link>
                     ))}
-                    {user?.is_admin && (
-                        <>
-                            <div className="border-t border-border/50 my-2" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 pb-2">{__('Account')}</p>
 
-                            <Link
-                                href={route('dashboard')}
-                                className="flex items-center gap-4 px-4 py-3.5 text-base font-medium rounded-2xl hover:bg-muted transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
-                                {__('Dashboard')}
-                            </Link>
+                    <div className="border-t border-border/40 my-2 mx-1" />
 
-                            <div className="flex items-center gap-3 px-4 py-3">
-                                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 flex-shrink-0">
-                                    {user.name.charAt(0)}
-                                </div>
+                    {user ? (
+                        <div className="space-y-0.5">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-3 pb-1.5">{__('Account')}</p>
+
+                            <div className="flex items-center gap-3 px-3 py-1.5 bg-muted/20 rounded-2xl border border-border/30 mb-1 mx-1">
+                                {user.avatar ? (
+                                    <img src={user.avatar} className="w-7 h-7 rounded-full border border-primary/20 object-cover flex-shrink-0" alt={user.name} />
+                                ) : (
+                                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/20 flex-shrink-0">
+                                        {user.name.charAt(0)}
+                                    </div>
+                                )}
                                 <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
-                                    <p className="text-xs text-muted-foreground">Admin</p>
+                                    <p className="text-xs font-bold text-foreground truncate leading-tight">{user.name}</p>
+                                    <p className="text-[10px] font-medium text-muted-foreground truncate">{user.is_admin ? 'Admin Utama' : __('User')}</p>
                                 </div>
                             </div>
+
+                            {user.is_admin && (
+                                <Link
+                                    href={route('dashboard')}
+                                    className="flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-2xl text-foreground/80 hover:bg-muted transition-all active:scale-[0.98]"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <div className="w-7 h-7 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground">
+                                        <LayoutDashboard className="w-3.5 h-3.5" />
+                                    </div>
+                                    {__('Dashboard')}
+                                </Link>
+                            )}
 
                             <Link
                                 href={route('logout')}
                                 method="post"
                                 as="button"
-                                className="flex items-center px-4 py-3.5 text-base font-medium text-destructive rounded-2xl hover:bg-destructive/5 transition-colors w-full text-left"
+                                className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-destructive rounded-2xl hover:bg-destructive/5 transition-all w-full text-left active:scale-[0.98]"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
+                                <div className="w-7 h-7 rounded-xl bg-destructive/5 flex items-center justify-center text-destructive/70">
+                                    <LogOut className="w-3.5 h-3.5" />
+                                </div>
                                 {__('Logout')}
                             </Link>
-                        </>
+                        </div>
+                    ) : (
+                        <div className="px-1 py-1">
+                            <a
+                                href={route('auth.google')}
+                                className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-2xl bg-primary text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.97] transition-all"
+                            >
+                                <LogIn className="w-4 h-4" />
+                                {__('Login with Google')}
+                            </a>
+                        </div>
                     )}
 
-                    <div className="border-t border-border/50 my-2" />                    <div className="flex gap-2 px-3">
+                    <div className="border-t border-border/40 my-2 mx-1" />
+
+                    <div className="flex gap-2 px-1">
                         <Link href={route('contact')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-muted px-4 py-4 text-xs font-bold text-foreground transition-all hover:bg-muted/80">
-                                <Mail className="w-4 h-4" />
-                                {__('Contact Me')}
+                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-muted/50 border border-border/50 px-2 py-2.5 text-[10px] font-bold text-foreground transition-all active:scale-[0.97]">
+                                <Mail className="w-3.5 h-3.5" />
+                                {__('Contact')}
                             </button>
                         </Link>
                         <Link href={route('cv.index')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-4 text-xs font-bold text-background transition-all hover:opacity-80">
-                                <Download className="w-4 h-4" />
+                            <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-2 py-2.5 text-[10px] font-bold text-background transition-all active:scale-[0.97]">
+                                <Download className="w-3.5 h-3.5" />
                                 {__('My CV')}
                             </button>
                         </Link>
+                    </div>
+
+                    {/* Language & Theme (Mobile Bottom) */}
+                    <div className="mt-4 p-2 bg-muted/20 rounded-2xl border border-border/30">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex p-0.5 bg-background/50 rounded-lg border border-border/50">
+                                <button
+                                    onClick={() => changeLocale('id')}
+                                    className={`text-[9px] font-black px-2.5 py-1.5 rounded-md transition-all ${locale === 'id' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}
+                                >
+                                    ID
+                                </button>
+                                <button
+                                    onClick={() => changeLocale('en')}
+                                    className={`text-[9px] font-black px-2.5 py-1.5 rounded-md transition-all ${locale === 'en' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}
+                                >
+                                    EN
+                                </button>
+                            </div>
+
+                            <div className="flex p-0.5 bg-background/50 rounded-lg border border-border/50">
+                                {[
+                                    { id: 'light', icon: Sun },
+                                    { id: 'dark', icon: Moon },
+                                    { id: 'system', icon: Monitor }
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setTheme(t.id as any)}
+                                        className={`p-1.5 rounded-md transition-all ${theme === t.id ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-muted/50'}`}
+                                        aria-label={`Set theme to ${t.id}`}
+                                    >
+                                        <t.icon className="w-3.5 h-3.5" />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </nav>
             </div>
 
             {/* Main Content */}
-            <main className="flex-1">
+            <main className={`flex-1 ${!overlayHeader ? 'pt-16 md:pt-[72px]' : ''}`}>
                 {children}
             </main>
 

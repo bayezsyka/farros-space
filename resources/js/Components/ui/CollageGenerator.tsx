@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import useTranslation from '@/Hooks/useTranslation';
 import { X, Download, RefreshCw, Loader2, Layers, MapPin } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -12,6 +13,7 @@ interface MarketplaceItem {
 interface CollageGeneratorProps {
     items: MarketplaceItem[];
     waNumber: string;
+    lang: 'id' | 'en';
     onClose: () => void;
 }
 
@@ -43,11 +45,11 @@ const BG_COLOR = '#FFFFFF';
 
 const nextFrame = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
 
-function formatPrice(price: string | null): string {
-    if (!price) return 'Hubungi kami';
+function formatPrice(price: string | null, lang: 'id' | 'en'): string {
+    if (!price) return lang === 'id' ? 'Hubungi kami' : 'Contact us';
     const n = Number(price);
     if (!Number.isNaN(n))
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+        return new Intl.NumberFormat(lang === 'id' ? 'id-ID' : 'en-US', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
             .format(n).replace('IDR', 'Rp').trim();
     return price;
 }
@@ -126,6 +128,7 @@ function drawPhotoCell(
     img: HTMLImageElement | null,
     item: MarketplaceItem,
     x: number, y: number, w: number, h: number,
+    lang: 'id' | 'en',
 ) {
     // Draw photo (cover-fit)
     ctx.save();
@@ -175,7 +178,7 @@ function drawPhotoCell(
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${Math.max(7, Math.round(badgeH * 0.65))}px ${FONT_FAMILY}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(item.status === 'baru' ? 'BARU' : 'BEKAS', badgeX + badgeW / 2, badgeY + badgeH / 2);
+    ctx.fillText(item.status === 'baru' ? (lang === 'id' ? 'BARU' : 'NEW') : (lang === 'id' ? 'BEKAS' : 'USED'), badgeX + badgeW / 2, badgeY + badgeH / 2);
 
     // Name
     const pad = Math.round(w * 0.05);
@@ -191,7 +194,7 @@ function drawPhotoCell(
     // Price
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = `600 ${priceFontSz}px ${FONT_FAMILY}`;
-    ctx.fillText(truncate(ctx, formatPrice(item.price), w - pad * 2), x + pad, nameY + nameFontSz + 4);
+    ctx.fillText(truncate(ctx, formatPrice(item.price, lang), w - pad * 2), x + pad, nameY + nameFontSz + 4);
 
     ctx.restore();
 }
@@ -202,6 +205,7 @@ async function drawQRPanel(
     ctx: CanvasRenderingContext2D,
     x: number, y: number, w: number, h: number,
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     // 1. Background - Premium white
     ctx.fillStyle = '#FFFFFF';
@@ -227,7 +231,7 @@ async function drawQRPanel(
     ctx.fillStyle = '#71717A'; // Monochrome grey
     ctx.font = `600 ${labelSz}px ${FONT_FAMILY}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('Scan untuk lebih detailnya', centerX, nextY);
+    ctx.fillText(lang === 'id' ? 'Scan untuk lebih detailnya' : 'Scan for more details', centerX, nextY);
 
     nextY += labelSz + Math.round(innerH * 0.05);
 
@@ -239,7 +243,7 @@ async function drawQRPanel(
         ctx.fillStyle = '#18181B'; // Monochrome black
         ctx.font = `700 ${addrSz}px ${FONT_FAMILY}`;
 
-        const fullAddr = `Lokasi: ${address}`;
+        const fullAddr = (lang === 'id' ? 'Lokasi: ' : 'Location: ') + address;
         const words = fullAddr.split(' ');
         let line = '';
         for (const word of words) {
@@ -274,6 +278,7 @@ function drawAddressBar(
     ctx: CanvasRenderingContext2D,
     x: number, y: number, w: number, h: number,
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     // Monochrome bar
     ctx.fillStyle = '#FFFFFF';
@@ -293,7 +298,8 @@ function drawAddressBar(
         ctx.font = `700 ${fontSize}px ${FONT_FAMILY}`;
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         const maxAddrW = waNumber ? w * 0.55 : w - pad * 2;
-        ctx.fillText(truncate(ctx, `Lokasi: ${address}`, maxAddrW), x + pad, centerY);
+        const addrLabel = lang === 'id' ? 'Lokasi: ' : 'Location: ';
+        ctx.fillText(truncate(ctx, addrLabel + address, maxAddrW), x + pad, centerY);
     }
 
     // WA on right
@@ -311,7 +317,8 @@ function drawAddressBar(
 async function render1Item(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     item: MarketplaceItem, img: HTMLImageElement | null,
-    address: string, waNumber: string
+    address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     // 1. Image cover
     if (img) {
@@ -345,7 +352,7 @@ async function render1Item(
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${Math.max(10, Math.round(badgeH * 0.5))}px ${FONT_FAMILY}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(item.status === 'baru' ? 'BARU' : 'BEKAS', pad + badgeW / 2, pad + badgeH / 2);
+    ctx.fillText(item.status === 'baru' ? (lang === 'id' ? 'BARU' : 'NEW') : (lang === 'id' ? 'BEKAS' : 'USED'), pad + badgeW / 2, pad + badgeH / 2);
 
     // 2. Bottom shadow vignette (taller)
     const overlayH = Math.max(Math.round(H * 0.35), 300);
@@ -400,7 +407,8 @@ async function render1Item(
     if (address) {
         ctx.fillStyle = '#FFFFFF';
         ctx.font = `700 ${textSz}px ${FONT_FAMILY}`;
-        ctx.fillText(truncate(ctx, `Lokasi: ${address}`, panelW + 30), centerX, nextY);
+        const addrLabel = lang === 'id' ? 'Lokasi: ' : 'Location: ';
+        ctx.fillText(truncate(ctx, addrLabel + address, panelW + 30), centerX, nextY);
         nextY += lineH;
     }
     if (waNumber) {
@@ -426,14 +434,15 @@ async function render1Item(
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = `700 ${priceSz}px ${FONT_FAMILY}`;
-    ctx.fillText(truncate(ctx, formatPrice(item.price), infoMaxW), pad, priceY);
+    ctx.fillText(truncate(ctx, formatPrice(item.price, lang), infoMaxW), pad, priceY);
 }
 
 /** 2 item layout — split 50/50 dynamically based on orientation */
 async function render2Items(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     items: MarketplaceItem[], images: (HTMLImageElement | null)[],
-    address: string, waNumber: string
+    address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     const isHorizontalSplit = W >= H;
     const barH = Math.round(H * (isHorizontalSplit ? 0.05 : 0.035));
@@ -445,7 +454,7 @@ async function render2Items(
     for (let i = 0; i < 2; i++) {
         const cx = isHorizontalSplit ? i * cellW : 0;
         const cy = isHorizontalSplit ? 0 : i * cellH;
-        drawPhotoCell(ctx, images[i], items[i], cx, cy, cellW, cellH);
+        drawPhotoCell(ctx, images[i], items[i], cx, cy, cellW, cellH, lang);
     }
 
     // Divider
@@ -457,7 +466,7 @@ async function render2Items(
     }
 
     // Bottom bar
-    drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber);
+    drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber, lang);
 }
 
 /** 1:1 — 2×2 grid. If 3 items, 4th cell = QR panel */
@@ -465,6 +474,7 @@ async function render1x1(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     items: MarketplaceItem[], images: (HTMLImageElement | null)[],
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     const count = items.length;
     const showQR = count === 3; // max-1 = 3
@@ -486,15 +496,15 @@ async function render1x1(
         const ch = row === rows - 1 ? contentH - cy : cellH;
 
         if (showQR && i === 3) {
-            await drawQRPanel(ctx, cx, cy, cw, ch, address, waNumber);
+            await drawQRPanel(ctx, cx, cy, cw, ch, address, waNumber, lang);
         } else if (i < count) {
-            drawPhotoCell(ctx, images[i], items[i], cx, cy, cw, ch);
+            drawPhotoCell(ctx, images[i], items[i], cx, cy, cw, ch, lang);
         }
     }
 
     // Address bar at bottom (only if no QR panel)
     if (!showQR) {
-        drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber);
+        drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber, lang);
     }
 }
 
@@ -503,6 +513,7 @@ async function render4x3(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     items: MarketplaceItem[], images: (HTMLImageElement | null)[],
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     const count = Math.min(items.length, 5);
 
@@ -516,7 +527,7 @@ async function render4x3(
     for (let i = 0; i < topCount; i++) {
         const cx = i * topCellW;
         const cw = i === topCount - 1 ? W - cx : topCellW;
-        drawPhotoCell(ctx, images[i], items[i], cx, 0, cw, topRowH);
+        drawPhotoCell(ctx, images[i], items[i], cx, 0, cw, topRowH, lang);
     }
 
     // Bottom row: remaining photos + QR panel
@@ -528,13 +539,13 @@ async function render4x3(
         const idx = topCount + i;
         const cx = i * bottomCellW;
         const cw = bottomCellW;
-        drawPhotoCell(ctx, images[idx], items[idx], cx, topRowH, cw, bottomRowH);
+        drawPhotoCell(ctx, images[idx], items[idx], cx, topRowH, cw, bottomRowH, lang);
     }
 
     // QR panel in the last cell of bottom row
     const qrX = bottomPhotos * bottomCellW;
     const qrW = W - qrX;
-    await drawQRPanel(ctx, qrX, topRowH, qrW, bottomRowH, address, waNumber);
+    await drawQRPanel(ctx, qrX, topRowH, qrW, bottomRowH, address, waNumber, lang);
 
     // Thin grid lines for visual separation
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
@@ -555,6 +566,7 @@ async function render3x4(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     items: MarketplaceItem[], images: (HTMLImageElement | null)[],
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     const count = Math.min(items.length, 5);
 
@@ -568,7 +580,7 @@ async function render3x4(
     for (let i = 0; i < leftCount; i++) {
         const cy = i * leftCellH;
         const ch = i === leftCount - 1 ? H - cy : leftCellH;
-        drawPhotoCell(ctx, images[i], items[i], 0, cy, leftW, ch);
+        drawPhotoCell(ctx, images[i], items[i], 0, cy, leftW, ch, lang);
     }
 
     // Right column: remaining photos + QR
@@ -580,13 +592,13 @@ async function render3x4(
         const idx = leftCount + i;
         const cy = i * rightCellH;
         const ch = rightCellH;
-        drawPhotoCell(ctx, images[idx], items[idx], leftW, cy, rightW, ch);
+        drawPhotoCell(ctx, images[idx], items[idx], leftW, cy, rightW, ch, lang);
     }
 
     // QR panel
     const qrY = rightPhotos * rightCellH;
     const qrH = H - qrY;
-    await drawQRPanel(ctx, leftW, qrY, rightW, qrH, address, waNumber);
+    await drawQRPanel(ctx, leftW, qrY, rightW, qrH, address, waNumber, lang);
 
     // Thin grid lines
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
@@ -607,6 +619,7 @@ async function render9x16(
     ctx: CanvasRenderingContext2D, W: number, H: number,
     items: MarketplaceItem[], images: (HTMLImageElement | null)[],
     address: string, waNumber: string,
+    lang: 'id' | 'en',
 ) {
     const count = items.length;
     const showQR = count === 5; // max-1 = 5
@@ -628,9 +641,9 @@ async function render9x16(
         const ch = row === rows - 1 ? contentH - cy : cellH;
 
         if (showQR && i === 5) {
-            await drawQRPanel(ctx, cx, cy, cw, ch, address, waNumber);
+            await drawQRPanel(ctx, cx, cy, cw, ch, address, waNumber, lang);
         } else if (i < count) {
-            drawPhotoCell(ctx, images[i], items[i], cx, cy, cw, ch);
+            drawPhotoCell(ctx, images[i], items[i], cx, cy, cw, ch, lang);
         }
     }
 
@@ -645,14 +658,15 @@ async function render9x16(
 
     // Address bar at bottom (only if no QR panel)
     if (!showQR) {
-        drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber);
+        drawAddressBar(ctx, 0, contentH, W, barH, address, waNumber, lang);
     }
 }
 
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function CollageGenerator({ items, waNumber, onClose }: CollageGeneratorProps) {
+export default function CollageGenerator({ items, waNumber, lang, onClose }: CollageGeneratorProps) {
+    const { __ } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const genIdRef = useRef(0);
     const mountedRef = useRef(false);
@@ -746,23 +760,23 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
             if (!mountedRef.current || genIdRef.current !== myGen) return;
 
             if (visibleItems.length === 1) {
-                await render1Item(ctx, W, H, visibleItems[0], images[0], address, waNumber);
+                await render1Item(ctx, W, H, visibleItems[0], images[0], address, waNumber, lang);
             } else if (visibleItems.length === 2) {
-                await render2Items(ctx, W, H, visibleItems, images, address, waNumber);
+                await render2Items(ctx, W, H, visibleItems, images, address, waNumber, lang);
             } else {
                 // Render based on resolution
                 switch (selectedRes.key) {
                     case '1:1':
-                        await render1x1(ctx, W, H, visibleItems, images, address, waNumber);
+                        await render1x1(ctx, W, H, visibleItems, images, address, waNumber, lang);
                         break;
                     case '4:3':
-                        await render4x3(ctx, W, H, visibleItems, images, address, waNumber);
+                        await render4x3(ctx, W, H, visibleItems, images, address, waNumber, lang);
                         break;
                     case '3:4':
-                        await render3x4(ctx, W, H, visibleItems, images, address, waNumber);
+                        await render3x4(ctx, W, H, visibleItems, images, address, waNumber, lang);
                         break;
                     case '9:16':
-                        await render9x16(ctx, W, H, visibleItems, images, address, waNumber);
+                        await render9x16(ctx, W, H, visibleItems, images, address, waNumber, lang);
                         break;
                 }
             }
@@ -816,7 +830,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
     const qrInfo = showQR ? ' · QR aktif' : '';
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none" role="dialog" aria-modal="true" aria-label="Generator Kolase">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none" role="dialog" aria-modal="true" aria-label={__("Collage Generator")}>
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-zinc-100">
 
                 {/* Header */}
@@ -826,7 +840,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                             <Layers className="w-4 h-4 text-violet-600" />
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-zinc-900">Generator Kolase</h2>
+                            <h2 className="text-base font-bold text-zinc-900">{__("Collage Generator")}</h2>
                             <p className="text-xs text-zinc-400 mt-0.5">{itemCountInfo}{qrInfo}</p>
                         </div>
                     </div>
@@ -840,8 +854,9 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                     <div className="mx-6 mt-4 px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl flex items-start gap-2.5 shrink-0">
                         <span className="text-amber-500 mt-0.5">⚠</span>
                         <p className="text-xs text-amber-700 leading-relaxed">
-                            Resolusi <span className="font-semibold">{selectedRes.key}</span> maksimal <span className="font-semibold">{selectedRes.maxItems} item</span>.
-                            {items.length - selectedRes.maxItems} item tidak ditampilkan.
+                            {__("Resolution :res max :max items.", { res: selectedRes.key, max: selectedRes.maxItems.toString() })}
+                            {" "}
+                            {__(":count items not shown.", { count: (items.length - selectedRes.maxItems).toString() })}
                         </p>
                     </div>
                 )}
@@ -852,7 +867,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
 
                         {/* Resolution buttons */}
                         <div>
-                            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2.5">Resolusi</label>
+                            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2.5">{__("Resolution")}</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {RESOLUTIONS.map(r => (
                                     <button
@@ -878,12 +893,12 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                         <div>
                             <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2">
                                 <MapPin className="w-3 h-3 inline mr-1" />
-                                Alamat Kolase
+                                {__("Collage Address")}
                             </label>
                             <textarea
                                 value={address}
                                 onChange={e => setAddress(e.target.value)}
-                                placeholder="Masukkan alamat singkat..."
+                                placeholder={__("Enter short address...")}
                                 rows={2}
                                 className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-300 text-zinc-800 placeholder-zinc-400 transition-all resize-none"
                             />
@@ -892,14 +907,14 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                         {/* WA Number display */}
                         {waNumber && (
                             <div className="bg-violet-50/60 border border-violet-100 rounded-xl px-3 py-2.5">
-                                <p className="text-[10px] text-violet-400 uppercase tracking-wider font-semibold">No. WhatsApp</p>
+                                <p className="text-[10px] text-violet-400 uppercase tracking-wider font-semibold">{__("WhatsApp No.")}</p>
                                 <p className="text-sm font-bold text-violet-700 mt-0.5">{waNumber}</p>
                             </div>
                         )}
 
                         {/* Item list */}
                         <div>
-                            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2">Item ({visibleItems.length})</label>
+                            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2">{__("Item (:count)", { count: visibleItems.length.toString() })}</label>
                             <div className="space-y-1.5 max-h-44 overflow-y-auto">
                                 {visibleItems.map((item, idx) => (
                                     <div key={item.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-50">
@@ -912,7 +927,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-xs font-semibold text-zinc-800 truncate">{item.name}</p>
-                                            <p className="text-[10px] text-zinc-400">{formatPrice(item.price)}</p>
+                                            <p className="text-[10px] text-zinc-400">{formatPrice(item.price, lang)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -936,7 +951,7 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
                                 <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
                                     <div className="flex flex-col items-center gap-3">
                                         <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
-                                        <p className="text-xs font-semibold text-zinc-500">Membuat kolase...</p>
+                                        <p className="text-xs font-semibold text-zinc-500">{__("Creating collage...")}</p>
                                     </div>
                                 </div>
                             )}
@@ -948,18 +963,18 @@ export default function CollageGenerator({ items, waNumber, onClose }: CollageGe
 
                 {/* Footer */}
                 <div className="flex flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-zinc-100 shrink-0 bg-white">
-                    <button type="button" onClick={generateCollage} disabled={generating} title="Refresh"
+                    <button type="button" onClick={generateCollage} disabled={generating} title={__("Refresh")}
                         className="p-2 sm:px-4 sm:py-2.5 rounded-xl border border-transparent sm:border-zinc-200 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
                         <RefreshCw className={`w-5 h-5 sm:w-4 sm:h-4 ${generating ? 'animate-spin' : ''}`} />
-                        <span className="hidden sm:inline">Refresh</span>
+                        <span className="hidden sm:inline">{__("Refresh")}</span>
                     </button>
                     <div className="flex gap-2 flex-1 sm:flex-none justify-end">
                         <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                            Batal
+                            {__("Cancel")}
                         </button>
                         <button type="button" onClick={handleDownload} disabled={!generated || generating}
                             className="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors disabled:opacity-40 shadow-sm">
-                            <Download className="w-4 h-4 shrink-0" /> Download
+                            <Download className="w-4 h-4 shrink-0" /> {__("Download")}
                         </button>
                     </div>
                 </div>

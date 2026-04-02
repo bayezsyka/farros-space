@@ -11,11 +11,15 @@ const CANVAS_SIZE = 1080;
 
 // ── Formatting ─────────────────────────────────────────────────────────────────
 
-export function formatPrice(price: number | null): string {
-    if (price === null) return 'Hubungi kami';
-    return new Intl.NumberFormat('id-ID', {
+export function formatPrice(price: number | null, lang: 'id' | 'en' = 'id'): string {
+    if (price === null) return lang === 'id' ? 'Hubungi kami' : 'Contact us';
+    
+    const locale = lang === 'id' ? 'id-ID' : 'en-US';
+    const currency = 'IDR';
+    
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: 'IDR',
+        currency: currency,
         maximumFractionDigits: 0,
     }).format(price).replace('IDR', 'Rp').trim();
 }
@@ -31,11 +35,18 @@ export interface ShareableItem {
 }
 
 /** Full caption with link — used for text-only share (no file) */
-export function buildShareCaption(item: ShareableItem): string {
+export function buildShareCaption(item: ShareableItem, lang: 'id' | 'en' = 'id'): string {
     const lines: string[] = [];
+    const statusText = item.status === 'baru' 
+        ? (lang === 'id' ? '✨ Barang Baru' : '✨ New Item')
+        : (lang === 'id' ? '🔄 Barang Bekas' : '🔄 Used Item');
+    
+    const priceLabel = lang === 'id' ? 'Harga' : 'Price';
+    const statusLabel = lang === 'id' ? 'Status' : 'Status';
+
     lines.push(`*${item.name}*`);
-    lines.push(`Status: ${item.status === 'baru' ? '✨ Barang Baru' : '🔄 Barang Bekas'}`);
-    lines.push(`Harga: ${formatPrice(item.price)}`);
+    lines.push(`${statusLabel}: ${statusText}`);
+    lines.push(`${priceLabel}: ${formatPrice(item.price, lang)}`);
     if (item.description?.trim()) {
         lines.push('');
         lines.push(item.description.trim());
@@ -49,10 +60,14 @@ export function buildShareCaption(item: ShareableItem): string {
  * Short caption for photo share (no URL — QR code on the image already has it).
  * Goes into WhatsApp's "Add a message..." / caption field alongside the photo.
  */
-export function buildImageCaption(item: ShareableItem): string {
+export function buildImageCaption(item: ShareableItem, lang: 'id' | 'en' = 'id'): string {
     const lines: string[] = [];
+    const statusText = item.status === 'baru' 
+        ? (lang === 'id' ? '✨ Barang Baru' : '✨ New Item')
+        : (lang === 'id' ? '🔄 Barang Bekas' : '🔄 Used Item');
+
     lines.push(`*${item.name}*`);
-    lines.push(`${item.status === 'baru' ? '✨ Barang Baru' : '🔄 Barang Bekas'} · ${formatPrice(item.price)}`);
+    lines.push(`${statusText} · ${formatPrice(item.price, lang)}`);
     if (item.description?.trim()) {
         lines.push('');
         lines.push(item.description.trim());
@@ -107,7 +122,7 @@ async function fetchQR(url: string, size: number): Promise<HTMLImageElement | nu
 }
 
 /** Identical to CollageGenerator render1Item */
-async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, item: ShareableItem, photoImg: HTMLImageElement | null) {
+async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, item: ShareableItem, photoImg: HTMLImageElement | null, lang: 'id' | 'en' = 'id') {
     const pad = Math.round(Math.min(W, H) * 0.05);
     const waNumber = item.whatsapp?.replace(/\D/g, '') ?? '';
 
@@ -125,8 +140,8 @@ async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, i
     }
 
     // 2. Status badge (top-left)
-    const badgeW = Math.max(60, Math.round(W * 0.1));
-    const badgeH = Math.max(24, Math.round(badgeW * 0.4));
+    const badgeW = Math.max(60, Math.round(W * 0.12));
+    const badgeH = Math.max(24, Math.round(badgeW * 0.35));
     ctx.fillStyle = item.status === 'baru' ? '#10B981' : '#F59E0B';
     ctx.beginPath();
     if (typeof (ctx as any).roundRect === 'function') {
@@ -135,7 +150,15 @@ async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, i
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${Math.max(10, Math.round(badgeH * 0.5))}px ${FONT}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(item.status === 'baru' ? 'BARU' : 'BEKAS', pad + badgeW / 2, pad + badgeH / 2);
+    
+    let statusLabel = '';
+    if (item.status === 'baru') {
+        statusLabel = lang === 'id' ? 'BARU' : 'NEW';
+    } else {
+        statusLabel = lang === 'id' ? 'BEKAS' : 'USED';
+    }
+    
+    ctx.fillText(statusLabel, pad + badgeW / 2, pad + badgeH / 2);
 
     // 3. Bottom dark vignette
     const overlayH = Math.max(Math.round(H * 0.35), 300);
@@ -148,12 +171,11 @@ async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, i
     // 4. QR code (bottom-right)
     const qrSize = Math.min(Math.round(W * 0.18), 180);
     const textSz = Math.max(10, Math.round(qrSize * 0.1));
-    const lineH = textSz + 6;
     const panelW = qrSize + 24;
     const panelX = W - pad - panelW;
     const centerX = panelX + panelW / 2;
     let contentH = qrSize + 8;
-    if (waNumber) contentH += lineH;
+    if (waNumber) contentH += (textSz + 6);
     const panelY = H - pad - contentH;
 
     ctx.fillStyle = '#FFFFFF';
@@ -188,7 +210,7 @@ async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, i
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = `700 ${priceSz}px ${FONT}`;
-    ctx.fillText(trunc(ctx, formatPrice(item.price), infoMaxW), pad, priceY);
+    ctx.fillText(trunc(ctx, formatPrice(item.price, lang), infoMaxW), pad, priceY);
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────────
@@ -197,7 +219,7 @@ async function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, i
  * Generate a 1080×1080 poster as a Blob.
  * Returns null if canvas is not available (SSR) or generation fails.
  */
-export async function generateShareBlob(item: ShareableItem): Promise<Blob | null> {
+export async function generateShareBlob(item: ShareableItem, lang: 'id' | 'en' = 'id'): Promise<Blob | null> {
     if (typeof document === 'undefined') return null;
     try {
         const canvas = document.createElement('canvas');
@@ -209,7 +231,7 @@ export async function generateShareBlob(item: ShareableItem): Promise<Blob | nul
         try { (ctx as any).imageSmoothingQuality = 'high'; } catch { /* noop */ }
 
         const photoImg = item.image_path ? await loadImg(item.image_path) : null;
-        await drawPoster(ctx, CANVAS_SIZE, CANVAS_SIZE, item, photoImg);
+        await drawPoster(ctx, CANVAS_SIZE, CANVAS_SIZE, item, photoImg, lang);
 
         return new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
     } catch {

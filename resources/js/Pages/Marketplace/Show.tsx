@@ -86,18 +86,18 @@ export default function Show({ item }: Props) {
         let cancelled = false;
         (async () => {
             setShareGenerating(true);
-            const blob = await generateShareBlob(item);
+            const blob = await generateShareBlob(item, locale as any);
             if (!cancelled) {
                 setShareBlob(blob);
                 setShareGenerating(false);
             }
         })();
         return () => { cancelled = true; };
-    }, [item]);
+    }, [item, locale]);
 
     // ── Share handler ─────────────────────────────────────────────────────────
     const handleShare = useCallback(async () => {
-        const caption = buildShareCaption(item);
+        const caption = buildShareCaption(item, locale as any);
         const itemUrl = `https://farros.space/marketplace/${item.slug}`;
 
         // Share image + short caption → goes into WA's caption field (1 message, not 2)
@@ -107,7 +107,7 @@ export default function Show({ item }: Props) {
                 try {
                     await navigator.share({
                         files: [file],
-                        text: buildImageCaption(item), // short caption, no URL (QR has it)
+                        text: buildImageCaption(item, locale as any), // short caption, no URL (QR has it)
                         title: item.name,
                     });
                     return;
@@ -217,6 +217,7 @@ export default function Show({ item }: Props) {
                                                     src={detail.foto_path}
                                                     alt={__('Detail photo :number', { number: (idx + 1).toString() })}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    loading="lazy"
                                                 />
                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
                                                 <div className="absolute bottom-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -237,7 +238,7 @@ export default function Show({ item }: Props) {
                             <div>
                                 <div className="flex items-start justify-between gap-4">
                                     <h1 className="text-3xl md:text-4xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
-                                        {item.name}
+                                        {locale === 'en' ? (item.name_en || item.name) : (item.name_id || item.name)}
                                     </h1>
                                     <button
                                         onClick={handleShare}
@@ -255,11 +256,11 @@ export default function Show({ item }: Props) {
                                     <div className="inline-flex items-center gap-1.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 px-4 py-2 rounded-xl">
                                         <Tag className="w-4 h-4" />
                                         <span className="text-lg font-black">
-                                            {new Intl.NumberFormat('id-ID', {
+                                            {new Intl.NumberFormat(locale === 'id' ? 'id-ID' : 'en-US', {
                                                 style: 'currency',
                                                 currency: 'IDR',
                                                 minimumFractionDigits: 0,
-                                            }).format(item.price ?? 0)}
+                                            }).format(item.price ?? 0).replace('IDR', 'Rp')}
                                         </span>
                                     </div>
                                 </div>
@@ -340,7 +341,7 @@ export default function Show({ item }: Props) {
                     <button
                         onClick={closeLightbox}
                         className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transition-colors"
-                        aria-label="Tutup"
+                        aria-label={__("Close")}
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -359,7 +360,7 @@ export default function Show({ item }: Props) {
                         <button
                             onClick={(e) => { e.stopPropagation(); prev(); }}
                             className="absolute left-4 md:left-8 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white flex items-center justify-center transition-colors"
-                            aria-label="Sebelumnya"
+                            aria-label={__("Prev")}
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -386,7 +387,7 @@ export default function Show({ item }: Props) {
                         <button
                             onClick={(e) => { e.stopPropagation(); next(); }}
                             className="absolute right-4 md:right-8 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white flex items-center justify-center transition-colors"
-                            aria-label="Berikutnya"
+                            aria-label={__("Next")}
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -403,7 +404,7 @@ export default function Show({ item }: Props) {
                                     onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
                                     className={`shrink-0 w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${i === lightboxIndex ? 'border-white scale-110 shadow-lg' : 'border-white/30 hover:border-white/70 opacity-60 hover:opacity-100'}`}
                                 >
-                                    <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                                    <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
                                 </button>
                             ))}
                         </div>

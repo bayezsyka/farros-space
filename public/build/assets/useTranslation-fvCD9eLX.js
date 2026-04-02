@@ -1,1 +1,0 @@
-import{a as o}from"./app-C88F0HBC.js";function e(){const{translations:a}=o().props;return{__:(r,n={})=>{let t=a&&a[r]||r;return Object.keys(n).forEach(s=>{t=String(t).replace(`:${s}`,n[s])}),t}}}export{e as u};

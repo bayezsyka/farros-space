@@ -123,7 +123,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                 >
                                     <div className="aspect-[4/3] bg-muted/50 relative overflow-hidden">
                                         {item.image_path ? (
-                                            <img src={item.image_path} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <img src={item.image_path} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
                                                 <ShoppingBag className="w-6 h-6 text-muted-foreground/30" />
@@ -179,10 +179,10 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                     >
                                         <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0 border border-border/50">
                                             {thread.is_owner ? (
-                                                <img src={profile?.avatar_url || '/images/hero-foto-saya.png'} className="w-full h-full object-cover" />
+                                                <img src={profile?.avatar_url || '/images/hero-foto-saya.webp'} className="w-full h-full object-cover" loading="lazy" decoding="async" width="32" height="32" />
                                             ) : (
                                                 thread.user?.avatar ? (
-                                                    <img src={thread.user.avatar} className="w-full h-full object-cover" />
+                                                    <img src={thread.user.avatar} className="w-full h-full object-cover" loading="lazy" decoding="async" width="32" height="32" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold bg-primary/10 text-primary uppercase">
                                                         {thread.user?.name?.charAt(0) || 'G'}

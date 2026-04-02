@@ -156,7 +156,7 @@ export default function Index({ threads, profile }: Props) {
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full ring-4 ring-white shadow-md overflow-hidden bg-zinc-100 shrink-0">
                                 {profile?.avatar_url ? (
-                                    <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                                    <img src={profile.avatar_url} className="w-full h-full object-cover" loading="lazy" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-zinc-300 font-bold text-2xl uppercase">
                                         {auth.user.name.charAt(0)}
@@ -184,7 +184,7 @@ export default function Index({ threads, profile }: Props) {
                         <div className="flex gap-3">
                             <div className="w-10 h-10 rounded-full bg-zinc-100 flex-shrink-0 overflow-hidden">
                                 {profile?.avatar_url ? (
-                                    <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                                    <img src={profile.avatar_url} className="w-full h-full object-cover" loading="lazy" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-zinc-400 font-bold">
                                         {auth.user.name.charAt(0)}
@@ -304,6 +304,7 @@ export default function Index({ threads, profile }: Props) {
                                         <img
                                             src={data.image ? URL.createObjectURL(data.image) : editingThread?.image_url!}
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
                                         />
                                         <button
                                             type="button"
@@ -358,7 +359,7 @@ export default function Index({ threads, profile }: Props) {
                                     <div className="flex items-center space-x-2">
                                         <div className="w-10 h-10 rounded-full bg-zinc-100 overflow-hidden">
                                             {profile?.avatar_url ? (
-                                                <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                                                <img src={profile.avatar_url} className="w-full h-full object-cover" loading="lazy" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-zinc-400 font-bold">F</div>
                                             )}
@@ -407,7 +408,7 @@ export default function Index({ threads, profile }: Props) {
                                 </Typography>
                                 {thread.image_url && (
                                     <div className="mt-3 rounded-xl overflow-hidden border border-zinc-100">
-                                        <img src={thread.image_url} className="w-full h-auto object-cover max-h-[500px]" />
+                                        <img src={thread.image_url} className="w-full h-auto object-cover max-h-[500px]" loading="lazy" />
                                     </div>
                                 )}
 
@@ -429,7 +430,7 @@ export default function Index({ threads, profile }: Props) {
                                                     <div key={comment.id} className="flex gap-3 items-start group">
                                                         <div className="w-8 h-8 rounded-full bg-zinc-100 overflow-hidden flex-shrink-0">
                                                             {comment.user.avatar ? (
-                                                                <img src={comment.user.avatar} className="w-full h-full object-cover" />
+                                                                <img src={comment.user.avatar} className="w-full h-full object-cover" loading="lazy" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-[10px] font-bold">
                                                                     {comment.user.name.charAt(0)}

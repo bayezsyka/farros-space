@@ -92,7 +92,7 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                 >
                     {/* Name */}
                     <div className="w-full text-center space-y-1">
-                        <p className="text-3xl md:text-4xl font-bold text-foreground">Hy! I Am</p>
+                        <p className="text-3xl md:text-4xl font-bold text-foreground">{__('hero.greeting')}</p>
                         <p className="text-4xl md:text-5xl font-extrabold" style={{ color: 'hsl(var(--primary))' }}>
                             {name}.
                         </p>
@@ -100,7 +100,7 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
 
                     {/* Bio */}
                     <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed font-medium text-center max-w-sm md:max-w-md">
-                        {headline ?? __('I build beautifully simple things, and I love what I do.')}
+                        {headline ?? __('hero.bio_placeholder')}
                     </p>
 
                     {/* Buttons */}
@@ -147,8 +147,12 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.9s ease 0.3s' }}
                 >
                     <img
-                        src="/images/hero-foto-saya.png"
+                        src="/images/hero-foto-saya.webp"
                         alt={name}
+                        width="408"
+                        height="612"
+                        {...({ fetchpriority: "high" } as any)}
+                        decoding="async"
                         className="w-[72vw] max-w-[340px] md:w-[50vw] md:max-w-[420px] max-h-full h-auto object-contain object-bottom block transition-transform duration-500 group-hover/mobile:scale-[1.03]"
                         draggable={false}
                     />
@@ -173,7 +177,7 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     }}
                 >
                     <div className="space-y-1">
-                        <p className="text-4xl font-bold text-foreground">Hy! I Am</p>
+                        <p className="text-4xl font-bold text-foreground">{__('hero.greeting')}</p>
                         <p className="text-5xl font-extrabold" style={{ color: 'hsl(var(--primary))' }}>
                             {name}.
                         </p>
@@ -186,8 +190,12 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     style={{ opacity: mounted ? 1 : 0, transition: 'opacity 1.2s ease 0.3s' }}
                 >
                     <img
-                        src="/images/hero-foto-saya.png"
+                        src="/images/hero-foto-saya.webp"
                         alt={name}
+                        width="408"
+                        height="612"
+                        {...({ fetchpriority: "high" } as any)}
+                        decoding="async"
                         className="w-full h-auto object-contain object-bottom block transition-transform duration-700 group-hover:scale-[1.02]"
                         style={{ maxHeight: '82vh' }}
                         draggable={false}
@@ -204,7 +212,7 @@ export const HeroSection = ({ profile }: HeroSectionProps) => {
                     }}
                 >
                     <p className="text-xl text-muted-foreground leading-snug font-medium">
-                        {headline ?? __('I build beautifully simple things, and I love what I do.')}
+                        {headline ?? __('hero.bio_placeholder')}
                     </p>
 
                     <div className="flex flex-col items-end gap-2.5">

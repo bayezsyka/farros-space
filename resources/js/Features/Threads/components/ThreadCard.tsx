@@ -176,14 +176,14 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                     >
                         {isPublic ? (
                             thread.user?.avatar ? (
-                                <img src={thread.user.avatar.replace('=s96-c', '=s60-c')} alt={thread.user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                <img src={thread.user.avatar.replace('=s96-c', '=s60-c')} alt={thread.user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xs sm:text-sm">
                                     {thread.user?.name?.charAt(0) || 'G'}
                                 </div>
                             )
                         ) : profile?.avatar_url ? (
-                            <img src={profile.avatar_url.replace('=s96-c', '=s60-c')} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={profile.avatar_url.replace('=s96-c', '=s60-c')} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xs sm:text-sm">
                                 {profile?.full_name?.charAt(0) || 'F'}
@@ -364,7 +364,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             <div className="flex gap-2 sm:gap-3">
                                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
                                     {user?.avatar ? (
-                                        <img src={user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                        <img src={user.avatar.replace('=s96-c', '=s60-c')} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold bg-zinc-100 text-zinc-400">
                                             {user ? user.name.charAt(0) : 'U'}

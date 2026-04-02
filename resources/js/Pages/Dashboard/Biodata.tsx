@@ -46,8 +46,8 @@ export default function Biodata({ profile }: Props) {
         });
     };
 
-    const fieldClass = "w-full px-4 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all";
-    const labelClass = "block text-sm font-semibold text-zinc-700 mb-1.5";
+    const fieldClass = "w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 focus:border-zinc-400 dark:focus:border-zinc-700 transition-all shadow-sm";
+    const labelClass = "block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5";
 
     return (
         <DashboardLayout header={__('Biodata')}>
@@ -61,14 +61,14 @@ export default function Biodata({ profile }: Props) {
 
             <form onSubmit={submit} className="space-y-5 max-w-3xl">
                 {/* Avatar */}
-                <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-                    <p className="text-sm font-bold text-zinc-700 mb-4">{__('Profile Photo')}</p>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm">
+                    <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-4">{__('Profile Photo')}</p>
                     <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-100 border-2 border-zinc-200 shrink-0">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 shrink-0">
                             {(profile as any)?.avatar_url ? (
                                 <img src={(profile as any).avatar_url} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-300">
+                                <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
                                     <User className="w-8 h-8" />
                                 </div>
                             )}
@@ -77,7 +77,7 @@ export default function Biodata({ profile }: Props) {
                             <input
                                 type="file"
                                 onChange={(e) => setData('avatar', e.target.files ? e.target.files[0] : null)}
-                                className="text-sm text-zinc-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border file:border-zinc-200 file:text-xs file:font-semibold file:bg-zinc-50 file:text-zinc-700 hover:file:bg-zinc-100 cursor-pointer file:transition-colors"
+                                className="text-sm text-zinc-500 dark:text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border file:border-zinc-200 dark:file:border-zinc-800 file:text-xs file:font-semibold file:bg-zinc-50 dark:file:bg-zinc-800 file:text-zinc-700 dark:file:text-zinc-300 hover:file:bg-zinc-100 dark:hover:file:bg-zinc-700 cursor-pointer file:transition-colors"
                                 accept="image/*"
                             />
                             <InputError message={errors.avatar} className="mt-1" />
@@ -87,14 +87,14 @@ export default function Biodata({ profile }: Props) {
                 </div>
 
                 {/* Basic Info */}
-                <div className="bg-white rounded-2xl border border-zinc-100 p-6 space-y-4">
-                    <p className="text-sm font-bold text-zinc-700">{__('Basic Information')}</p>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 space-y-4 shadow-sm">
+                    <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{__('Basic Information')}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="full_name" className={labelClass}>{__('Full Name')}</label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="full_name"
                                     className="w-full pl-9"
@@ -110,7 +110,7 @@ export default function Biodata({ profile }: Props) {
                         <div>
                             <label htmlFor="headline" className={labelClass}>{__('Headline / Tagline')}</label>
                             <div className="relative">
-                                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="headline"
                                     className="w-full pl-9"
@@ -127,7 +127,7 @@ export default function Biodata({ profile }: Props) {
                         <div>
                             <label htmlFor="email" className={labelClass}>Email</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="email"
                                     type="email"
@@ -144,7 +144,7 @@ export default function Biodata({ profile }: Props) {
                         <div>
                             <label htmlFor="phone" className={labelClass}>{__('Phone Number')}</label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="phone"
                                     className="w-full pl-9"
@@ -161,7 +161,7 @@ export default function Biodata({ profile }: Props) {
                     <div>
                         <label htmlFor="address" className={labelClass}>{__('Address (for CV)')}</label>
                         <div className="relative">
-                            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                             <TextInput
                                 id="address"
                                 className="w-full pl-9"
@@ -177,7 +177,7 @@ export default function Biodata({ profile }: Props) {
                         <div>
                             <label htmlFor="birth_place" className={labelClass}>{__('Birth Place')}</label>
                             <div className="relative">
-                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="birth_place"
                                     className="w-full pl-9"
@@ -192,7 +192,7 @@ export default function Biodata({ profile }: Props) {
                         <div>
                             <label htmlFor="birth_date" className={labelClass}>{__('Birth Date')}</label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                                 <TextInput
                                     id="birth_date"
                                     type="date"
@@ -207,13 +207,13 @@ export default function Biodata({ profile }: Props) {
                 </div>
 
                 {/* Bio */}
-                <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm">
                     <label htmlFor="bio" className={labelClass}>{__('Short Bio')}</label>
                     <div className="relative">
-                        <TextQuote className="absolute left-3 top-3.5 w-4 h-4 text-zinc-300" />
+                        <TextQuote className="absolute left-3 top-3.5 w-4 h-4 text-zinc-300 dark:text-zinc-700" />
                         <textarea
                             id="bio"
-                            className="w-full pl-9 pr-4 py-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all resize-none min-h-[120px]"
+                            className="w-full pl-9 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 focus:border-zinc-400 dark:focus:border-zinc-700 transition-all resize-none min-h-[120px]"
                             value={data.bio}
                             onChange={(e) => setData('bio', e.target.value)}
                             placeholder={__('Tell us about yourself...')}
@@ -232,7 +232,7 @@ export default function Biodata({ profile }: Props) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="ml-auto inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60"
+                        className="ml-auto inline-flex items-center gap-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 shadow-lg shadow-zinc-900/10 dark:shadow-none"
                     >
                         <Save className="w-4 h-4" />
                         {processing ? __('Saving...') : __('Save Changes')}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import useTranslation from '@/Hooks/useTranslation';
 import {
     X, Download, RefreshCw, Loader2, FileImage,
     MapPin, Phone, CheckSquare2, Upload, Star, Clock,
@@ -59,16 +60,17 @@ interface MarketplaceItem {
 
 interface ProductPosterGeneratorProps {
     item: MarketplaceItem;
+    lang: 'id' | 'en';
     onClose: () => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatPrice(price: number | string | null): string {
-    if (!price && price !== 0) return 'Hubungi kami';
+function formatPrice(price: number | string | null, lang: 'id' | 'en'): string {
+    if (!price && price !== 0) return lang === 'id' ? 'Hubungi kami' : 'Contact us';
     const n = Number(price);
     if (!Number.isNaN(n)) {
-        return new Intl.NumberFormat('id-ID', {
+        return new Intl.NumberFormat(lang === 'id' ? 'id-ID' : 'en-US', {
             style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
         }).format(n).replace('IDR', 'Rp').trim();
     }
@@ -150,6 +152,7 @@ async function drawInfoBar(
     location: string,
     cfg: RenderConfig,
     INFO_X: number, INFO_Y: number, INFO_W: number, INFO_H: number,
+    lang: 'id' | 'en',
 ) {
     const { nameFs, priceFs, chipFs, chipH, metaFs, QR_SIZE } = cfg;
     const isBaru = item.status === 'baru';
@@ -167,7 +170,7 @@ async function drawInfoBar(
         ctx.fillStyle = '#B0B0B8';
         ctx.font = `600 12px ${FONT}`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-        ctx.fillText('Scan untuk detail', QR_X + QR_SIZE / 2, QR_Y + QR_SIZE + 8);
+        ctx.fillText(lang === 'id' ? 'Scan untuk detail' : 'Scan for details', QR_X + QR_SIZE / 2, QR_Y + QR_SIZE + 8);
     }
 
     // Text column left of QR
@@ -204,7 +207,9 @@ async function drawInfoBar(
 
     // Status chip + Price
     ctx.font = `700 ${chipFs}px ${FONT}`;
-    const chipTxt = isBaru ? 'Barang Baru' : 'Barang Bekas';
+    const chipTxt = isBaru 
+        ? (lang === 'id' ? 'Barang Baru' : 'New Item')
+        : (lang === 'id' ? 'Barang Bekas' : 'Used Item');
     const chipW = ctx.measureText(chipTxt).width + 24;
 
     ctx.strokeStyle = '#18181B'; ctx.lineWidth = 1.5;
@@ -216,7 +221,7 @@ async function drawInfoBar(
     ctx.fillStyle = '#18181B';
     ctx.font = `900 ${priceFs}px ${FONT}`;
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(trunc(ctx, formatPrice(item.price), TW - chipW - 24), TX + chipW + 20, iy + chipH / 2);
+    ctx.fillText(trunc(ctx, formatPrice(item.price, lang), TW - chipW - 24), TX + chipW + 20, iy + chipH / 2);
     iy += chipH + 18;
 
     // WA + Lokasi
@@ -236,8 +241,9 @@ async function drawInfoBar(
         ctx.fillText('|', sepX, iy);
         const locX = sepX + ctx.measureText('| ').width;
         ctx.fillStyle = '#71717A'; ctx.font = `600 ${metaFs}px ${FONT}`;
-        ctx.fillText('Lok', locX, iy);
-        const locLW = ctx.measureText('Lok').width + 10;
+        const locLabel = lang === 'id' ? 'Lok' : 'Loc';
+        ctx.fillText(locLabel, locX, iy);
+        const locLW = ctx.measureText(locLabel).width + 10;
         ctx.fillStyle = '#18181B'; ctx.font = `700 ${metaFs}px ${FONT}`;
         ctx.fillText(trunc(ctx, location, TW - (locX - TX) - locLW), locX + locLW, iy);
     }
@@ -257,6 +263,7 @@ async function renderPortrait(
     detailImgs: (HTMLImageElement | null)[],
     location: string,
     cfg: RenderConfig,
+    lang: 'id' | 'en',
 ) {
     const { W, H, PAD, GAP, INFO_H, R } = cfg;
     const INNER_W = W - PAD * 2;
@@ -292,7 +299,7 @@ async function renderPortrait(
     clipRR(ctx, PAD + 14, MAIN_Y + 14, 78, 30, 8); ctx.fill();
     ctx.fillStyle = '#FFF'; ctx.font = `700 13px ${FONT}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(isBaru ? 'BARU' : 'BEKAS', PAD + 14 + 39, MAIN_Y + 14 + 15);
+    ctx.fillText(isBaru ? (lang === 'id' ? 'BARU' : 'NEW') : (lang === 'id' ? 'BEKAS' : 'USED'), PAD + 14 + 39, MAIN_Y + 14 + 15);
 
     // 3 detail squares, evenly spaced
     const xStep = (INNER_W - CW) / 2;
@@ -317,7 +324,7 @@ async function renderPortrait(
     ctx.fillStyle = '#E4E4E7'; ctx.fillRect(PAD, DIV_Y, INNER_W, 1);
 
     // Info bar
-    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, INFO_H);
+    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, INFO_H, lang);
 }
 
 // ─── Poster: 2-column grid (1:1) ─────────────────────────────────────────────
@@ -329,6 +336,7 @@ async function renderGrid2Col(
     detailImgs: (HTMLImageElement | null)[],
     location: string,
     cfg: RenderConfig,
+    lang: 'id' | 'en',
 ) {
     const { W, H, PAD, GAP, INFO_H, R } = cfg;
     const INNER_W = W - PAD * 2;
@@ -371,7 +379,7 @@ async function renderGrid2Col(
     clipRR(ctx, LEFT_X + 14, PHOTO_Y + 14, 78, 30, 8); ctx.fill();
     ctx.fillStyle = '#FFF'; ctx.font = `700 13px ${FONT}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(isBaru ? 'BARU' : 'BEKAS', LEFT_X + 14 + 39, PHOTO_Y + 14 + 15);
+    ctx.fillText(isBaru ? (lang === 'id' ? 'BARU' : 'NEW') : (lang === 'id' ? 'BEKAS' : 'USED'), LEFT_X + 14 + 39, PHOTO_Y + 14 + 15);
 
     // ─── 2 & 3. Two detail photos (Right Column - Small Squares 1:1) ─────────
     for (let i = 0; i < 2; i++) {
@@ -397,10 +405,8 @@ async function renderGrid2Col(
     // ─── 4. Info bar (Centering text in the remaining space) ──────────────────
     // The available height for info might be slightly larger now
     const actualInfoH = H - INFO_Y - PAD;
-    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, actualInfoH);
+    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, actualInfoH, lang);
 }
-
-// ─── Dispatcher ──────────────────────────────────────────────────────────────
 
 async function renderPoster(
     ctx: CanvasRenderingContext2D,
@@ -409,11 +415,12 @@ async function renderPoster(
     detailImgs: (HTMLImageElement | null)[],
     location: string,
     cfg: RenderConfig,
+    lang: 'id' | 'en',
 ) {
     if (cfg.layout === 'grid2col') {
-        return renderGrid2Col(ctx, item, mainImg, detailImgs, location, cfg);
+        return renderGrid2Col(ctx, item, mainImg, detailImgs, location, cfg, lang);
     }
-    return renderPortrait(ctx, item, mainImg, detailImgs, location, cfg);
+    return renderPortrait(ctx, item, mainImg, detailImgs, location, cfg, lang);
 }
 
 // ─── Photo Picker ─────────────────────────────────────────────────────────────
@@ -478,7 +485,8 @@ function PhotoPicker({ index, existingPhotos, selectedSrc, onSelect, onLocalFile
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-export default function ProductPosterGenerator({ item, onClose }: ProductPosterGeneratorProps) {
+export default function ProductPosterGenerator({ item, lang, onClose }: ProductPosterGeneratorProps) {
+    const { __ } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const genIdRef = useRef(0);
     const mountedRef = useRef(false);
@@ -544,7 +552,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                 detailSrcs[2] ? loadImage(detailSrcs[2]) : Promise.resolve(null),
             ]);
             if (!mountedRef.current || genIdRef.current !== myGen) return;
-            await renderPoster(ctx, item, mainImg, [d0, d1, d2], location, cfg);
+            await renderPoster(ctx, item, mainImg, [d0, d1, d2], location, cfg, lang);
             if (mountedRef.current && genIdRef.current === myGen) {
                 setGenerating(false); setGenerated(true);
             }
@@ -594,7 +602,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
     return (
         <div
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none"
-            role="dialog" aria-modal="true" aria-label="Generator Poster Produk"
+            role="dialog" aria-modal="true" aria-label={__("Product Poster Generator")}
         >
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden border border-zinc-200">
 
@@ -605,14 +613,14 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                             <FileImage className="w-3.5 h-3.5 text-zinc-600" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-bold text-zinc-900">Generate Poster</h2>
+                            <h2 className="text-sm font-bold text-zinc-900">{__("Generate Poster")}</h2>
                             <p className="text-[11px] text-zinc-400 truncate max-w-[240px]">
                                 {item.name} · {cfg.W}×{cfg.H}px ({resolution})
                             </p>
                         </div>
                     </div>
                     <button
-                        onClick={onClose} type="button" aria-label="Tutup"
+                        onClick={onClose} type="button" aria-label={__("Close")}
                         className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
                     >
                         <X className="w-4 h-4" />
@@ -637,8 +645,8 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                                 <p className="text-xs font-bold text-zinc-900 truncate">{item.name}</p>
                                 <div className="flex items-center gap-1 mt-0.5">
                                     {isBaru
-                                        ? <><Star className="w-3 h-3 text-zinc-500" /><span className="text-[11px] text-zinc-500">Baru</span></>
-                                        : <><Clock className="w-3 h-3 text-zinc-500" /><span className="text-[11px] text-zinc-500">Bekas</span></>
+                                        ? <><Star className="w-3 h-3 text-zinc-500" /><span className="text-[11px] text-zinc-500">{__("New")}</span></>
+                                        : <><Clock className="w-3 h-3 text-zinc-500" /><span className="text-[11px] text-zinc-500">{__("Used")}</span></>
                                     }
                                 </div>
                             </div>
@@ -646,7 +654,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
 
                         {/* Resolution toggle */}
                         <div>
-                            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Resolusi</p>
+                            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">{__("Resolution")}</p>
                             <div className="flex gap-2">
                                 {(['3:4', '1:1'] as Resolution[]).map(res => (
                                     <button
@@ -667,15 +675,15 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                             {/* Layout hint */}
                             <p className="text-[10px] text-zinc-400 mt-1.5 leading-snug">
                                 {cfg.layout === 'grid2col'
-                                    ? '2 kolom: foto utama kiri, 2 detail kanan'
-                                    : '3 foto detail berjejer di bawah'}
+                                    ? __("2 columns: main left, 2 detail right")
+                                    : __("3 detail photos in a row at bottom")}
                             </p>
                         </div>
 
                         {/* Photo pickers — only show detailCount slots */}
                         <div className="space-y-3">
                             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
-                                {cfg.detailCount} Foto Detail
+                                {__(":count Detail Photos", { count: cfg.detailCount.toString() })}
                             </p>
                             {detailIndices.map(i => (
                                 <PhotoPicker
@@ -692,12 +700,12 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                         {/* Location */}
                         <div>
                             <label className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
-                                <MapPin className="w-3 h-3" /> Lokasi
+                                <MapPin className="w-3 h-3" /> {__("Location")}
                             </label>
                             <input
                                 type="text" value={location}
                                 onChange={e => setLocation(e.target.value)}
-                                placeholder="cth: Bandung, Jabar"
+                                placeholder={__("e.g. Bandung, West Java")}
                                 className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-300 text-zinc-800 placeholder-zinc-400 transition-all"
                             />
                         </div>
@@ -722,7 +730,7 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                                 <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
                                     <div className="flex flex-col items-center gap-2">
                                         <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
-                                        <p className="text-xs text-zinc-400">Membuat poster...</p>
+                                        <p className="text-xs text-zinc-400">{__("Creating poster...")}</p>
                                     </div>
                                 </div>
                             )}
@@ -743,20 +751,20 @@ export default function ProductPosterGenerator({ item, onClose }: ProductPosterG
                         className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
-                        Render Ulang
+                        {__("Re-render")}
                     </button>
                     <div className="flex gap-2">
                         <button
                             type="button" onClick={onClose}
                             className="px-4 py-2 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
                         >
-                            Batal
+                            {__("Cancel")}
                         </button>
                         <button
                             type="button" onClick={handleDownload} disabled={!generated || generating}
                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors disabled:opacity-40"
                         >
-                            <Download className="w-3.5 h-3.5" /> Download
+                            <Download className="w-3.5 h-3.5" /> {__("Download")}
                         </button>
                     </div>
                 </div>

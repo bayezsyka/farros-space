@@ -19,12 +19,14 @@ import ThemeToggle from '@/Components/ThemeToggle';
 import { cn } from '@/utils';
 import { Typography } from '@/Components/ui/Typography';
 import { Button } from '@/Components/ui/Button';
+import useTranslation from '@/Hooks/useTranslation';
 
 interface Props {
     header?: ReactNode | string;
 }
 
 export default function DashboardLayout({ children, header }: PropsWithChildren<Props>) {
+    const { __ } = useTranslation();
     const { auth } = usePage<any>().props;
     const [isHovered, setIsHovered] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -32,13 +34,13 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
     const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
 
     const navItems = [
-        { label: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), active: route().current('dashboard') },
-        { label: 'Biodata', icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
-        { label: 'Experience', icon: Briefcase, href: route('experiences.index'), active: route().current('experiences.*') },
-        { label: 'Marketplace', icon: ShoppingBag, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
-        { label: 'Social Links', icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
-        { label: 'Pendidikan', icon: GraduationCap, href: route('dashboard.education.index'), active: route().current('dashboard.education.*') },
-        { label: 'Account', icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },
+        { label: __("Dashboard"), icon: LayoutDashboard, href: route('dashboard'), active: route().current('dashboard') },
+        { label: __("Biodata"), icon: User, href: route('dashboard.biodata'), active: route().current('dashboard.biodata') },
+        { label: __("Experience"), icon: Briefcase, href: route('experiences.index'), active: route().current('experiences.*') },
+        { label: __("Marketplace"), icon: ShoppingBag, href: route('dashboard.marketplace.index'), active: route().current('dashboard.marketplace.*') },
+        { label: __("Social Links"), icon: LinkIcon, href: route('dashboard.social-links.index'), active: route().current('dashboard.social-links.*') },
+        { label: __("Education"), icon: GraduationCap, href: route('dashboard.education.index'), active: route().current('dashboard.education.*') },
+        { label: __("Account"), icon: Settings, href: route('profile.edit'), active: route().current('profile.edit') },
     ];
 
     return (
@@ -87,7 +89,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                         className="flex items-center px-3 py-3 rounded-xl text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-all font-semibold text-sm"
                     >
                         <Home className="w-5 h-5 shrink-0" />
-                        <span className={cn("ml-3 transition-opacity whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>Home</span>
+                        <span className={cn("ml-3 transition-opacity whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>{__("Home")}</span>
                     </Link>
                     <Link
                         href={route('logout')}
@@ -96,7 +98,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                         className="w-full flex items-center px-3 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-semibold text-sm"
                     >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        <span className={cn("ml-3 transition-opacity whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>Logout</span>
+                        <span className={cn("ml-3 transition-opacity whitespace-nowrap", isHovered ? "opacity-100" : "opacity-0")}>{__("Logout")}</span>
                     </Link>
                 </div>
             </aside>
@@ -117,7 +119,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                 )}
             >
                 <div className="flex justify-between items-center mb-8">
-                    <Typography variant="large" className="font-bold text-zinc-900">Menu</Typography>
+                    <Typography variant="large" className="font-bold text-zinc-900">{__("Menu")}</Typography>
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(false)} className="rounded-full">
                         <X className="w-5 h-5" />
                     </Button>
@@ -148,7 +150,7 @@ export default function DashboardLayout({ children, header }: PropsWithChildren<
                         className="w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-semibold"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="text-sm text-left">Logout</span>
+                        <span className="text-sm text-left">{__("Logout")}</span>
                     </Link>
                 </div>
             </aside>

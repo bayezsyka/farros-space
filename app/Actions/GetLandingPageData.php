@@ -34,10 +34,10 @@ class GetLandingPageData
         return [
             'profile' => $profile,
             'education' => $education,
-            'latestThreads' => array_slice($threads, 0, 8),
-            'publicThreads' => array_slice($publicThreads, 0, 8),
-            'experiences' => array_slice($experiences, 0, 6),
-            'marketplaceItems' => array_slice($marketplaceItems, 0, 6),
+            'latestThreads' => $threads,
+            'publicThreads' => $publicThreads,
+            'experiences' => $experiences,
+            'marketplaceItems' => $marketplaceItems,
         ];
     }
 }

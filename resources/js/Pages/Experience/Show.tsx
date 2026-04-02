@@ -489,6 +489,7 @@ export default function Show({ experience, auth }: Props) {
                                                                                 src={`/storage/${update.image_path}`} 
                                                                                 alt="Experience update image" 
                                                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-[1.02]" 
+                                                                                loading="lazy"
                                                                             />
                                                                             <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/5 transition-colors" />
                                                                         </div>
