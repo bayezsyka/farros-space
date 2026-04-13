@@ -31,7 +31,7 @@ class ExperienceUpdateController extends Controller
         $update = $experience->updates()->create($validated);
         
         // Dispatch translation job
-        TranslateExperienceUpdateJob::dispatch($update);
+        TranslateExperienceUpdateJob::dispatchSync($update);
 
         return redirect()->back()->with('success', 'Update added successfully.');
     }
@@ -60,7 +60,7 @@ class ExperienceUpdateController extends Controller
         $experienceUpdate->update($validated);
         
         // Dispatch translation job
-        TranslateExperienceUpdateJob::dispatch($experienceUpdate);
+        TranslateExperienceUpdateJob::dispatchSync($experienceUpdate);
 
         return redirect()->back()->with('success', 'Update updated successfully.');
     }

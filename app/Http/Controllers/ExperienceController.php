@@ -76,8 +76,8 @@ class ExperienceController extends Controller
 
         $exp = Auth::user()->experiences()->create($validated);
         
-        TranslateModelFieldsJob::dispatch($exp, ['role', 'company_or_event_name']);
-        GenerateExperienceSummaryJob::dispatch($exp);
+        TranslateModelFieldsJob::dispatchSync($exp, ['role', 'company_or_event_name']);
+        GenerateExperienceSummaryJob::dispatchSync($exp);
 
         return redirect()->back()->with('success', 'Experience created successfully.');
     }
@@ -123,11 +123,11 @@ class ExperienceController extends Controller
 
         $experience->update($validated);
 
-        TranslateModelFieldsJob::dispatch($experience, ['role', 'company_or_event_name']);
+        TranslateModelFieldsJob::dispatchSync($experience, ['role', 'company_or_event_name']);
 
-        // Hanya dispatch job jika role berubah
+        // Hanya dispatch job jika role berubah atau jika secara eksplisit disuruh
         if ($experience->wasChanged('role')) {
-            GenerateExperienceSummaryJob::dispatch($experience);
+            GenerateExperienceSummaryJob::dispatchSync($experience);
         }
 
         return redirect()->back()->with('success', 'Experience updated successfully.');
@@ -139,9 +139,10 @@ class ExperienceController extends Controller
             abort(403);
         }
 
-        GenerateExperienceSummaryJob::dispatch($experience);
+        set_time_limit(0); // Prevent timeout on hosting
+        GenerateExperienceSummaryJob::dispatchSync($experience);
 
-        return redirect()->back()->with('success', 'AI Summary generation has been added to the queue. Please wait a moment and refresh.');
+        return redirect()->back()->with('success', 'AI Summary generated successfully.');
     }
 
     public function destroy(Experience $experience)
@@ -163,6 +164,8 @@ class ExperienceController extends Controller
         if (Auth::id() !== $owner->id) {
             abort(403);
         }
+
+        set_time_limit(0); // Prevent timeout on hosting
 
         foreach ($owner->experiences as $experience) {
             GenerateExperienceSummaryJob::dispatchSync($experience);

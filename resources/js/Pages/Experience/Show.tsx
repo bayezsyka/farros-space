@@ -27,7 +27,8 @@ import {
     Edit2,
     Archive,
     ArchiveRestore,
-    Share2
+    Share2,
+    Sparkles
 } from 'lucide-react';
 import { ImageLightbox } from '@/Components/ui/ImageLightbox';
 
@@ -264,12 +265,27 @@ export default function Show({ experience, auth }: Props) {
                                                     >
                                                         {__('Cancel')}
                                                     </Button>
+                                                <div className="flex gap-2">
                                                     <Button 
                                                         onClick={handleFinalSave}
-                                                        className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl h-9 px-6 font-bold text-xs shadow-lg shadow-primary/20"
+                                                        className="bg-foreground text-background hover:opacity-90 rounded-xl h-9 px-6 font-bold text-xs"
                                                     >
-                                                        {__('Save (AI Update)')}
+                                                        {__('Save Details')}
                                                     </Button>
+                                                    <Button 
+                                                        onClick={() => {
+                                                            if (confirm(__('Regenerate AI summary based on latest stories? This might take a few seconds.'))) {
+                                                                import('@inertiajs/react').then(({ router }) => {
+                                                                    router.post(route('experiences.generate-summary', experience.slug));
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl h-9 px-6 font-bold text-xs shadow-lg shadow-primary/20 flex gap-1.5 items-center"
+                                                    >
+                                                        <Sparkles className="w-3.5 h-3.5" />
+                                                        {__('Refresh AI')}
+                                                    </Button>
+                                                </div>
                                                 </>
                                             ) : (
                                                 <div className="flex gap-2">
