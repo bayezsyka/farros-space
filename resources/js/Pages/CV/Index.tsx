@@ -260,7 +260,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                 title={`${__('cv.head_prefix')} – ${name}`}
                 description={profile?.bio?.substring(0, 160) || __('CV of Farros - Professional experiences and education.')}
                 canonicalPath="cv"
-                jsonLd={createBreadcrumbJsonLd([{ name: __('CV'), url: route('cv') }])}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('CV'), url: route('cv.index', { locale: lang }) }])}
             />
 
             {/* ── SIMPLE FLOATING ACTIONS (hidden on print) ── */}
