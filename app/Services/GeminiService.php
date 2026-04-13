@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class GeminiService
 {
     protected string $apiKey;
-    protected string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    protected string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     public function __construct()
     {
@@ -23,9 +23,12 @@ class GeminiService
 
         try {
             $prompt = "Berikut adalah daftar aktivitas atau update dari pengalaman kerja/organisasi sebagai '{$role}'.\n\n"
-                . "Buatkan ringkasan profesional yang terdiri dari MAKSIMAL 3 poin bullet point yang paling penting dan fokus pada peran teknis/profesional tersebut. "
-                . "Hapus konten yang bersifat santai, bercanda, atau kurang relevan dengan kualifikasi profesional CV.\n"
-                . "Buatkan dalam dua versi bahasa: Indonesia dan Inggris.\n\n"
+                . "Buatkan ringkasan profesional yang terdiri dari MAKSIMAL 3 poin bullet point yang paling penting.\n"
+                . "ATURAN PENTING:\n"
+                . "1. JANGAN gunakan data angka (persentase, jumlah orang, jumlah proyek, dsb) karena rawan salah.\n"
+                . "2. Gunakan deskripsi VERBAL dan KUALITATIF saja (misal: 'Meningkatkan efisiensi secara signifikan' daripada 'Meningkatkan 20%').\n"
+                . "3. Fokus pada peran teknis dan tanggung jawab utama.\n"
+                . "4. Buatkan dalam dua versi bahasa: Indonesia dan Inggris.\n\n"
                 . "Format output HARUS selalu JSON valid seperti ini:\n"
                 . "{\n"
                 . "  \"id\": \"• Poin 1\\n• Poin 2\\n• Poin 3\",\n"
@@ -67,13 +70,19 @@ class GeminiService
     public function generateEmptyCvSummary(string $role, string $company): ?array
     {
         try {
-            $prompt = "Buatkan TEPAT 1 poin (satu kalimat penjelas) ringkasan deskripsi pekerjaan/kegiatan profesional untuk peran '{$role}' di institusi/perusahaan '{$company}'.\n"
-                . "Karena tidak ada rincian kegiatan spesifik, buatkan 1 deskripsi umum namun elegan dan konkrit (misal: 'Mengelola dan mengembangkan sistem X untuk meningkatkan efisiensi operasional').\n"
+            $prompt = "Anda adalah pakar penulisan CV profesional SANGAT KREATIF.\n"
+                . "Tugas: Buatkan TEPAT 1 poin bullet-point ringkasan pekerjaan untuk peran '{$role}' di '{$company}'.\n"
+                . "KONTENT: Karena tidak ada detail kegiatan, Anda harus menggunakan data pasar/tren industri untuk peran tersebut agar terlihat sangat profesional dan meyakinkan.\n"
+                . "ATURAN PENTING:\n"
+                . "1. JANGAN gunakan data angka sama sekali (angka, persentase, dsb).\n"
+                . "2. Gunakan deskripsi VERBAL, KUALITATIF, dan ELEGAN.\n"
+                . "3. Gunakan kata kerja aksi yang kuat (misal: Mendeploy, Menangani, Menstandardisasi).\n"
+                . "Jangan gunakan pembuka membosankan seperti 'Bertanggung jawab untuk' atau 'Bertugas sebagai'. Langsung ke aksi dan tujuannya.\n"
                 . "Buatkan dalam dua versi bahasa: Indonesia (id) dan Inggris (en).\n\n"
                 . "Format output HARUS selalu JSON valid berbentuk seperti ini:\n"
                 . "{\n"
-                . "  \"id\": \"• [Satu kalimat tebakan konkrit dalam bahasa Indonesia]\",\n"
-                . "  \"en\": \"• [Satu kalimat tebakan konkrit dalam bahasa Inggris]\"\n"
+                . "  \"id\": \"• [Satu kalimat aksi kreatif & konkrit dalam bahasa Indonesia]\",\n"
+                . "  \"en\": \"• [One creative & concrete action sentence in English]\"\n"
                 . "}\n";
 
             $response = Http::post($this->baseUrl . '?key=' . $this->apiKey, [

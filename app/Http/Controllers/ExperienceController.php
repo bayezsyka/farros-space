@@ -77,6 +77,7 @@ class ExperienceController extends Controller
         $exp = Auth::user()->experiences()->create($validated);
         
         TranslateModelFieldsJob::dispatch($exp, ['role', 'company_or_event_name']);
+        GenerateExperienceSummaryJob::dispatch($exp);
 
         return redirect()->back()->with('success', 'Experience created successfully.');
     }
@@ -152,5 +153,21 @@ class ExperienceController extends Controller
         $experience->delete();
 
         return redirect()->route('experiences.index')->with('success', 'Experience deleted successfully.');
+    }
+
+    public function bulkAiUpdate()
+    {
+        $owner = User::where('is_admin', true)->first();
+        if (!$owner) $owner = User::first();
+
+        if (Auth::id() !== $owner->id) {
+            abort(403);
+        }
+
+        foreach ($owner->experiences as $experience) {
+            GenerateExperienceSummaryJob::dispatchSync($experience);
+        }
+
+        return redirect()->back()->with('success', '✨ All experience summaries have been successfully refreshed using AI!');
     }
 }

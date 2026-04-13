@@ -36,6 +36,7 @@ export default function Index({ experiences, auth }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isAiUpdating, setIsAiUpdating] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors, transform } = useForm({
         type: 'work' as 'work' | 'organization' | 'committee',
@@ -109,6 +110,15 @@ export default function Index({ experiences, auth }: Props) {
         }
     };
 
+    const handleBulkAiUpdate = () => {
+        if (confirm(__('Are you sure you want to update all experiences using AI? This will refresh all summaries based on current content.'))) {
+            setIsAiUpdating(true);
+            router.post(route('experiences.bulk-update-ai', { locale }), {}, {
+                onFinish: () => setIsAiUpdating(false)
+            });
+        }
+    };
+
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'work': return <Briefcase className="w-5 h-5 text-blue-500" />;
@@ -152,6 +162,16 @@ export default function Index({ experiences, auth }: Props) {
                                     <Sparkles className="w-4 h-4" />
                                     <span className="hidden sm:inline">{__('Import from PDF')}</span>
                                     <span className="sm:hidden">{__('Import PDF')}</span>
+                                </Button>
+                                <Button 
+                                    onClick={handleBulkAiUpdate}
+                                    variant="outline"
+                                    disabled={isAiUpdating}
+                                    className="rounded-2xl px-6 font-bold h-11 border-amber-500/20 bg-amber-500/5 text-amber-600 hover:bg-amber-500/10 transition-all gap-2"
+                                >
+                                    <Sparkles className={`w-4 h-4 ${isAiUpdating ? 'animate-spin' : ''}`} />
+                                    <span className="hidden sm:inline">{isAiUpdating ? 'Updating...' : 'Update AI'}</span>
+                                    <span className="sm:hidden">{isAiUpdating ? '...' : 'AI'}</span>
                                 </Button>
                                 <Button 
                                     onClick={() => openModal()}

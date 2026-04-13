@@ -61,6 +61,31 @@ interface Props {
     lang: 'id' | 'en';
 }
 
+const translations = {
+    id: {
+        summary: "Ringkasan",
+        education: "Pendidikan",
+        experience: "Pengalaman",
+        home: "Beranda",
+        download: "Download",
+        present: "Sekarang",
+        contact: "Kontak",
+        head_prefix: "CV",
+        meta_description: "CV Farros - Pengalaman profesional dan pendidikan.",
+    },
+    en: {
+        summary: "Summary",
+        education: "Education",
+        experience: "Experience",
+        home: "Home",
+        download: "Download",
+        present: "Present",
+        contact: "Contact",
+        head_prefix: "CV",
+        meta_description: "Farros CV - Professional experiences and education.",
+    }
+};
+
 // ─── Reusable styled section header (bold, uppercase, underlined) ───────────
 function SectionHeader({ title }: { title: string }) {
     return (
@@ -83,8 +108,8 @@ function SectionHeader({ title }: { title: string }) {
 
 // ─── Main CV content - shared between screen preview and print ───────────────
 function CVContent({ profile, education, experiences, lang }: { profile: Profile | null; education: EducationItem[]; experiences: Experience[]; lang: 'id' | 'en' }) {
-    const { __ } = useTranslation();
-    const name = profile?.full_name || __('cv.name_placeholder');
+    const t = translations[lang];
+    const name = profile?.full_name || 'Full Name';
     const headline = profile?.headline || '';
     const email = profile?.email || '';
     const phone = profile?.phone || '';
@@ -149,7 +174,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ RINGKASAN ══════════ */}
             {bio && (
                 <>
-                    <SectionHeader title={__('cv.summary')} />
+                    <SectionHeader title={t.summary} />
                     <p style={{ margin: '0 0 4px', textAlign: 'justify', fontSize: '10pt', color: '#000', lineHeight: '1.45' }}>
                         {bio}
                     </p>
@@ -159,7 +184,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ PENDIDIKAN ══════════ */}
             {education.length > 0 && (
                 <>
-                    <SectionHeader title={__('cv.education')} />
+                    <SectionHeader title={t.education} />
                     <div style={{ marginBottom: '8px' }}>
                         {education.map((edu) => (
                             <div key={edu.id} style={{ marginBottom: '6px' }}>
@@ -168,7 +193,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                         {edu.institution}
                                     </span>
                                     <span style={{ fontSize: '10pt', whiteSpace: 'nowrap', paddingLeft: '12px' }}>
-                                        {edu.start_year || ''} – {edu.end_year === 'now' ? __('cv.present') : (edu.end_year || __('cv.present'))}
+                                        {edu.start_year || ''} – {edu.end_year === 'now' ? t.present : (edu.end_year || t.present)}
                                     </span>
                                 </div>
                                 {edu.program_major && (
@@ -187,7 +212,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
             {/* ══════════ PENGALAMAN ══════════ */}
             {experiences.length > 0 && (
                 <>
-                    <SectionHeader title={__('cv.experience')} />
+                    <SectionHeader title={t.experience} />
                     <div>
                         {experiences.map((exp) => (
                             <div key={exp.id} style={{ marginBottom: '10px' }}>
@@ -236,17 +261,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                                 </li>
                                             ))}
                                         </ul>
-                                    ) : (
-                                        // 1 point fallback if no updates
-                                        <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
-                                            <li style={{ marginBottom: '2px' }}>
-                                                {lang === 'en' 
-                                                    ? `Served as ${exp.role_en || exp.role} at ${exp.company_or_event_name_en || exp.company_or_event_name}, contributing to its ongoing projects and initiatives.`
-                                                    : `Berperan sebagai ${exp.role_id || exp.role} di ${exp.company_or_event_name_id || exp.company_or_event_name}, berkontribusi dalam berbagai proyek dan inisiatif.`
-                                                }
-                                            </li>
-                                        </ul>
-                                    );
+                                    ) : null;
                                 })()}
                             </div>
                         ))}
@@ -260,8 +275,8 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
 
 // ─── Page component ──────────────────────────────────────────────────────────
 export default function CVIndex({ profile, education, experiences, lang }: Props) {
-    const { __ } = useTranslation();
-    const name = profile?.full_name || __('cv.title_placeholder');
+    const t = translations[lang];
+    const name = profile?.full_name || 'CV';
 
     // Helper to get route with specific lang
     const getLangRoute = (l: 'id' | 'en') => {
@@ -273,10 +288,10 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
     return (
         <>
             <SeoHead 
-                title={`${__('cv.head_prefix')} – ${name}`}
-                description={profile?.bio?.substring(0, 160) || __('CV of Farros - Professional experiences and education.')}
+                title={`${t.head_prefix} – ${name}`}
+                description={profile?.bio?.substring(0, 160) || t.meta_description}
                 canonicalPath="cv"
-                jsonLd={createBreadcrumbJsonLd([{ name: __('CV'), url: route('cv.index', { locale: lang }) }])}
+                jsonLd={createBreadcrumbJsonLd([{ name: 'CV', url: route('cv.index', { locale: lang }) }])}
             />
 
             {/* ── SIMPLE FLOATING ACTIONS (hidden on print) ── */}
@@ -308,7 +323,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                     fontFamily: 'sans-serif', textDecoration: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s'
                 }}>
-                    <ArrowLeft size={18} /> {__('cv.home')}
+                    <ArrowLeft size={18} /> {t.home}
                 </a>
                 <button
                     onClick={() => window.print()}
@@ -320,7 +335,7 @@ export default function CVIndex({ profile, education, experiences, lang }: Props
                         transition: 'all 0.2s'
                     }}
                 >
-                    <Download size={18} /> {__('cv.download')}
+                    <Download size={18} /> {t.download}
                 </button>
             </div>
 

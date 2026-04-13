@@ -96,6 +96,9 @@ Route::prefix('{locale}')->where(['locale' => 'en|id'])->group(function () {
             
             // PDF Import
             Route::post('experiences/import-pdf', [\App\Http\Controllers\ExperienceImportController::class, 'store'])->name('experiences.import-pdf');
+            
+            // Bulk AI Update
+            Route::post('experiences/bulk-update-ai', [ExperienceController::class, 'bulkAiUpdate'])->name('experiences.bulk-update-ai');
         });
     });
 
