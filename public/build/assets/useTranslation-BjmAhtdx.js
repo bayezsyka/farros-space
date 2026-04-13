@@ -1,1 +1,0 @@
-import{u as o}from"./app-DTV-z-AK.js";function e(){const{translations:r}=o().props;return{__:(a,n={})=>{let t=r&&r[a]||a;return Object.keys(n).forEach(s=>{t=String(t).replace(`:${s}`,n[s])}),t}}}export{e as u};

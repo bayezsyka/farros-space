@@ -215,26 +215,36 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                     if (summary) {
                                         return (
                                             <div style={{ margin: '4px 0 0', paddingLeft: '0', fontSize: '9.5pt', color: '#222', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>
-                                                {summary.split('\n').map((line, i) => {
-                                                    const cleanLine = line.replace(/^\s*[\*\-\•]\s*/, '').trim();
-                                                    if (!cleanLine) return null;
-                                                    return (
+                                                {summary.split('\n')
+                                                    .map(line => line.replace(/^\s*[\*\-\•]\s*/, '').trim())
+                                                    .filter(line => line !== '')
+                                                    .slice(0, 3)
+                                                    .map((cleanLine, i) => (
                                                         <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
                                                             <span style={{ fontSize: '10pt', flexShrink: 0 }}>•</span>
                                                             <span style={{ fontSize: '9.5pt' }}>{cleanLine}</span>
                                                         </div>
-                                                    );
-                                                })}
+                                                    ))}
                                             </div>
                                         );
                                     }
-                                    return exp.updates && exp.updates.length > 0 && (
+                                    return exp.updates && exp.updates.length > 0 ? (
                                         <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
-                                            {exp.updates.map((update: any) => (
+                                            {exp.updates.slice(0, 3).map((update: any) => (
                                                 <li key={update.id} style={{ marginBottom: '2px' }}>
                                                     {lang === 'en' ? (update.content_en || update.content) : (update.content_id || update.content)}
                                                 </li>
                                             ))}
+                                        </ul>
+                                    ) : (
+                                        // 1 point fallback if no updates
+                                        <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
+                                            <li style={{ marginBottom: '2px' }}>
+                                                {lang === 'en' 
+                                                    ? `Served as ${exp.role_en || exp.role} at ${exp.company_or_event_name_en || exp.company_or_event_name}, contributing to its ongoing projects and initiatives.`
+                                                    : `Berperan sebagai ${exp.role_id || exp.role} di ${exp.company_or_event_name_id || exp.company_or_event_name}, berkontribusi dalam berbagai proyek dan inisiatif.`
+                                                }
+                                            </li>
                                         </ul>
                                     );
                                 })()}

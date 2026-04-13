@@ -13,6 +13,7 @@ class CvController extends Controller
     public function index(Request $request): Response
     {
         $lang = $request->query('lang', 'id');
+        app()->setLocale($lang);
         
         // Get the site owner (admin)
         $owner = \App\Models\User::where('is_admin', true)->first();
