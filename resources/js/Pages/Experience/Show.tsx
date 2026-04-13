@@ -83,7 +83,7 @@ export default function Show({ experience, auth }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('experience-updates.store', experience.id), {
+        post(route('experience-updates.store', experience.slug), {
             onSuccess: () => {
                 reset();
                 setImagePreview(null);

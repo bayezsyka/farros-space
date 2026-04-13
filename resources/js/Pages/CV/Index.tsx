@@ -21,6 +21,8 @@ interface Profile {
 interface ExperienceUpdate {
     id: number;
     content: string;
+    content_id?: string | null;
+    content_en?: string | null;
     created_at: string;
 }
 
@@ -28,8 +30,12 @@ interface Experience {
     id: number;
     type: 'work' | 'organization' | 'committee';
     company_or_event_name: string;
+    company_or_event_name_id?: string | null;
+    company_or_event_name_en?: string | null;
     umbrella_organization: string | null;
     role: string;
+    role_id?: string | null;
+    role_en?: string | null;
     start_date: string;
     end_date: string | null;
     summary_id: string | null;
@@ -187,7 +193,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                             <div key={exp.id} style={{ marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                     <span style={{ fontWeight: 700, fontSize: '10.5pt' }}>
-                                        {exp.role}
+                                        {lang === 'en' ? (exp.role_en || exp.role) : (exp.role_id || exp.role)}
                                     </span>
                                     <span style={{ fontSize: '10pt', whiteSpace: 'nowrap', paddingLeft: '12px' }}>
                                         {formatExperienceDate(exp.start_date, exp.end_date, lang)}
@@ -199,7 +205,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                         style={{ color: 'inherit', textDecoration: 'none' }}
                                         className="company-link"
                                     >
-                                        {exp.company_or_event_name}
+                                        {lang === 'en' ? (exp.company_or_event_name_en || exp.company_or_event_name) : (exp.company_or_event_name_id || exp.company_or_event_name)}
                                         {exp.umbrella_organization && ` (${exp.umbrella_organization})`}
                                     </a>
                                 </div>
@@ -226,7 +232,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                         <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '9.5pt', color: '#222', textAlign: 'justify' }}>
                                             {exp.updates.map((update: any) => (
                                                 <li key={update.id} style={{ marginBottom: '2px' }}>
-                                                    {update.content}
+                                                    {lang === 'en' ? (update.content_en || update.content) : (update.content_id || update.content)}
                                                 </li>
                                             ))}
                                         </ul>

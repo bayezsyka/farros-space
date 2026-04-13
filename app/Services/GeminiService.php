@@ -23,7 +23,7 @@ class GeminiService
 
         try {
             $prompt = "Berikut adalah daftar aktivitas atau update dari pengalaman kerja/organisasi sebagai '{$role}'.\n\n"
-                . "Buatkan ringkasan profesional dalam 3 atau 4 poin bullet point yang fokus pada peran teknis/profesional tersebut. "
+                . "Buatkan ringkasan profesional yang terdiri dari MAKSIMAL 3 poin bullet point yang paling penting dan fokus pada peran teknis/profesional tersebut. "
                 . "Hapus konten yang bersifat santai, bercanda, atau kurang relevan dengan kualifikasi profesional CV.\n"
                 . "Buatkan dalam dua versi bahasa: Indonesia dan Inggris.\n\n"
                 . "Format output HARUS selalu JSON valid seperti ini:\n"
@@ -64,6 +64,49 @@ class GeminiService
         }
     }
 
+    public function generateEmptyCvSummary(string $role, string $company): ?array
+    {
+        try {
+            $prompt = "Buatkan TEPAT 1 poin (satu kalimat penjelas) ringkasan deskripsi pekerjaan/kegiatan profesional untuk peran '{$role}' di institusi/perusahaan '{$company}'.\n"
+                . "Karena tidak ada rincian kegiatan spesifik, buatkan 1 deskripsi umum namun elegan dan konkrit (misal: 'Mengelola dan mengembangkan sistem X untuk meningkatkan efisiensi operasional').\n"
+                . "Buatkan dalam dua versi bahasa: Indonesia (id) dan Inggris (en).\n\n"
+                . "Format output HARUS selalu JSON valid berbentuk seperti ini:\n"
+                . "{\n"
+                . "  \"id\": \"• [Satu kalimat tebakan konkrit dalam bahasa Indonesia]\",\n"
+                . "  \"en\": \"• [Satu kalimat tebakan konkrit dalam bahasa Inggris]\"\n"
+                . "}\n";
+
+            $response = Http::post($this->baseUrl . '?key=' . $this->apiKey, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.5,
+                    'response_mime_type' => 'application/json',
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                if ($text) {
+                    return json_decode($text, true);
+                }
+            }
+
+            Log::error('Gemini API Error (Empty Summary): ' . $response->body());
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('Gemini Service Exception: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     /**
      * Extraksi pengalaman dari PDF menggunakan Gemini API
      */
@@ -81,7 +124,7 @@ class GeminiService
                 . "TUGAS UTAMA:\n"
                 . "1. Ekstrak informasi dasar untuk metadata.\n"
                 . "2. Dari laporan tersebut, susunlah 'threads' (minimal 5 item) yang sangat DETAIL dan NARRATIVE (bercerita). Ceritakan PROSES pembuatannya, tantangan yang dihadapi, dan bagaimana Anda mengerjakannya step-by-step. Hindari bahasa kaku seperti laporan formal, gunakan gaya bahasa yang enak dibaca seperti sedang bercerita tentang progres kerja.\n"
-                . "3. Buatlah CV summary yang RINGKAS, profesional, dan to-the-point dalam 2 bahasa (ID & EN).\n"
+                . "3. Buatlah CV summary yang RINGKAS, profesional, dan to-the-point dalam bentuk MAKSIMAL 3 (TIGA) poin bullet point. Buat dalam 2 bahasa (ID & EN).\n"
                 . "4. Abaikan informasi internal/rahasia perusahaan.\n\n"
                 . "Keluarkan output WAJIB dalam format JSON valid dengan struktur persis seperti ini:\n"
                 . "{\n"

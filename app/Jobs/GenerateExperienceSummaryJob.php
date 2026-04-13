@@ -45,12 +45,12 @@ class GenerateExperienceSummaryJob implements ShouldQueue
 
         $limitedContent = Str::limit($allContent, 3000);
 
-        if (empty($limitedContent)) {
-            return;
-        }
-
         // 2. Kirim ke Gemini API
-        $summaryData = $gemini->generateCvSummary($limitedContent, $this->experience->role);
+        if (empty(trim($limitedContent))) {
+            $summaryData = $gemini->generateEmptyCvSummary($this->experience->role, $this->experience->company_or_event_name);
+        } else {
+            $summaryData = $gemini->generateCvSummary($limitedContent, $this->experience->role);
+        }
 
         if ($summaryData && isset($summaryData['id'], $summaryData['en'])) {
             $this->experience->update([
@@ -60,8 +60,6 @@ class GenerateExperienceSummaryJob implements ShouldQueue
             Log::info("AI Summary generated for Experience ID: {$this->experience->id}");
         } else {
             Log::warning("Gemini failed to generate summary for Experience ID: {$this->experience->id}");
-            // Optional: Jika rate limit terdeteksi di Service, lempar exception buat memicu backoff/retry
-            // throw new \Exception("AI Summary Generation Failed (Retry planned)");
         }
     }
 

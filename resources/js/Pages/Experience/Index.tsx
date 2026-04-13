@@ -37,7 +37,7 @@ export default function Index({ experiences, auth }: Props) {
     const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-    const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, put, processing, errors, reset, clearErrors, transform } = useForm({
         type: 'work' as 'work' | 'organization' | 'committee',
         company_or_event_name: '',
         umbrella_organization: '',
@@ -55,8 +55,8 @@ export default function Index({ experiences, auth }: Props) {
                 company_or_event_name: experience.company_or_event_name,
                 umbrella_organization: experience.umbrella_organization || '',
                 role: experience.role,
-                start_date: experience.start_date,
-                end_date: experience.end_date,
+                start_date: experience.start_date ? experience.start_date.substring(0, 7) : '',
+                end_date: experience.end_date ? experience.end_date.substring(0, 7) : '',
                 is_current: experience.end_date === null,
             });
         } else {
@@ -74,10 +74,11 @@ export default function Index({ experiences, auth }: Props) {
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        const payload = {
+        transform((data) => ({
             ...data,
-            end_date: data.is_current ? null : data.end_date,
-        };
+            start_date: data.start_date ? `${data.start_date}-01` : '',
+            end_date: data.is_current ? null : (data.end_date ? `${data.end_date}-01` : null),
+        }));
 
         if (editingExperience) {
             put(route('experiences.update', editingExperience.slug), {
@@ -304,7 +305,7 @@ export default function Index({ experiences, auth }: Props) {
                             <InputLabel htmlFor="type" value={__('Type')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <select
                                 id="type"
-                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm font-semibold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm font-semibold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                                 value={data.type}
                                 onChange={(e) => setData('type', e.target.value as any)}
                             >
@@ -319,7 +320,6 @@ export default function Index({ experiences, auth }: Props) {
                             <InputLabel htmlFor="company_or_event_name" value={__('Institution/Event Name')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="company_or_event_name"
-                                className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                 value={data.company_or_event_name}
                                 onChange={(e) => setData('company_or_event_name', e.target.value)}
                                 placeholder={__('Google, BEM Univ, etc.')}
@@ -333,7 +333,6 @@ export default function Index({ experiences, auth }: Props) {
                                 <InputLabel htmlFor="umbrella_organization" value={__('Umbrella Organization')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                                 <TextInput
                                     id="umbrella_organization"
-                                    className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                     value={data.umbrella_organization}
                                     onChange={(e) => setData('umbrella_organization', e.target.value)}
                                     placeholder={__('Optional: BEM, Himpunan, etc.')}
@@ -346,7 +345,6 @@ export default function Index({ experiences, auth }: Props) {
                             <InputLabel htmlFor="role" value={__('Role / Position')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="role"
-                                className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
                                 value={data.role}
                                 onChange={(e) => setData('role', e.target.value)}
                                 placeholder={__('Example: Web Developer, Chair, etc.')}
@@ -359,8 +357,7 @@ export default function Index({ experiences, auth }: Props) {
                             <InputLabel htmlFor="start_date" value={__('Start')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="start_date"
-                                type="date"
-                                className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm"
+                                type="month"
                                 value={data.start_date}
                                 onChange={(e) => setData('start_date', e.target.value)}
                                 required
@@ -372,8 +369,7 @@ export default function Index({ experiences, auth }: Props) {
                             <InputLabel htmlFor="end_date" value={__('End')} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1" />
                             <TextInput
                                 id="end_date"
-                                type="date"
-                                className="w-full px-4 py-2.5 rounded-xl border-border bg-muted/30 text-sm disabled:opacity-30"
+                                type="month"
                                 value={data.end_date || ''}
                                 onChange={(e) => setData('end_date', e.target.value)}
                                 disabled={data.is_current}
