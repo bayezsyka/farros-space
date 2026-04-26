@@ -191,7 +191,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                     style={{ animationDelay: `${idx * 100}ms` }}
                                 >
                                     <Link 
-                                        href={route('threads.show', thread.slug)}
+                                        href={route('threads.show', { thread: thread.slug || String(thread.id) || 'unknown' })}
                                         className="flex items-start gap-4 p-3 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
                                     >
                                         <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0 border border-border/50">
