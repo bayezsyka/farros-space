@@ -33,6 +33,9 @@ class ExperienceUpdateController extends Controller
         // Dispatch translation job
         TranslateExperienceUpdateJob::dispatchSync($update);
 
+        // Update AI summary because content changed
+        \App\Jobs\GenerateExperienceSummaryJob::dispatchSync($experience);
+
         return redirect()->back()->with('success', 'Update added successfully.');
     }
 
@@ -62,6 +65,9 @@ class ExperienceUpdateController extends Controller
         // Dispatch translation job
         TranslateExperienceUpdateJob::dispatchSync($experienceUpdate);
 
+        // Update AI summary because content changed
+        \App\Jobs\GenerateExperienceSummaryJob::dispatchSync($experienceUpdate->experience);
+
         return redirect()->back()->with('success', 'Update updated successfully.');
     }
 
@@ -78,6 +84,9 @@ class ExperienceUpdateController extends Controller
         }
 
         $experienceUpdate->delete();
+
+        // Update AI summary because content changed
+        \App\Jobs\GenerateExperienceSummaryJob::dispatchSync($experience);
 
         return redirect()->back()->with('success', 'Update deleted successfully.');
     }

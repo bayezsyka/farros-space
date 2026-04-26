@@ -30,7 +30,7 @@ class SetLocale
         }
 
         // List of segments that should NOT be prefixed (e.g. storage, files, telescope)
-        $exclude = ['storage', 'telescope', 'up', 'horizon', 'sanctum', 'vendor'];
+        $exclude = ['media', 'storage', 'telescope', 'up', 'horizon', 'sanctum', 'vendor'];
         if (in_array($locale, $exclude)) {
             return $next($request);
         }

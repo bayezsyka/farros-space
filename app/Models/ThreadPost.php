@@ -14,7 +14,7 @@ class ThreadPost extends Model
     {
         parent::boot();
 
-        static::creating(function ($thread) {
+        static::saving(function ($thread) {
             if (empty($thread->slug)) {
                 $thread->slug = \Illuminate\Support\Str::slug($thread->title ?? \Illuminate\Support\Str::limit($thread->content, 20)) . '-' . rand(1000, 9999);
             }

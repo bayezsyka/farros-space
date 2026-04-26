@@ -12,6 +12,10 @@ Route::get('/', function () {
     return redirect('/id');
 });
 
+Route::get('/media/storage/{path}', \App\Http\Controllers\StorageFileController::class)
+    ->where('path', '.*')
+    ->name('storage.media');
+
 Route::prefix('{locale}')->where(['locale' => 'en|id'])->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
     Route::get('/cv', [App\Http\Controllers\CvController::class, 'index'])->name('cv.index');
@@ -112,7 +116,7 @@ Route::fallback(function (\Illuminate\Http\Request $request) {
     $firstSegment = $segments[0] ?? '';
 
     // If it's already localized or an excluded path, just 404
-    $exclude = ['id', 'en', 'storage', 'telescope', 'up', 'horizon', 'sanctum', 'vendor', 'api'];
+    $exclude = ['id', 'en', 'media', 'storage', 'telescope', 'up', 'horizon', 'sanctum', 'vendor', 'api'];
     if (in_array($firstSegment, $exclude)) {
         abort(404);
     }

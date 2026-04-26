@@ -33,6 +33,17 @@ class MarketplaceItem extends Model
         return 'slug';
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($item) {
+            if (empty($item->slug)) {
+                $item->slug = \Illuminate\Support\Str::slug($item->name) . '-' . rand(1000, 9999);
+            }
+        });
+    }
+
     /**
      * Always use the phone number from SiteProfile.
      */

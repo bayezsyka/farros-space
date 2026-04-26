@@ -7,11 +7,11 @@ import {
 
 // ─── Resolution presets ───────────────────────────────────────────────────────
 
-type Resolution = '3:4' | '1:1';
+type Resolution = '3:4' | '1:1' | '9:16';
 
 // '3:4' → portrait stacked (3 detail photos, all 1:1 squares)
 // '1:1' → 2-column grid: left=main, right=2 detail stacked, bottom=info bar
-type Layout = 'portrait' | 'grid2col';
+type Layout = 'portrait' | 'grid2col' | 'story';
 
 interface RenderConfig {
     W: number; H: number; PAD: number; GAP: number; INFO_H: number;
@@ -35,6 +35,17 @@ const CONFIGS: Record<Resolution, RenderConfig> = {
         layout: 'grid2col', R: 14, detailCount: 2,
         nameFs: 38, priceFs: 32, chipFs: 13, chipH: 26, metaFs: 18, QR_SIZE: 220,
     },
+    '9:16': {
+        W: 1080, H: 1920, PAD: 36, GAP: 18, INFO_H: 330,
+        layout: 'story', R: 22, detailCount: 6,
+        nameFs: 44, priceFs: 38, chipFs: 15, chipH: 31, metaFs: 20, QR_SIZE: 220,
+    },
+};
+
+const RESOLUTION_LABELS: Record<Resolution, string> = {
+    '3:4': '900x1380',
+    '1:1': '1080x1080',
+    '9:16': '1080x1920',
 };
 
 const FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -77,7 +88,42 @@ function formatPrice(price: number | string | null, lang: 'id' | 'en'): string {
     return String(price);
 }
 
-async function loadImage(src: string, ms = 14000): Promise<HTMLImageElement | null> {
+function imageCandidates(src: string): string[] {
+    if (!src) return [];
+    if (src.startsWith('data:') || src.startsWith('blob:')) return [src];
+
+    const candidates = new Set<string>();
+    const add = (value: string | null | undefined) => {
+        if (value) candidates.add(value);
+    };
+
+    try {
+        const url = new URL(src, window.location.origin);
+
+        const storageIndex = url.pathname.indexOf('/storage/');
+        if (storageIndex >= 0) {
+            add(new URL(`/media/storage/${url.pathname.slice(storageIndex + 9)}${url.search}${url.hash}`, window.location.origin).toString());
+            return [...candidates];
+        }
+
+        add(url.toString());
+    } catch {
+        if (src.startsWith('storage/')) {
+            add(new URL(`/media/storage/${src.slice(8)}`, window.location.origin).toString());
+            return [...candidates];
+        }
+
+        add(src);
+    }
+
+    return [...candidates];
+}
+
+function resolveImageSrc(src: string): string {
+    return imageCandidates(src)[0] ?? src;
+}
+
+async function loadImageElement(src: string, ms: number): Promise<HTMLImageElement | null> {
     return new Promise((resolve) => {
         const img = new Image();
         let done = false;
@@ -85,11 +131,56 @@ async function loadImage(src: string, ms = 14000): Promise<HTMLImageElement | nu
             if (done) return; done = true; img.onload = img.onerror = null; resolve(r);
         };
         const t = window.setTimeout(() => finish(null), ms);
-        img.onload = () => { window.clearTimeout(t); finish(img); };
+        img.onload = () => { window.clearTimeout(t); finish((img.naturalWidth || img.width) ? img : null); };
         img.onerror = () => { window.clearTimeout(t); finish(null); };
-        if (!src.startsWith('data:') && !src.startsWith('blob:')) img.crossOrigin = 'anonymous';
-        img.src = src.startsWith('/') ? new URL(src, window.location.origin).toString() : src;
+        if (!src.startsWith('data:') && !src.startsWith('blob:')) {
+            try {
+                if (new URL(src, window.location.origin).origin !== window.location.origin) {
+                    img.crossOrigin = 'anonymous';
+                }
+            } catch { }
+        }
+        img.src = src;
     });
+}
+
+async function loadImageViaFetch(src: string, ms: number): Promise<HTMLImageElement | null> {
+    if (src.startsWith('data:') || src.startsWith('blob:')) return null;
+
+    try {
+        const url = new URL(src, window.location.origin);
+        const response = await fetch(url.toString(), {
+            credentials: url.origin === window.location.origin ? 'same-origin' : 'omit',
+            cache: 'force-cache',
+        });
+
+        if (!response.ok) return null;
+        const blob = await response.blob();
+        if (blob.type && !blob.type.startsWith('image/')) return null;
+
+        const dataUrl = await new Promise<string | null>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+        });
+
+        return dataUrl ? loadImageElement(dataUrl, ms) : null;
+    } catch {
+        return null;
+    }
+}
+
+async function loadImage(src: string, ms = 14000): Promise<HTMLImageElement | null> {
+    for (const candidate of imageCandidates(src)) {
+        const direct = await loadImageElement(candidate, ms);
+        if (direct) return direct;
+
+        const fetched = await loadImageViaFetch(candidate, ms);
+        if (fetched) return fetched;
+    }
+
+    return null;
 }
 
 function drawCover(
@@ -408,6 +499,77 @@ async function renderGrid2Col(
     await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, actualInfoH, lang);
 }
 
+async function renderStory(
+    ctx: CanvasRenderingContext2D,
+    item: MarketplaceItem,
+    mainImg: HTMLImageElement | null,
+    detailImgs: (HTMLImageElement | null)[],
+    location: string,
+    cfg: RenderConfig,
+    lang: 'id' | 'en',
+) {
+    const { W, H, PAD, GAP, INFO_H, R } = cfg;
+    const INNER_W = W - PAD * 2;
+
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+
+    const DETAIL_COLS = 3;
+    const DETAIL_SIZE = Math.floor((INNER_W - GAP * (DETAIL_COLS - 1)) / DETAIL_COLS);
+    const INFO_Y = Math.round((H - INFO_H) / 2);
+    const MAIN_Y = PAD;
+    const MAIN_H = INFO_Y - GAP - MAIN_Y;
+    const DETAIL_Y = INFO_Y + INFO_H + GAP;
+
+    ctx.save();
+    clipRR(ctx, PAD, MAIN_Y, INNER_W, MAIN_H, R); ctx.clip();
+    if (mainImg) {
+        drawCover(ctx, mainImg, PAD, MAIN_Y, INNER_W, MAIN_H);
+    } else {
+        ctx.fillStyle = '#F4F4F5'; ctx.fillRect(PAD, MAIN_Y, INNER_W, MAIN_H);
+        ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(MAIN_H * 0.085)}px ${FONT}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('[ Foto Utama ]', PAD + INNER_W / 2, MAIN_Y + MAIN_H / 2);
+    }
+    ctx.restore();
+    ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
+    clipRR(ctx, PAD, MAIN_Y, INNER_W, MAIN_H, R); ctx.stroke();
+
+    const isBaru = item.status === 'baru';
+    const badgeW = 96;
+    const badgeH = 36;
+    ctx.fillStyle = 'rgba(0,0,0,0.58)';
+    clipRR(ctx, PAD + 18, MAIN_Y + 18, badgeW, badgeH, 10); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.font = `700 15px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(isBaru ? (lang === 'id' ? 'BARU' : 'NEW') : (lang === 'id' ? 'BEKAS' : 'USED'), PAD + 18 + badgeW / 2, MAIN_Y + 18 + badgeH / 2);
+
+    ctx.fillStyle = '#E4E4E7';
+    ctx.fillRect(PAD, INFO_Y - Math.round(GAP / 2), INNER_W, 1);
+    ctx.fillRect(PAD, INFO_Y + INFO_H + Math.round(GAP / 2), INNER_W, 1);
+
+    await drawInfoBar(ctx, item, location, cfg, PAD, INFO_Y, INNER_W, INFO_H, lang);
+
+    for (let i = 0; i < cfg.detailCount; i++) {
+        const row = Math.floor(i / DETAIL_COLS);
+        const col = i % DETAIL_COLS;
+        const dx = PAD + col * (DETAIL_SIZE + GAP);
+        const dy = DETAIL_Y + row * (DETAIL_SIZE + GAP);
+        ctx.save();
+        clipRR(ctx, dx, dy, DETAIL_SIZE, DETAIL_SIZE, R * 0.65); ctx.clip();
+        if (detailImgs[i]) {
+            drawCover(ctx, detailImgs[i]!, dx, dy, DETAIL_SIZE, DETAIL_SIZE);
+        } else {
+            ctx.fillStyle = '#F4F4F5'; ctx.fillRect(dx, dy, DETAIL_SIZE, DETAIL_SIZE);
+            ctx.fillStyle = '#B0B0B8'; ctx.font = `500 ${Math.round(DETAIL_SIZE * 0.17)}px ${FONT}`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(`Foto ${i + 1}`, dx + DETAIL_SIZE / 2, dy + DETAIL_SIZE / 2);
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 1;
+        clipRR(ctx, dx, dy, DETAIL_SIZE, DETAIL_SIZE, R * 0.65); ctx.stroke();
+    }
+}
+
 async function renderPoster(
     ctx: CanvasRenderingContext2D,
     item: MarketplaceItem,
@@ -417,6 +579,9 @@ async function renderPoster(
     cfg: RenderConfig,
     lang: 'id' | 'en',
 ) {
+    if (cfg.layout === 'story') {
+        return renderStory(ctx, item, mainImg, detailImgs, location, cfg, lang);
+    }
     if (cfg.layout === 'grid2col') {
         return renderGrid2Col(ctx, item, mainImg, detailImgs, location, cfg, lang);
     }
@@ -443,24 +608,24 @@ function PhotoPicker({ index, existingPhotos, selectedSrc, onSelect, onLocalFile
     };
 
     return (
-        <div className="space-y-1.5">
-            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+        <div className="rounded-xl border border-zinc-100 bg-zinc-50/80 p-2.5 space-y-2">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
                 Foto {index + 1}
-                {selectedSrc && <span className="ml-1.5 text-emerald-500 normal-case">✓</span>}
+                {selectedSrc && <CheckSquare2 className="w-3 h-3 text-emerald-500" />}
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {existingPhotos.map((photo) => {
                     const active = selectedSrc === photo.foto_path;
                     return (
                         <button
                             key={photo.id} type="button"
                             onClick={() => onSelect(active ? '' : photo.foto_path)}
-                            className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${active
+                            className={`relative w-10 h-10 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${active
                                 ? 'border-zinc-900 shadow-md'
                                 : 'border-zinc-200 hover:border-zinc-400 opacity-60 hover:opacity-100'
                                 }`}
                         >
-                            <img src={photo.foto_path} alt="" className="w-full h-full object-cover" />
+                            <img src={resolveImageSrc(photo.foto_path)} alt="" className="w-full h-full object-cover" />
                             {active && (
                                 <div className="absolute inset-0 bg-zinc-900/20 flex items-center justify-center">
                                     <CheckSquare2 className="w-3.5 h-3.5 text-white drop-shadow" />
@@ -472,7 +637,7 @@ function PhotoPicker({ index, existingPhotos, selectedSrc, onSelect, onLocalFile
                 <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
-                    className="w-12 h-12 rounded-lg border-2 border-dashed border-zinc-200 hover:border-zinc-400 flex items-center justify-center transition-all text-zinc-400 hover:text-zinc-700 shrink-0"
+                    className="w-10 h-10 rounded-lg border-2 border-dashed border-zinc-200 hover:border-zinc-400 flex items-center justify-center transition-all text-zinc-400 hover:text-zinc-700 shrink-0"
                     title="Upload dari perangkat"
                 >
                     <Upload className="w-3.5 h-3.5" />
@@ -495,15 +660,19 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
     const [resolution, setResolution] = useState<Resolution>('3:4');
     const cfg = CONFIGS[resolution];
 
-    // detail srcs: always length 3, but only cfg.detailCount slots are used
-    const [detailSrcs, setDetailSrcs] = useState<[string, string, string]>(() => {
-        const srcs = existingPhotos.slice(0, 3).map(p => p.foto_path);
-        return [srcs[0] ?? '', srcs[1] ?? '', srcs[2] ?? ''] as [string, string, string];
+    // detail srcs: always length 6, but only cfg.detailCount slots are used
+    const [detailSrcs, setDetailSrcs] = useState<string[]>(() => {
+        const srcs = existingPhotos.slice(0, 6).map(p => p.foto_path);
+        return Array.from({ length: 6 }, (_, i) => srcs[i] ?? '');
     });
     const [location, setLocation] = useState('');
     const [generating, setGenerating] = useState(false);
     const [generated, setGenerated] = useState(false);
     const [downloadError, setDownloadError] = useState<string | null>(null);
+    const [viewport, setViewport] = useState(() => ({
+        width: typeof window === 'undefined' ? 1024 : window.innerWidth,
+        height: typeof window === 'undefined' ? 768 : window.innerHeight,
+    }));
 
     useEffect(() => {
         mountedRef.current = true;
@@ -518,9 +687,27 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
         return () => document.removeEventListener('keydown', h);
     }, [onClose]);
 
-    const setDetail = (index: 0 | 1 | 2, src: string) => {
+    useEffect(() => {
+        const readViewport = () => {
+            const visual = window.visualViewport;
+            setViewport({
+                width: Math.round(visual?.width ?? window.innerWidth),
+                height: Math.round(visual?.height ?? window.innerHeight),
+            });
+        };
+
+        readViewport();
+        window.addEventListener('resize', readViewport);
+        window.visualViewport?.addEventListener('resize', readViewport);
+        return () => {
+            window.removeEventListener('resize', readViewport);
+            window.visualViewport?.removeEventListener('resize', readViewport);
+        };
+    }, []);
+
+    const setDetail = (index: number, src: string) => {
         setDetailSrcs(prev => {
-            const next = [...prev] as [string, string, string];
+            const next = [...prev];
             next[index] = src;
             return next;
         });
@@ -542,17 +729,17 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
         try { (ctx as any).imageSmoothingQuality = 'high'; } catch { }
 
         try {
-            const mainSrc = item.image_path
-                ? (item.image_path.startsWith('/') ? new URL(item.image_path, window.location.origin).toString() : item.image_path)
-                : null;
-            const [mainImg, d0, d1, d2] = await Promise.all([
+            const mainSrc = item.image_path ? resolveImageSrc(item.image_path) : null;
+            const [mainImg, detailImgs] = await Promise.all([
                 mainSrc ? loadImage(mainSrc) : Promise.resolve(null),
-                detailSrcs[0] ? loadImage(detailSrcs[0]) : Promise.resolve(null),
-                detailSrcs[1] ? loadImage(detailSrcs[1]) : Promise.resolve(null),
-                detailSrcs[2] ? loadImage(detailSrcs[2]) : Promise.resolve(null),
+                Promise.all(
+                    detailSrcs
+                        .slice(0, cfg.detailCount)
+                        .map(src => src ? loadImage(src) : Promise.resolve(null))
+                ),
             ]);
             if (!mountedRef.current || genIdRef.current !== myGen) return;
-            await renderPoster(ctx, item, mainImg, [d0, d1, d2], location, cfg, lang);
+            await renderPoster(ctx, item, mainImg, detailImgs, location, cfg, lang);
             if (mountedRef.current && genIdRef.current === myGen) {
                 setGenerating(false); setGenerated(true);
             }
@@ -560,7 +747,7 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
             console.error('[ProductPoster]', err);
             if (mountedRef.current && genIdRef.current === myGen) setGenerating(false);
         }
-    }, [item, detailSrcs, location, cfg]);
+    }, [item, detailSrcs, location, cfg, lang]);
 
     useEffect(() => {
         const t = window.setTimeout(() => generate(), 200);
@@ -591,30 +778,35 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
     }, [item.name, resolution]);
 
     // Preview scale
-    const PREVIEW_W = 340;
-    const previewW = PREVIEW_W;
-    const previewH = Math.round(cfg.H * (PREVIEW_W / cfg.W));
+    const aspect = cfg.W / cfg.H;
+    const mobileViewport = viewport.width < 768;
+    const previewMaxW = mobileViewport ? Math.max(220, viewport.width - 32) : 380;
+    const previewMaxH = mobileViewport
+        ? Math.max(320, Math.min(viewport.height * 0.7, viewport.height - 210))
+        : Math.max(420, viewport.height - 190);
+    const previewW = Math.round(Math.max(180, Math.min(previewMaxW, previewMaxH * aspect)));
+    const previewH = Math.round(previewW / aspect);
     const isBaru = item.status === 'baru';
 
     // How many photo pickers to show for current layout
-    const detailIndices = Array.from({ length: cfg.detailCount }, (_, i) => i) as (0 | 1 | 2)[];
+    const detailIndices = Array.from({ length: cfg.detailCount }, (_, i) => i);
 
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 touch-none"
+            className="fixed inset-0 z-[200] flex items-stretch justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-0 sm:items-center sm:p-4"
             role="dialog" aria-modal="true" aria-label={__("Product Poster Generator")}
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden border border-zinc-200">
+            <div className="bg-white w-full h-[100dvh] sm:h-auto sm:max-h-[94dvh] sm:max-w-5xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 shrink-0">
+                <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5 border-b border-zinc-100 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center">
                             <FileImage className="w-3.5 h-3.5 text-zinc-600" />
                         </div>
                         <div>
                             <h2 className="text-sm font-bold text-zinc-900">{__("Generate Poster")}</h2>
-                            <p className="text-[11px] text-zinc-400 truncate max-w-[240px]">
+                            <p className="text-[11px] text-zinc-400 truncate max-w-[calc(100vw-112px)] sm:max-w-[360px]">
                                 {item.name} · {cfg.W}×{cfg.H}px ({resolution})
                             </p>
                         </div>
@@ -627,15 +819,15 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                     </button>
                 </div>
 
-                <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden min-h-0">
+                <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden min-h-0 bg-white">
 
                     {/* ── Sidebar ──────────────────────────────────── */}
-                    <div className="w-full md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-zinc-100 p-4 space-y-4 md:overflow-y-auto">
+                    <div className="order-2 md:order-1 w-full md:w-64 shrink-0 border-t md:border-t-0 md:border-r border-zinc-100 p-4 space-y-4 md:overflow-y-auto">
 
                         {/* Item summary */}
                         <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zinc-50 border border-zinc-100">
                             {item.image_path ? (
-                                <img src={item.image_path} alt={item.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                                <img src={resolveImageSrc(item.image_path)} alt={item.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
                             ) : (
                                 <div className="w-10 h-10 rounded-lg bg-zinc-200 flex items-center justify-center shrink-0">
                                     <FileImage className="w-4 h-4 text-zinc-400" />
@@ -656,7 +848,7 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                         <div>
                             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">{__("Resolution")}</p>
                             <div className="flex gap-2">
-                                {(['3:4', '1:1'] as Resolution[]).map(res => (
+                                {(['3:4', '1:1', '9:16'] as Resolution[]).map(res => (
                                     <button
                                         key={res} type="button"
                                         onClick={() => setResolution(res)}
@@ -667,16 +859,18 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                                     >
                                         {res}
                                         <span className="block text-[9px] font-medium opacity-70 mt-0.5">
-                                            {res === '3:4' ? '900×1380' : '1080×1080'}
+                                            {RESOLUTION_LABELS[res]}
                                         </span>
                                     </button>
                                 ))}
                             </div>
                             {/* Layout hint */}
                             <p className="text-[10px] text-zinc-400 mt-1.5 leading-snug">
-                                {cfg.layout === 'grid2col'
-                                    ? __("2 columns: main left, 2 detail right")
-                                    : __("3 detail photos in a row at bottom")}
+                                {cfg.layout === 'story'
+                                    ? __("Main photo, centered info, 6 detail below")
+                                    : cfg.layout === 'grid2col'
+                                        ? __("2 columns: main left, 2 detail right")
+                                        : __("3 detail photos in a row at bottom")}
                             </p>
                         </div>
 
@@ -685,16 +879,18 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
                                 {__(":count Detail Photos", { count: cfg.detailCount.toString() })}
                             </p>
-                            {detailIndices.map(i => (
-                                <PhotoPicker
-                                    key={i}
-                                    index={i}
-                                    existingPhotos={existingPhotos}
-                                    selectedSrc={detailSrcs[i] || null}
-                                    onSelect={(src) => setDetail(i, src)}
-                                    onLocalFile={(src) => setDetail(i, src)}
-                                />
-                            ))}
+                            <div className="grid grid-cols-1 min-[430px]:grid-cols-2 md:grid-cols-1 gap-2.5">
+                                {detailIndices.map(i => (
+                                    <PhotoPicker
+                                        key={i}
+                                        index={i}
+                                        existingPhotos={existingPhotos}
+                                        selectedSrc={detailSrcs[i] || null}
+                                        onSelect={(src) => setDetail(i, src)}
+                                        onLocalFile={(src) => setDetail(i, src)}
+                                    />
+                                ))}
+                            </div>
                         </div>
 
                         {/* Location */}
@@ -720,7 +916,7 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                     </div>
 
                     {/* ── Canvas Preview ───────────────────────────── */}
-                    <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 p-5 md:overflow-auto">
+                    <div className="order-1 md:order-2 flex-none md:flex-1 flex flex-col items-center justify-center bg-zinc-50 p-3 sm:p-5 md:overflow-auto">
                         <div
                             className="relative rounded-xl overflow-hidden shadow-md border border-zinc-200 shrink-0 bg-white"
                             style={{ width: previewW, height: previewH }}
@@ -745,15 +941,15 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-zinc-100 shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-3 border-t border-zinc-100 shrink-0 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:pb-3">
                     <button
                         type="button" onClick={generate} disabled={generating}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
+                        className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
                         {__("Re-render")}
                     </button>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex">
                         <button
                             type="button" onClick={onClose}
                             className="px-4 py-2 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
@@ -762,7 +958,7 @@ export default function ProductPosterGenerator({ item, lang, onClose }: ProductP
                         </button>
                         <button
                             type="button" onClick={handleDownload} disabled={!generated || generating}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors disabled:opacity-40"
+                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors disabled:opacity-40"
                         >
                             <Download className="w-3.5 h-3.5" /> {__("Download")}
                         </button>

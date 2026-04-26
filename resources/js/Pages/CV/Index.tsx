@@ -241,7 +241,7 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                                         return (
                                             <div style={{ margin: '4px 0 0', paddingLeft: '0', fontSize: '9.5pt', color: '#222', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>
                                                 {summary.split('\n')
-                                                    .map(line => line.replace(/^\s*[\*\-\•]\s*/, '').trim())
+                                                    .map(line => line.replace(/^\s*([0-9]+[\.\)]|[\*\-\•])\s*/, '').trim())
                                                     .filter(line => line !== '')
                                                     .slice(0, 3)
                                                     .map((cleanLine, i) => (

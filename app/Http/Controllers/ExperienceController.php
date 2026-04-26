@@ -125,8 +125,8 @@ class ExperienceController extends Controller
 
         TranslateModelFieldsJob::dispatchSync($experience, ['role', 'company_or_event_name']);
 
-        // Hanya dispatch job jika role berubah atau jika secara eksplisit disuruh
-        if ($experience->wasChanged('role')) {
+        // Dispatch summary job if role, company, or type changed
+        if ($experience->wasChanged(['role', 'company_or_event_name', 'type'])) {
             GenerateExperienceSummaryJob::dispatchSync($experience);
         }
 
@@ -158,17 +158,17 @@ class ExperienceController extends Controller
 
     public function bulkAiUpdate()
     {
-        $owner = User::where('is_admin', true)->first();
-        if (!$owner) $owner = User::first();
-
-        if (Auth::id() !== $owner->id) {
+        if (!Auth::user()->is_admin) {
             abort(403);
         }
 
+        $user = Auth::user();
         set_time_limit(0); // Prevent timeout on hosting
 
-        foreach ($owner->experiences as $experience) {
+        foreach ($user->experiences as $experience) {
             GenerateExperienceSummaryJob::dispatchSync($experience);
+            // Small pause to avoid hitting rate limits too fast (15 RPM for free tier)
+            usleep(800000); // 0.8 seconds
         }
 
         return redirect()->back()->with('success', '✨ All experience summaries have been successfully refreshed using AI!');
