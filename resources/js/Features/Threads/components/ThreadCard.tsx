@@ -72,7 +72,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
         if (isSubmittingComment) return;
         setIsSubmittingComment(true);
         try {
-            const response = await axios.post(route('threads.like', { thread: thread.slug }));
+            const response = await axios.post(route('threads.like', { locale: locale, thread: thread.slug }));
             setLikes(response.data.count);
             setIsLiked(response.data.status === 'liked');
         } catch (error) {
@@ -88,7 +88,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
         if (!showComments && comments.length === 0) {
             try {
-                const response = await axios.get(route('threads.comments.index', { thread: thread.slug }));
+                const response = await axios.get(route('threads.comments.index', { locale: locale, thread: thread.slug }));
                 setComments(response.data);
             } catch (error) {
                 console.error("Failed to fetch comments", error);
@@ -103,14 +103,14 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
         setIsSubmittingComment(true);
         try {
-            const response = await axios.post(route('threads.comments.store', { thread: thread.slug }), {
+            const response = await axios.post(route('threads.comments.store', { locale: locale, thread: thread.slug }), {
                 content: newComment
             });
             setComments([response.data, ...comments]);
             setNewComment('');
         } catch (error: any) {
             if (error.response?.status === 401) {
-                window.location.href = route('auth.google');
+                window.location.href = route('auth.google', { locale: locale });
             } else {
                 alert(__('Failed to post comment.'));
             }
@@ -121,7 +121,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
 
     const handleDeleteThread = () => {
         if (!confirm(__('Are you sure you want to delete this thread?'))) return;
-        router.delete(route('threads.destroy', { thread: thread.slug }), {
+        router.delete(route('threads.destroy', { locale: locale, thread: thread.slug }), {
             preserveScroll: true
         });
     };
@@ -136,7 +136,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
         if (editContent.trim()) formData.append('content', editContent);
         if (editImage) formData.append('image', editImage);
 
-        router.post(route('threads.update', { thread: thread.slug }), formData as any, {
+        router.post(route('threads.update', { locale: locale, thread: thread.slug }), formData as any, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
@@ -200,14 +200,14 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                             <span className="font-bold text-[13px] sm:text-[15px] hover:underline cursor-pointer truncate max-w-[120px] sm:max-w-none">
                                 {isPublic ? (
                                     thread.user?.id ? (
-                                        <Link href={route('threads.user', thread.user.name)} className="hover:text-primary transition-colors">
+                                        <Link href={route('threads.user', { locale: locale, username: thread.user.name })} className="hover:text-primary transition-colors">
                                             {thread.user.name || 'Guest'}
                                         </Link>
                                     ) : (
                                         'Guest'
                                     )
                                 ) : (
-                                    <Link href={route('threads.user', 'owner')} className="hover:text-primary transition-colors">
+                                    <Link href={route('threads.user', { locale: locale, username: 'owner' })} className="hover:text-primary transition-colors">
                                         {profile?.full_name || 'Farros'}
                                     </Link>
                                 )}
@@ -400,7 +400,7 @@ export const ThreadCard = ({ thread, profile, isPublic = false }: ThreadCardProp
                                         <div className="flex flex-col items-center justify-center py-4 sm:py-6 px-3 sm:px-4 bg-zinc-50 rounded-xl sm:rounded-2xl border border-dashed border-zinc-200 gap-2 sm:gap-3">
                                             <p className="text-[12px] sm:text-[14px] text-zinc-500 font-medium text-center">{__('Log in to comment')}</p>
                                             <a
-                                                href={route('auth.google', { redirect: window.location.href })}
+                                                href={route('auth.google', { locale: locale, redirect: window.location.href })}
                                                 className="flex items-center gap-2 sm:gap-3 bg-white border border-zinc-200 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] font-bold shadow-sm hover:shadow-md hover:bg-zinc-50 transition-all active:scale-95"
                                             >
                                                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" viewBox="0 0 24 24">

@@ -60,7 +60,7 @@ export default function Index({ items }: Props) {
             <SeoHead 
                 title={__('Marketplace')} 
                 description={__('Curated collection — new and used — quality checked for you.')}
-                jsonLd={createBreadcrumbJsonLd([{ name: __('Marketplace'), url: route('marketplace.index') }])}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Marketplace'), url: route('marketplace.index', { locale: locale }) }])}
             />
 
             <PageHeader
@@ -170,7 +170,7 @@ function ItemCard({ item }: { item: MarketplaceItem }) {
     const { __ } = useTranslation();
     return (
         <Link
-            href={route('marketplace.show', item.slug)}
+            href={route('marketplace.show', { locale: locale, marketplaceItem: item.slug })}
             className="group block"
         >
             <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-foreground/20 hover:shadow-lg transition-all duration-300">

@@ -82,11 +82,11 @@ export default function Index({ experiences, auth }: Props) {
         }));
 
         if (editingExperience) {
-            put(route('experiences.update', editingExperience.slug), {
+            put(route('experiences.update', { locale: locale, experience: editingExperience.slug }), {
                 onSuccess: () => closeModal(),
             });
         } else {
-            post(route('experiences.store'), {
+            post(route('experiences.store', { locale: locale }), {
                 onSuccess: () => closeModal(),
             });
         }
@@ -94,19 +94,19 @@ export default function Index({ experiences, auth }: Props) {
 
     const handleDelete = (experience: Experience) => {
         if (confirm(__('Delete this experience? All stories within it will also be deleted.'))) {
-            router.delete(route('experiences.destroy', experience.slug));
+            router.delete(route('experiences.destroy', { locale: locale, experience: experience.slug }));
         }
     };
 
     const handleArchive = (experience: Experience) => {
         if (confirm(__('Archive ":role"? This experience will not appear on the public page.', { role: experience.role }))) {
-            router.post(route('experiences.archive', experience.slug));
+            router.post(route('experiences.archive', { locale: locale, experience: experience.slug }));
         }
     };
 
     const handleUnarchive = (experience: Experience) => {
         if (confirm(__('Reactivate ":role"?', { role: experience.role }))) {
-            router.post(route('experiences.unarchive', experience.slug));
+            router.post(route('experiences.unarchive', { locale: locale, experience: experience.slug }));
         }
     };
 
@@ -133,7 +133,7 @@ export default function Index({ experiences, auth }: Props) {
             <SeoHead 
                 title={__('Experiences')} 
                 description={__('Professional career journey, organizations, and committees.')}
-                jsonLd={createBreadcrumbJsonLd([{ name: __('Experiences'), url: route('experiences.index') }])}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Experiences'), url: route('experiences.index', { locale: locale }) }])}
             />
             
             <PageHeader
@@ -143,7 +143,7 @@ export default function Index({ experiences, auth }: Props) {
                 subtitle={__('A list of my career journey, organizations, and committees.')}
                 actions={(
                     <div className="flex flex-wrap items-center gap-3">
-                        <Link href={route('cv.index')}>
+                        <Link href={route('cv.index', { locale: locale })}>
                             <Button 
                                 variant="outline"
                                 className="rounded-2xl px-6 font-bold h-11 border-border/50 hover:bg-muted"
@@ -191,7 +191,7 @@ export default function Index({ experiences, auth }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {experiences.map((exp) => (
                             <div key={exp.id} className="relative">
-                                <Link href={route('experiences.show', exp.slug)}>
+                                <Link href={route('experiences.show', { locale: locale, experience: exp.slug })}>
                                     <Card className={`group rounded-[2rem] border-border/50 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 h-full flex flex-col ${!!exp.is_archived ? 'bg-muted/10 grayscale-[0.8] opacity-70' : 'bg-card hover:bg-muted/30'}`}>
                                     <div className="p-6 pb-2 relative overflow-hidden flex-grow">
                                         <div className="flex items-start justify-between mb-6">

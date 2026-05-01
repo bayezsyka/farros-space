@@ -52,7 +52,7 @@ interface Props {
 }
 
 export default function ThreadsIndex({ threads, profile }: Props) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
     const { __ } = useTranslation();
 
     const handlePublicThreadSuccess = (newThread: Thread) => {
@@ -65,7 +65,7 @@ export default function ThreadsIndex({ threads, profile }: Props) {
             <SeoHead 
                 title={__('Threads — Community Conversations')}
                 description={__('Explore and participate in community threads, stories, and discussions.')}
-                jsonLd={createBreadcrumbJsonLd([{ name: __('Threads'), url: route('threads.index') }])}
+                jsonLd={createBreadcrumbJsonLd([{ name: __('Threads'), url: route('threads.index', { locale: locale }) }])}
             />
             <PageHeader
                 breadcrumbs={[{ label: __('Threads') }]}

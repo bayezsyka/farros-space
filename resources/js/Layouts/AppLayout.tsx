@@ -56,10 +56,10 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
     };
 
     const navLinks = [
-        { href: route('landing'), label: __('Home'), icon: Home },
-        { href: route('threads.index'), label: __('Threads'), icon: MessageSquare },
-        { href: route('marketplace.index'), label: __('Marketplace'), icon: ShoppingBag },
-        { href: route('experiences.index'), label: __('Experience'), icon: Briefcase },
+        { href: route('landing', { locale: locale }), label: __('Home'), icon: Home },
+        { href: route('threads.index', { locale: locale }), label: __('Threads'), icon: MessageSquare },
+        { href: route('marketplace.index', { locale: locale }), label: __('Marketplace'), icon: ShoppingBag },
+        { href: route('experiences.index', { locale: locale }), label: __('Experience'), icon: Briefcase },
     ];
 
     return (
@@ -103,7 +103,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 <>
                                     {user.is_admin && (
                                         <Link
-                                            href={route('dashboard')}
+                                            href={route('dashboard', { locale: locale })}
                                             className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                                         >
                                             <LayoutDashboard className="w-3.5 h-3.5" />
@@ -120,7 +120,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                         )}
                                         <span className="text-sm font-medium text-muted-foreground hidden lg:inline mr-1">{user.name}</span>
                                         <Link
-                                            href={route('logout')}
+                                            href={route('logout', { locale: locale })}
                                             method="post"
                                             as="button"
                                             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
@@ -132,7 +132,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                                 </>
                             ) : (
                                 <a
-                                    href={route('auth.google')}
+                                    href={route('auth.google', { locale: locale })}
                                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl bg-primary text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95 mr-2"
                                 >
                                     <LogIn className="w-3.5 h-3.5" />
@@ -167,11 +167,11 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                             <div className="flex items-center gap-2">
                                 <ThemeToggle />
                                 <div className="hidden md:flex items-center gap-2">
-                                    <Link href={route('contact')} className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
+                                    <Link href={route('contact', { locale: locale })} className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 active:scale-95">
                                         <Mail className="w-3.5 h-3.5" />
                                         {__('Contact')}
                                     </Link>
-                                    <Link href={route('cv.index')} className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
+                                    <Link href={route('cv.index', { locale: locale })} className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-80 active:scale-95">
                                         <Download className="w-3.5 h-3.5" />
                                         {__('CV')}
                                     </Link>
@@ -251,7 +251,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
                             {user.is_admin && (
                                 <Link
-                                    href={route('dashboard')}
+                                    href={route('dashboard', { locale: locale })}
                                     className="flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-2xl text-foreground/80 hover:bg-muted transition-all active:scale-[0.98]"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
@@ -263,7 +263,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                             )}
 
                             <Link
-                                href={route('logout')}
+                                href={route('logout', { locale: locale })}
                                 method="post"
                                 as="button"
                                 className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-destructive rounded-2xl hover:bg-destructive/5 transition-all w-full text-left active:scale-[0.98]"
@@ -278,7 +278,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     ) : (
                         <div className="px-1 py-1">
                             <a
-                                href={route('auth.google')}
+                                href={route('auth.google', { locale: locale })}
                                 className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-2xl bg-primary text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.97] transition-all"
                             >
                                 <LogIn className="w-4 h-4" />
@@ -290,13 +290,13 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
                     <div className="border-t border-border/40 my-2 mx-1" />
 
                     <div className="flex gap-2 px-1">
-                        <Link href={route('contact')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                        <Link href={route('contact', { locale: locale })} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                             <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-muted/50 border border-border/50 px-2 py-2.5 text-[10px] font-bold text-foreground transition-all active:scale-[0.97]">
                                 <Mail className="w-3.5 h-3.5" />
                                 {__('Contact')}
                             </button>
                         </Link>
-                        <Link href={route('cv.index')} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                        <Link href={route('cv.index', { locale: locale })} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                             <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-2 py-2.5 text-[10px] font-bold text-background transition-all active:scale-[0.97]">
                                 <Download className="w-3.5 h-3.5" />
                                 {__('My CV')}

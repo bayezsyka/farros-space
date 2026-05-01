@@ -80,7 +80,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
 
     const handleLike = async () => {
         try {
-            const response = await axios.post(route('threads.like', { thread: thread.slug }));
+            const response = await axios.post(route('threads.like', { locale: locale, thread: thread.slug }));
             setLikes(response.data.count);
             setIsLiked(response.data.status === 'liked');
         } catch (error) {
@@ -91,7 +91,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
 
     const handleDeleteThread = () => {
         if (!confirm(__('Are you sure you want to delete this thread?'))) return;
-        router.delete(route('threads.destroy', { thread: thread.slug }), {
+        router.delete(route('threads.destroy', { locale: locale, thread: thread.slug }), {
             preserveScroll: true
         });
     };
@@ -106,7 +106,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
         if (editContent.trim()) formData.append('content', editContent);
         if (editImage) formData.append('image', editImage);
 
-        router.post(route('threads.update', { thread: thread.slug }), formData as any, {
+        router.post(route('threads.update', { locale: locale, thread: thread.slug }), formData as any, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
@@ -146,7 +146,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(route('threads.comments.store', { thread: thread.slug }), {
+            const response = await axios.post(route('threads.comments.store', { locale: locale, thread: thread.slug }), {
                 content: newComment
             });
             setThread({
@@ -157,7 +157,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
             setNewComment('');
         } catch (error: any) {
             if (error.response?.status === 401) {
-                window.location.href = route('auth.google', { redirect: window.location.href });
+                window.location.href = route('auth.google', { locale: locale, redirect: window.location.href });
             } else {
                 alert(__('Failed to post comment.'));
             }
@@ -174,15 +174,15 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                 image={thread.image_url || undefined}
                 jsonLd={[
                     createBreadcrumbJsonLd([
-                        { name: __('Threads'), url: route('threads.index') },
-                        { name: __('Detail'), url: route('threads.show', { thread: thread.slug || String(thread.id) || 'unknown' }) }
+                        { name: __('Threads'), url: route('threads.index', { locale: locale }) },
+                        { name: __('Detail'), url: route('threads.show', { locale: locale, thread: thread.slug || String(thread.id) || 'unknown' }) }
                     ]),
                     createDiscussionForumPostingJsonLd(thread, profile)
                 ]}
             />
             <PageHeader
                 breadcrumbs={[
-                    { label: __('Threads'), href: route('threads.index') },
+                    { label: __('Threads'), href: route('threads.index', { locale: locale }) },
                     { label: __('Detail') }
                 ]}
                 badge={{ icon: MessageSquare, label: __('Comments') }}
@@ -194,7 +194,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                 <Container>
                     <div className="max-w-2xl">
                         <Link
-                            href={route('threads.index')}
+                            href={route('threads.index', { locale: locale })}
                             className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground mb-6 transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" /> {__('Back')}
@@ -227,12 +227,12 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                         <span className="font-bold text-[15px] sm:text-[16px] hover:underline cursor-pointer truncate max-w-[150px] sm:max-w-none">
                                             {isPublic ? (
                                                 thread.user?.id ? (
-                                                    <Link href={route('threads.user', thread.user.name)} className="hover:text-primary transition-colors">
+                                                    <Link href={route('threads.user', { locale: locale, username: thread.user.name })} className="hover:text-primary transition-colors">
                                                         {thread.user.name || 'Guest'}
                                                     </Link>
                                                 ) : 'Guest'
                                             ) : (
-                                                <Link href={route('threads.user', 'owner')} className="hover:text-primary transition-colors">
+                                                <Link href={route('threads.user', { locale: locale, username: 'owner' })} className="hover:text-primary transition-colors">
                                                     {profile?.full_name || 'Farros'}
                                                 </Link>
                                             )}
@@ -412,7 +412,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                                                         {__('You must log in first to participate in the conversation.')}
                                                     </span>
                                                     <a
-                                                        href={route('auth.google', { redirect: window.location.href })}
+                                                        href={route('auth.google', { locale: locale, redirect: window.location.href })}
                                                         className="flex-shrink-0 bg-background border border-border px-5 py-2 rounded-full text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all"
                                                     >
                                                         {__('Log in')}

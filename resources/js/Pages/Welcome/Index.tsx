@@ -72,7 +72,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                 </div>
                                 <Typography variant="h3" className="text-lg font-black tracking-tight">{__('Recent Experience')}</Typography>
                             </div>
-                            <Link href={route('experiences.index')} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+                            <Link href={route('experiences.index', { locale: locale })} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
                                 {__('View All')} <ChevronRight className="w-3 h-3" />
                             </Link>
                         </div>
@@ -81,7 +81,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                             {(experiences || []).length > 0 ? (experiences || []).slice(0, 3).map((exp) => (
                                 <Link 
                                     key={exp.id} 
-                                    href={route('experiences.show', exp.slug)}
+                                    href={route('experiences.show', { locale: locale, experience: exp.slug })}
                                     className="group flex items-center justify-between p-4 rounded-3xl bg-muted/30 border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all active:scale-[0.98]"
                                 >
                                     <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                 </div>
                                 <Typography variant="h3" className="text-lg font-black tracking-tight">{__('Marketplace')}</Typography>
                             </div>
-                            <Link href={route('marketplace.index')} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+                            <Link href={route('marketplace.index', { locale: locale })} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
                                 {__('Explore')} <ChevronRight className="w-3 h-3" />
                             </Link>
                         </div>
@@ -127,7 +127,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                             {(marketplaceItems || []).length > 0 ? (marketplaceItems || []).slice(0, 4).map((item) => (
                                 <Link 
                                     key={item.id} 
-                                    href={route('marketplace.show', item.slug)}
+                                    href={route('marketplace.show', { locale: locale, marketplaceItem: item.slug })}
                                     className="group relative bg-muted/20 border border-border/50 rounded-3xl overflow-hidden hover:bg-muted/40 transition-all active:scale-[0.98]"
                                 >
                                     <div className="aspect-[4/3] bg-muted/50 relative overflow-hidden">
@@ -178,7 +178,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                 </div>
                                 <Typography variant="h3" className="text-lg font-black tracking-tight">{__('Recent Threads')}</Typography>
                             </div>
-                            <Link href={route('threads.index')} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+                            <Link href={route('threads.index', { locale: locale })} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
                                 {__('View Feed')} <ChevronRight className="w-3 h-3" />
                             </Link>
                         </div>
@@ -191,7 +191,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                                     style={{ animationDelay: `${idx * 100}ms` }}
                                 >
                                     <Link 
-                                        href={route('threads.show', { thread: thread.slug || String(thread.id) || 'unknown' })}
+                                        href={route('threads.show', { locale: locale, thread: thread.slug || String(thread.id) || 'unknown' })}
                                         className="flex items-start gap-4 p-3 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
                                     >
                                         <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0 border border-border/50">
@@ -237,7 +237,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                     </div>
 
                     <div className="mt-16 text-center">
-                        <Link href={route('contact')}>
+                        <Link href={route('contact', { locale: locale })}>
                             <button className="inline-flex items-center gap-2 bg-foreground text-background rounded-full px-8 py-3 text-sm font-black hover:opacity-90 transition-all shadow-xl shadow-foreground/10 active:scale-95">
                                 {__('CONTACT ME')} <ArrowRight className="w-4 h-4 ml-1" />
                             </button>

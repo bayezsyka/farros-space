@@ -43,6 +43,7 @@ interface Props {
 }
 
 export default function UserThreads({ threads, profile, threadUser }: Props) {
+    const { locale } = usePage<PageProps>().props;
     const { __ } = useTranslation();
     const [page, setPage] = useState(1);
     const perPage = 15;
@@ -59,7 +60,7 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
                     {/* Header */}
                     <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
                         <Link
-                            href={route('threads.index')}
+                            href={route('threads.index', { locale: locale })}
                             className="p-1.5 sm:p-2 rounded-full hover:bg-zinc-100 transition-colors flex-shrink-0"
                         >
                             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -135,7 +136,7 @@ export default function UserThreads({ threads, profile, threadUser }: Props) {
                     {/* Back to all threads */}
                     <div className="mt-4 sm:mt-6 text-center">
                         <Link
-                            href={route('threads.index')}
+                            href={route('threads.index', { locale: locale })}
                             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary hover:underline transition-colors"
                         >
                             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {__('Back to all threads')}
