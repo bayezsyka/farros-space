@@ -45,7 +45,7 @@ export const CommentCard = ({ comment, onDeleted }: CommentCardProps) => {
             // Using axios because comments are often loaded dynamically in ThreadCard
             // But we can also use Inertia if it's on the show page. We will use axios
             // as ThreadCard uses axios to fetch them initially.
-            await axios.delete(route('threads.comments.destroy', comment.id));
+            await axios.delete(route('threads.comments.destroy', { locale: locale || 'id', comment: comment.id }));
             if (onDeleted) onDeleted(comment.id);
         } catch (error) {
             console.error(error);

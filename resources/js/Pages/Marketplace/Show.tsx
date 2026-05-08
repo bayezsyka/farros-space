@@ -146,7 +146,7 @@ export default function Show({ item }: Props) {
                     {/* Breadcrumb */}
                     <div className="mb-8">
                         <Link
-                            href={route('marketplace.index')}
+                            href={route('marketplace.index', { locale: locale || 'id' })}
                             className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group"
                         >
                             <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 transition-colors">
@@ -330,7 +330,7 @@ export default function Show({ item }: Props) {
                                     </div>
                                 )}
                                 <Link
-                                    href={route('marketplace.index')}
+                                    href={route('marketplace.index', { locale: locale || 'id' })}
                                     className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold rounded-2xl transition-colors text-base border border-zinc-200 dark:border-zinc-800"
                                 >
                                     <ArrowLeft className="w-4 h-4" />

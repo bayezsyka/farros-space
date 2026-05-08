@@ -175,7 +175,7 @@ export default function ThreadShow({ thread: initialThread, profile }: Props) {
                 jsonLd={[
                     createBreadcrumbJsonLd([
                         { name: __('Threads'), url: route('threads.index', { locale: locale }) },
-                        { name: __('Detail'), url: route('threads.show', { locale: locale, thread: thread.slug || String(thread.id) || 'unknown' }) }
+                        { name: __('Detail'), url: route('threads.show', { locale: locale || 'id', thread: thread }) }
                     ]),
                     createDiscussionForumPostingJsonLd(thread, profile)
                 ]}

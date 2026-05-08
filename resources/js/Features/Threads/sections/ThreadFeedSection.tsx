@@ -37,7 +37,7 @@ interface ThreadFeedSectionProps {
 }
 
 export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads, profile }: ThreadFeedSectionProps) => {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
     const [publicThreads, setPublicThreads] = useState(initialPublicThreads);
 
     const handlePublicThreadSuccess = (newThread: Thread) => {
@@ -107,7 +107,7 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
 
                         {/* Single Primary Navigation Action */}
                         <Link
-                            href={route('threads.index')}
+                            href={route('threads.index', { locale: locale || 'id' })}
                             className="group flex items-center justify-center gap-2 py-6 text-sm font-black border-t border-border/50 bg-muted/10 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
                         >
                             JELAJAHI SEMUA DISKUSI
@@ -122,7 +122,7 @@ export const ThreadFeedSection = ({ threads, publicThreads: initialPublicThreads
 
 // ── Public Thread Form ──
 const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }) => {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -132,14 +132,14 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(route('threads.store'), {
+            const response = await axios.post(route('threads.store', { locale: locale || 'id' }), {
                 content: content
             });
             onSuccess(response.data);
             setContent('');
         } catch (error: any) {
             if (error.response?.status === 401) {
-                window.location.href = route('auth.google');
+                window.location.href = route('auth.google', { locale: locale || 'id' });
             } else {
                 alert("Gagal mengirim thread.");
             }
@@ -155,7 +155,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     Masuk untuk berbagi cerita kamu.
                 </p>
                 <a
-                    href={route('auth.google', { redirect: typeof window !== 'undefined' ? window.location.href : '' })}
+                    href={route('auth.google', { locale: locale || 'id', redirect: typeof window !== 'undefined' ? window.location.href : '' })}
                     className="flex-shrink-0 flex items-center gap-2 bg-background border border-border px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all active:scale-95"
                 >
                     <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24">

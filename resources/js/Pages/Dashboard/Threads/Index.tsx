@@ -41,7 +41,7 @@ interface Props {
 }
 
 export default function Index({ threads, profile }: Props) {
-    const { auth } = usePage().props as any;
+    const { auth, locale } = usePage().props as any;
     const [isCreating, setIsCreating] = useState(false);
     const [editingThread, setEditingThread] = useState<Thread | null>(null);
     const [threadComments, setThreadComments] = useState<Record<number, any[]>>({});
@@ -61,7 +61,7 @@ export default function Index({ threads, profile }: Props) {
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingThread) {
-            post(route('dashboard.threads.update', editingThread.id), {
+            post(route('threads.update', { locale: locale || 'id', thread: editingThread }), {
                 forceFormData: true,
                 onSuccess: () => {
                     setEditingThread(null);
@@ -70,7 +70,7 @@ export default function Index({ threads, profile }: Props) {
                 },
             });
         } else {
-            post(route('dashboard.threads.store'), {
+            post(route('threads.store', { locale: locale || 'id' }), {
                 forceFormData: true,
                 onSuccess: () => {
                     setIsCreating(false);
@@ -108,7 +108,7 @@ export default function Index({ threads, profile }: Props) {
 
         if (!threadComments[threadId]) {
             try {
-                const response = await axios.get(route('threads.comments.index', threadId));
+                const response = await axios.get(route('threads.comments.index', { locale: locale || 'id', thread: threadId }));
                 setThreadComments({ ...threadComments, [threadId]: response.data });
             } catch (error) {
                 console.error("Gagal mengambil komentar", error);
@@ -121,7 +121,7 @@ export default function Index({ threads, profile }: Props) {
         if (!confirm('Hapus komentar ini?')) return;
 
         try {
-            await axios.delete(route('dashboard.comments.destroy', commentId));
+            await axios.delete(route('threads.comments.destroy', { locale: locale || 'id', comment: commentId }));
             setThreadComments({
                 ...threadComments,
                 [threadId]: threadComments[threadId].filter(c => c.id !== commentId)
@@ -392,7 +392,7 @@ export default function Index({ threads, profile }: Props) {
                                         <button
                                             onClick={() => {
                                                 if (confirm('Hapus postingan ini?')) {
-                                                    destroy(route('dashboard.threads.destroy', thread.id));
+                                                    destroy(route('threads.destroy', { locale: locale || 'id', thread: thread }));
                                                 }
                                             }}
                                             className="p-2 hover:bg-red-50 rounded-full text-red-500 transition-colors"

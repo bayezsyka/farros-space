@@ -27,7 +27,7 @@ interface Thread {
 }
 
 const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }) => {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, locale } = usePage<PageProps>().props;
     const { __ } = useTranslation();
     const [content, setContent] = useState('');
     const [image, setImage] = useState<File | null>(null);
@@ -68,7 +68,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
             if (content.trim()) formData.append('content', content);
             if (image) formData.append('image', image);
 
-            await axios.post(route('threads.store'), formData, {
+            await axios.post(route('threads.store', { locale: locale || 'id' }), formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -88,7 +88,7 @@ const PublicThreadForm = ({ onSuccess }: { onSuccess: (thread: Thread) => void }
                     {__('Log in to share your story with everyone.')}
                 </p>
                 <a
-                    href={route('auth.google', { redirect: typeof window !== 'undefined' ? window.location.href : '' })}
+                    href={route('auth.google', { locale: locale || 'id', redirect: typeof window !== 'undefined' ? window.location.href : '' })}
                     className="flex-shrink-0 flex items-center gap-2 bg-background border border-border px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:bg-muted transition-all active:scale-95"
                 >
                     <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">

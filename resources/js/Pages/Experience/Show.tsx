@@ -84,7 +84,7 @@ export default function Show({ experience, auth }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('experience-updates.store', experience.slug), {
+        post(route('experience-updates.store', { locale: locale || 'id', experience: experience.slug }), {
             onSuccess: () => {
                 reset();
                 setImagePreview(null);
@@ -123,7 +123,7 @@ export default function Show({ experience, auth }: Props) {
 
     const submitEdit = (e: React.FormEvent) => {
         e.preventDefault();
-        editForm.post(route('experience-updates.update', editingUpdateId as number), {
+        editForm.post(route('experience-updates.update', { locale: locale || 'id', experienceUpdate: editingUpdateId as number }), {
             onSuccess: () => {
                 setEditingUpdateId(null);
                 editForm.reset();
@@ -135,7 +135,7 @@ export default function Show({ experience, auth }: Props) {
 
     const handleFinalSave = () => {
         import('@inertiajs/react').then(({ router }) => {
-            router.put(route('experiences.update', experience.slug), {
+            router.put(route('experiences.update', { locale: locale || 'id', experience: experience.slug }), {
                 type: experience.type,
                 company_or_event_name: experience.company_or_event_name,
                 umbrella_organization: experience.umbrella_organization,
@@ -151,7 +151,7 @@ export default function Show({ experience, auth }: Props) {
     const handleDeleteUpdate = (id: number) => {
         if (confirm(__('Delete this story?'))) {
             import('@inertiajs/react').then(({ router }) => {
-                router.delete(route('experience-updates.destroy', id));
+                router.delete(route('experience-updates.destroy', { locale: locale || 'id', experienceUpdate: id }));
             });
         }
     };
@@ -164,7 +164,7 @@ export default function Show({ experience, auth }: Props) {
 
         if (confirm(confirmMsg)) {
             import('@inertiajs/react').then(({ router }) => {
-                router.post(route(`experiences.${action}`, experience.slug));
+                router.post(route(`experiences.${action}`, { locale: locale || 'id', experience: experience.slug }));
             });
         }
     };
@@ -184,8 +184,8 @@ export default function Show({ experience, auth }: Props) {
                 title={`${locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role)} | ${locale === 'en' ? (experience.company_or_event_name_en || experience.company_or_event_name) : (experience.company_or_event_name_id || experience.company_or_event_name)}`}
                 description={locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role)}
                 jsonLd={createBreadcrumbJsonLd([
-                    { name: __('Experiences'), url: route('experiences.index') },
-                    { name: locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role), url: route('experiences.show', experience.slug) }
+                    { name: __('Experiences'), url: route('experiences.index', { locale: locale || 'id' }) },
+                    { name: locale === 'en' ? (experience.role_en || experience.role) : (experience.role_id || experience.role), url: route('experiences.show', { locale: locale || 'id', experience: experience.slug }) }
                 ])}
             />
 
@@ -203,7 +203,7 @@ export default function Show({ experience, auth }: Props) {
                 <Container>
                     <div className="max-w-2xl">
                         <Link 
-                            href={route('experiences.index')}
+                            href={route('experiences.index', { locale: locale || 'id' })}
                             className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors mb-6 group"
                         >
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -276,7 +276,7 @@ export default function Show({ experience, auth }: Props) {
                                                         onClick={() => {
                                                             if (confirm(__('Regenerate AI summary based on latest stories? This might take a few seconds.'))) {
                                                                 import('@inertiajs/react').then(({ router }) => {
-                                                                    router.post(route('experiences.generate-summary', experience.slug));
+                                                                    router.post(route('experiences.generate-summary', { locale: locale || 'id', experience: experience.slug }));
                                                                 });
                                                             }
                                                         }}
