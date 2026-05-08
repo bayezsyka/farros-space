@@ -57,7 +57,7 @@ export default function AppLayout({ children, title, overlayHeader }: Props) {
 
     const navLinks = [
         { href: route('landing', { locale: locale }), label: __('Home'), icon: Home },
-        { href: route('threads.index', { locale: locale }), label: __('Threads'), icon: MessageSquare },
+
         { href: route('marketplace.index', { locale: locale }), label: __('Marketplace'), icon: ShoppingBag },
         { href: route('experiences.index', { locale: locale }), label: __('Experience'), icon: Briefcase },
     ];

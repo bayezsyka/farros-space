@@ -1,0 +1,1 @@
+function D(c,e,n="id"){const s=new Date(c),t=e?new Date(e):null,i=new Date,o=n==="id"?"id-ID":"en-US",d=n==="id"?"Saat ini":"Present",r={month:"long",year:"numeric"},a=s.toLocaleDateString(o,r);if(!t||t>i)return`${a} - ${d}`;const l=t.toLocaleDateString(o,r);return`${a} - ${l}`}export{D as f};

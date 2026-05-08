@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class GeminiService
 {
     protected string $apiKey;
-    protected string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    protected string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
     public function __construct()
     {
@@ -129,6 +129,7 @@ class GeminiService
                     $data = $response->json();
                     $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
                     if ($text) {
+                        $text = preg_replace('/^```json\s*|\s*```$/i', '', trim($text));
                         return json_decode($text, true);
                     }
                 }
@@ -281,6 +282,7 @@ class GeminiService
                     $data = $response->json();
                     $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
                     if ($text) {
+                        $text = preg_replace('/^```json\s*|\s*```$/i', '', trim($text));
                         return json_decode($text, true);
                     }
                 }

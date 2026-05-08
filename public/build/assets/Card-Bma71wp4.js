@@ -1,0 +1,1 @@
+import{j as a}from"./app-o0I-1yfM.js";import{c as o}from"./ThemeToggle-BkoNg9Mv.js";const e=({className:s,...r})=>a.jsx("div",{className:o("rounded-lg border bg-card text-card-foreground shadow-sm",s),...r}),c=({className:s,...r})=>a.jsx("div",{className:o("p-6 pt-0",s),...r});export{e as C,c as a};

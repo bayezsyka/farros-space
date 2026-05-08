@@ -7,7 +7,6 @@ import { Container } from '@/Components/ui/Container';
 import { Typography } from '@/Components/ui/Typography';
 import { Link, usePage } from '@inertiajs/react';
 import { 
-    MessageSquare, 
     Briefcase, 
     ShoppingBag, 
     ArrowRight, 
@@ -17,37 +16,21 @@ import {
     Sparkles,
     CheckCircle2
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { id, enUS } from 'date-fns/locale';
+
 import { PageProps } from '@/types';
 import useTranslation from '@/Hooks/useTranslation';
 
 interface Props {
     profile: any;
-    latestThreads: any[];
-    publicThreads: any[];
     experiences: any[];
     marketplaceItems: any[];
 }
 
-export default function Index({ profile, latestThreads, publicThreads, experiences, marketplaceItems }: Props) {
+export default function Index({ profile, experiences, marketplaceItems }: Props) {
     const { auth, locale } = usePage<PageProps>().props;
     const { __ } = useTranslation();
     
-    // Combine and sort threads (with safeguards for null arrays)
-    const safeLatestThreads = Array.isArray(latestThreads) ? latestThreads : [];
-    const safePublicThreads = Array.isArray(publicThreads) ? publicThreads : [];
-    
-    const allThreads = [
-        ...safeLatestThreads.map(t => ({...t, is_owner: true})), 
-        ...safePublicThreads.map(t => ({...t, is_owner: false}))
-    ]
-        .sort((a, b) => {
-            const timeA = new Date(a.created_at || 0).getTime();
-            const timeB = new Date(b.created_at || 0).getTime();
-            return timeB - timeA;
-        })
-        .slice(0, 5);
+
 
     return (
         <AppLayout title={__('Home')} overlayHeader={true}>
@@ -169,72 +152,7 @@ export default function Index({ profile, latestThreads, publicThreads, experienc
                         </div>
                     </div>
 
-                    {/* ── Slim Floating Threads ── */}
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-6 px-1">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600">
-                                    <MessageSquare className="w-4 h-4" />
-                                </div>
-                                <Typography variant="h3" className="text-lg font-black tracking-tight">{__('Recent Threads')}</Typography>
-                            </div>
-                            <Link href={route('threads.index', { locale: locale })} className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
-                                {__('View Feed')} <ChevronRight className="w-3 h-3" />
-                            </Link>
-                        </div>
 
-                        <div className="space-y-2">
-                            {allThreads.map((thread, idx) => (
-                                <div 
-                                    key={thread.id} 
-                                    className="relative group animate-in fade-in slide-in-from-bottom-2 duration-300" 
-                                    style={{ animationDelay: `${idx * 100}ms` }}
-                                >
-                                    <Link 
-                                        href={route('threads.show', { locale: locale || 'id', thread: thread })}
-                                        className="flex items-start gap-4 p-3 rounded-2xl bg-background border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
-                                    >
-                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0 border border-border/50">
-                                            {thread.is_owner ? (
-                                                <img src={profile?.avatar_url || '/images/hero-foto-saya.webp'} className="w-full h-full object-cover" loading="lazy" decoding="async" width="32" height="32" />
-                                            ) : (
-                                                thread.user?.avatar ? (
-                                                    <img src={thread.user.avatar} className="w-full h-full object-cover" loading="lazy" decoding="async" width="32" height="32" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold bg-primary/10 text-primary uppercase">
-                                                        {thread.user?.name?.charAt(0) || 'G'}
-                                                    </div>
-                                                )
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0 pr-2">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <span className="text-xs font-black text-foreground truncate max-w-[120px]">
-                                                    {thread.is_owner ? (profile?.full_name || 'Farros') : (thread.user?.name || 'Guest')}
-                                                </span>
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {thread.created_at ? formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: locale === 'id' ? id : enUS }) : __('just now')}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors break-words">
-                                                {thread.content}
-                                            </p>
-                                        </div>
-                                        <div className="flex-shrink-0 self-center">
-                                            <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                                <ChevronRight className="w-3.5 h-3.5" />
-                                            </div>
-                                        </div>
-                                    </Link>
-                                    
-                                    {/* Small indicator dots for "thread feel" */}
-                                    {idx < allThreads.length - 1 && (
-                                        <div className="absolute left-[15px] -bottom-[12px] w-[2px] h-[10px] bg-border/40 z-0"></div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
                     <div className="mt-16 text-center">
                         <Link href={route('contact', { locale: locale })}>

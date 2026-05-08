@@ -5,6 +5,7 @@ import { Download, ArrowLeft } from 'lucide-react';
 import { formatExperienceDate } from '@/lib/utils';
 import useTranslation from '@/Hooks/useTranslation';
 import { PageProps } from '@/types';
+import QRCode from "react-qr-code";
 
 interface Profile {
     full_name?: string;
@@ -72,6 +73,7 @@ const translations = {
         contact: "Kontak",
         head_prefix: "CV",
         meta_description: "CV Farros - Pengalaman profesional dan pendidikan.",
+        generated_at: "Dokumen ini dibuat otomatis pada",
     },
     en: {
         summary: "Summary",
@@ -83,6 +85,7 @@ const translations = {
         contact: "Contact",
         head_prefix: "CV",
         meta_description: "Farros CV - Professional experiences and education.",
+        generated_at: "This document was automatically generated on",
     }
 };
 
@@ -135,40 +138,46 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
         <div style={baseStyle}>
 
             {/* ══════════ HEADER ══════════ */}
-            <div style={{ textAlign: 'center', marginBottom: '4px' }}>
-                <div style={{
-                    fontFamily: "Arial, Helvetica, sans-serif",
-                    fontSize: '18pt',
-                    fontWeight: 700,
-                    textTransform: 'uppercase' as const,
-                    letterSpacing: '0.06em',
-                    lineHeight: '1.2',
-                    color: '#000',
-                }}>
-                    {name}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                    <div style={{
+                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontSize: '18pt',
+                        fontWeight: 700,
+                        textTransform: 'uppercase' as const,
+                        letterSpacing: '0.06em',
+                        lineHeight: '1.2',
+                        color: '#000',
+                    }}>
+                        {name}
+                    </div>
+
+                    {headline && (
+                        <div style={{
+                            fontSize: '10.5pt',
+                            fontWeight: 400,
+                            color: '#222',
+                            marginTop: '2px',
+                        }}>
+                            {headline}
+                        </div>
+                    )}
+
+                    {contactLine && (
+                        <div style={{
+                            fontSize: '9.5pt',
+                            color: '#111',
+                            marginTop: '3px',
+                            lineHeight: '1.4',
+                        }}>
+                            {contactLine}
+                        </div>
+                    )}
                 </div>
-
-                {headline && (
-                    <div style={{
-                        fontSize: '10.5pt',
-                        fontWeight: 400,
-                        color: '#222',
-                        marginTop: '2px',
-                    }}>
-                        {headline}
-                    </div>
-                )}
-
-                {contactLine && (
-                    <div style={{
-                        fontSize: '9.5pt',
-                        color: '#111',
-                        marginTop: '3px',
-                        lineHeight: '1.4',
-                    }}>
-                        {contactLine}
-                    </div>
-                )}
+                <div style={{ marginLeft: '16px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', marginTop: '4px' }}>
+                    <QRCode value="https://farros.space" size={64} level="L" />
+                    <span style={{ fontSize: '7pt', color: '#666', fontFamily: 'monospace', marginRight: '2px' }}>farros.space</span>
+                </div>
             </div>
 
             {/* ══════════ RINGKASAN ══════════ */}
@@ -268,6 +277,20 @@ function CVContent({ profile, education, experiences, lang }: { profile: Profile
                     </div>
                 </>
             )}
+
+            {/* ══════════ FOOTER TIMESTAMP ══════════ */}
+            <div style={{
+                marginTop: '30px',
+                paddingTop: '10px',
+                borderTop: '1px solid #eaeaea',
+                fontSize: '8pt',
+                color: '#666',
+                textAlign: 'center',
+                fontStyle: 'italic',
+                width: '100%'
+            }}>
+                {t.generated_at}: {new Date().toLocaleString(lang === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'long', timeStyle: 'short' })}
+            </div>
 
         </div>
     );

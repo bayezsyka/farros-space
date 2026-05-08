@@ -27,14 +27,7 @@ Route::prefix('{locale}')->where(['locale' => 'en|id'])->group(function () {
     Route::get('/marketplace', [\App\Http\Controllers\MarketplaceController::class, 'index'])->name('marketplace.index');
     Route::get('/marketplace/{marketplaceItem}', [\App\Http\Controllers\MarketplaceController::class, 'show'])->name('marketplace.show');
 
-    Route::get('/threads', [App\Http\Controllers\ThreadController::class, 'index'])->name('threads.index');
-    Route::get('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'show'])->name('threads.show');
-    Route::get('/{username}/threads', [App\Http\Controllers\UserThreadController::class, 'index'])->name('threads.user');
 
-    Route::post('/threads/{thread}/like', [App\Http\Controllers\Api\ThreadInteractionController::class, 'like'])->name('threads.like');
-    Route::post('/threads/{thread}/share', [App\Http\Controllers\Api\ThreadInteractionController::class, 'share'])->name('threads.share');
-
-    Route::get('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentController::class, 'index'])->name('threads.comments.index');
 
     Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         Route::get('/dashboard', function () {
@@ -79,12 +72,7 @@ Route::prefix('{locale}')->where(['locale' => 'en|id'])->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-        Route::post('/threads', [App\Http\Controllers\ThreadController::class, 'store'])->name('threads.store');
-        Route::put('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'update'])->name('threads.update');
-        Route::delete('/threads/{thread}', [App\Http\Controllers\ThreadController::class, 'destroy'])->name('threads.destroy');
 
-        Route::post('/threads/{thread}/comments', [App\Http\Controllers\ThreadCommentController::class, 'store'])->name('threads.comments.store');
-        Route::delete('/comments/{comment}', [App\Http\Controllers\ThreadCommentController::class, 'destroy'])->name('threads.comments.destroy');
 
         // Admin-only Experience management
         Route::middleware('admin')->group(function () {
