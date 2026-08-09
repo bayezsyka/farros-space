@@ -1,4 +1,5 @@
 {
+    "name": "farros-space",
     "$schema": "https://www.schemastore.org/package.json",
     "private": true,
     "type": "module",
